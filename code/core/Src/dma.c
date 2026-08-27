@@ -48,14 +48,25 @@ bool DMA1_SPI2RX_Init (uint32_t where_to_store, uint32_t datanum) {
     if (LL_DMA_Init(DMA1, LL_DMA_CHANNEL_4, &DMA_InitStruct) != SUCCESS) {
         return false;
     }
-
-    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_4);
-    NVIC_SetPriority(DMA1_Channel4_IRQn, 1);
     return true;
 }
 
 bool DMA1_SPI2RX_DeInit (void) {
     return (LL_DMA_DeInit(DMA1, LL_DMA_CHANNEL_4) == SUCCESS);
+}
+
+/** Данную функцию нужно применять только после DMA1_SPI2RX_Init */
+void DMA1_SPI2RX_AllowInterrupt (void) {
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_4);
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 1);
+    NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+    return;
+}
+
+void DMA1_SPI2RX_DenyInterrupt (void) {
+    NVIC_DisableIRQ(DMA1_Channel4_IRQn);
+    LL_DMA_DisableIT_TC(DMA1, LL_DMA_CHANNEL_4);
+    return;
 }
 
 bool DMA1_SPI2TX_Init (uint32_t where_to_get, uint32_t datanum) {
@@ -84,13 +95,25 @@ bool DMA1_SPI2TX_DeInit (void) {
     return (LL_DMA_DeInit(DMA1, LL_DMA_CHANNEL_5) == SUCCESS);
 }
 
+/** Данную функцию нужно применять только после DMA1_SPI2RX_Init */
+void DMA1_SPI2TX_AllowInterrupt (void) {
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_5);
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 1);
+    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+    return;
+}
+
+void DMA1_SPI2TX_DenyInterrupt (void) {
+    NVIC_DisableIRQ(DMA1_Channel5_IRQn);
+    LL_DMA_DisableIT_TC(DMA1, LL_DMA_CHANNEL_5);
+    return;
+}
+
 void DMA1_SPI2RX_Start (void) {
     LL_SPI_EnableDMAReq_RX(SPI2);
 
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
     while (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {}
-    NVIC_EnableIRQ(DMA1_Channel4_IRQn);
-
     return;
 }
 
@@ -99,8 +122,6 @@ void DMA1_SPI2TX_Start (void) {
 
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
     while (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {}
-    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-
     return;
 }
 
@@ -109,10 +130,6 @@ void DMA1_SPI2RX_Stop (void) {
 
 	LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_4);
     while (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {}
-    NVIC_DisableIRQ(DMA1_Channel4_IRQn);
-    NVIC_ClearPendingIRQ(DMA1_Channel4_IRQn);
-
-    LL_DMA_ClearFlag_GI4(DMA1);
     return;
 }
 
@@ -121,9 +138,5 @@ void DMA1_SPI2TX_Stop (void) {
 
 	LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
     while (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {}
-    NVIC_DisableIRQ(DMA1_Channel5_IRQn);
-    NVIC_ClearPendingIRQ(DMA1_Channel5_IRQn);
-
-    LL_DMA_ClearFlag_GI5(DMA1);
     return;
 }

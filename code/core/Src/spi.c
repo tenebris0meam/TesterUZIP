@@ -1,5 +1,4 @@
-﻿#include "calc.h"
-#include "delay.h"
+﻿#include "delay.h"
 #include "gpio.h"
 #include "spi.h"
 #include "dma.h"
@@ -7,7 +6,6 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
-#include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_bus.h"
 
 #include <stddef.h>
@@ -263,15 +261,18 @@ static void spi2_release (void) {
         case INA239: 
             LL_GPIO_SetOutputPin(nCS_MON.port, nCS_MON.pin);
             DMA1_SPI2RX_Stop();
+            DMA1_SPI2RX_DenyInterrupt();
+            DMA1_SPI2TX_Stop();
             break;
 
         case LCD: 
             LL_GPIO_SetOutputPin(nCS_LCD.port, nCS_LCD.pin);
+            DMA1_SPI2TX_Stop();
+            DMA1_SPI2TX_DenyInterrupt();
             break;
 
         default: break;
     }
-    DMA1_SPI2TX_Stop();
 
     /*
      * Шину не выключаем. Возвращаем режим по умолчанию, чтобы синхронный
@@ -311,20 +312,11 @@ static SPIController_Status spi2_operate (const uint8_t *data,
             LL_GPIO_ResetOutputPin(nCS_MON.port, nCS_MON.pin);
 
             DMA1_SPI2RX_Init((uint32_t)ans, anssize);
-            DMA1_SPI2TX_Init((uint32_t)data, datasize);
-
-            /*
-             * Освобождать шину должен приём, а не передача: TC по передаче
-             * приходит раньше, чем придёт последний принятый байт. Гасим
-             * прерывание канала на уровне DMA, а не NVIC - тогда нет окна,
-             * в котором оно успело бы сработать. Строго ПОСЛЕ Init: она
-             * сама включает TC этого канала.
-             */
-            LL_DMA_DisableIT_TC(DMA1, LL_DMA_CHANNEL_5);
-
+            DMA1_SPI2RX_AllowInterrupt();
             DMA1_SPI2RX_Start();
+
+            DMA1_SPI2TX_Init((uint32_t)data, datasize);
             DMA1_SPI2TX_Start();
-            NVIC_DisableIRQ(DMA1_Channel5_IRQn);
             return SPICtrlStatus_Allow;
         }
 
@@ -338,7 +330,7 @@ static SPIController_Status spi2_operate (const uint8_t *data,
             LL_GPIO_ResetOutputPin(nCS_LCD.port, nCS_LCD.pin);
 
             DMA1_SPI2TX_Init((uint32_t)data, datasize);
-            LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_5);
+            DMA1_SPI2TX_AllowInterrupt();
             DMA1_SPI2TX_Start();
             return SPICtrlStatus_Allow;
         }

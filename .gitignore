@@ -1,8 +1,7 @@
 .vscode
 .cache
-
-*.drd
-
+build
 docs/pdf/*
 
+*.drd
 compile_commands.json

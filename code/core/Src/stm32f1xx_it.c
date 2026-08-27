@@ -277,6 +277,8 @@ void TIM3_IRQHandler (void) {
 void DMA1_Channel4_IRQHandler (void) {
 	/* Сбрасываем флаг завершения приёма */
 	LL_DMA_ClearFlag_TC4(DMA1);
+	/* Сбрасываем флаг прерывания 4-го канала DMA */
+    LL_DMA_ClearFlag_GI4(DMA1);
 
 	spi2ctrl.complete();
 	return;
@@ -285,6 +287,8 @@ void DMA1_Channel4_IRQHandler (void) {
 void DMA1_Channel5_IRQHandler (void) {
 	/* Сбрасываем флаг завершения передачи */
 	LL_DMA_ClearFlag_TC5(DMA1);
+	/* Сбрасываем флаг прерывания 5-го канала DMA */
+    LL_DMA_ClearFlag_GI5(DMA1);
 
 	spi2ctrl.complete();
 	return;

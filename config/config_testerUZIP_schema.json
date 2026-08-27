@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": 
+    {
+      "type": "object",
+      "properties": 
+        {
+          "Name": 
+            {
+              "allOf": [
+                { "type": "string" },
+                { "maxLength": 31 }
+              ]
+            },
+          "Groups": 
+            {
+              "type": "array",
+              "items": 
+                {
+                  "type": "object",
+                  "properties": 
+                    {
+                      "Name": 
+                        {
+                          "allOf": [
+                            { "type": "string" },
+                            { "maxLength": 31 }
+                          ]
+                        },
+                      "Devices": 
+                        {
+                          "type": "array",
+                          "items": 
+                            {
+                              "type": "object",
+                              "properties": 
+                                {
+                                  "Name": 
+                                    {
+                                      "allOf": [
+                                        { "type": "string" },
+                                        { "maxLength": 31 }
+                                      ]
+                                    },
+                                  "MinVoltage": 
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 550
+                                    },
+                                  "MaxVoltage": 
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 550
+                                    },
+                                  "Discharger": 
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 550
+                                    },
+                                  "Connector": 
+                                    {
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 3
+                                    },
+                                  "Sequence": 
+                                    {
+                                      "oneOf": [
+                                        {
+                                          "type": "array",
+                                          "items": 
+                                            {
+                                              "type": "object",
+                                              "properties": 
+                                                {
+                                                  "InPin": 
+                                                    {
+                                                      "type": "integer",
+                                                      "minimum": 0,
+                                                      "maximum": 8
+                                                    },
+                                                  "OutPin": 
+                                                    { 
+                                                      "type": "integer", 
+                                                      "minimum": 0, 
+                                                      "maximum": 8 
+                                                    }
+                                                },
+                                              "required": [
+                                                "InPin",
+                                                "OutPin"
+                                              ]
+                                            }
+                                        },
+                                        { "type": "null" }
+                                      ]
+                                    }
+                                },
+                              "required": [
+                                "Name",
+                                "MinVoltage",
+                                "MaxVoltage",
+                                "Discharger",
+                                "Connector",
+                                "Sequence"
+                              ]
+                            }
+                        }
+                    },
+                  "required": [
+                    "Name",
+                    "Devices"
+                  ]
+                }
+            }
+        },
+      "required": [
+        "Name", 
+        "Groups"
+      ]
+    }
+}

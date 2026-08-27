@@ -1,0 +1,152 @@
+﻿#ifndef PARAMS_H_
+#define PARAMS_H_
+
+#include <stdint.h>
+
+/**
+ * @file params.h
+ * @brief Модель конфигурации тестера.
+ *
+ * @details Все структуры конфигурации лежат во Flash и генерируются на этапе
+ *          сборки скриптом tools/minify_json.py из config/new_config.json.
+ *          В ОЗУ не копируется ничего: params - это const-структура во Flash,
+ *          а имена представлены парой указателей MyString внутрь пула строк,
+ *          который лежит там же.
+ */
+
+#define MAX_NAME_SIZE (31)
+
+/** @brief Сигнатура блока конфигурации: 'T','U','Z','P'. */
+#define CONFIG_MAGIC (0x505A5554UL)
+
+/** @brief Версия формата блока конфигурации. Поднимать при смене раскладки. */
+#define CONFIG_VERSION (1UL)
+
+typedef enum {
+    Probe = (1UL << 0), 
+    RJ45 = (1UL << 1), 
+    K1 = (1UL << 2)
+} Param_Connector;
+
+/**
+ * @brief Ссылка на строку во Flash.
+ * @details Не завершена нулём: строка задана полуинтервалом [beg, end).
+ */
+typedef struct {
+    const char *beg;
+    const char *end;
+} MyString;
+
+
+
+static inline uint32_t MyString_GetSize (const MyString *const str) {
+    return ((uint32_t)(str->end - str->beg));
+}
+
+
+
+/** @brief Одна тестовая последовательность: пара коммутируемых линий. */
+typedef struct {
+    uint8_t input_pin;
+    uint8_t output_pin;
+} Params_TestSequence_TypeDef;
+
+/** @brief Описание одного испытуемого прибора. */
+typedef struct {
+    uint8_t seria_idx;
+    uint8_t group_idx;
+    uint8_t device_idx;
+    const uint8_t *sequence_idxs;   /**< индексы в Params_TypeDef::sequences */
+    uint8_t num_seqs;
+    uint16_t minimal_voltage_test;
+    uint16_t maximal_voltage_test;
+    uint16_t discharger_voltage; 
+    uint8_t connector_types;        /**< битовая маска Param_Connector */
+} Params_Device_TypeDef;
+
+/**
+ * @brief Корень конфигурации.
+ * @details Массивы, на которые ссылаются поля, лежат во Flash сразу за
+ *          структурой. Указатели - одинарные: таблиц указателей нет,
+ *          индексация идёт прямо по массиву.
+ */
+typedef struct {
+    uint32_t magic;                 /**< CONFIG_MAGIC   */
+    uint32_t version;               /**< CONFIG_VERSION */
+    uint8_t series_count;
+    uint8_t groups_count;
+    uint8_t devices_count;
+    uint8_t sequences_count;
+    const MyString *series_names;
+    const MyString *groups_names;
+    const MyString *devices_names;
+    const Params_TestSequence_TypeDef *sequences;
+    const Params_Device_TypeDef *devices;
+} Params_TypeDef;
+
+
+
+/**
+ * @brief Сгенерированная конфигурация во Flash.
+ * @details Определена в сгенерированном config_data.c, секция .config.
+ */
+extern const Params_TypeDef params;
+
+
+
+static inline uint8_t params_get_series_num (const Params_TypeDef *cfg) {
+    return cfg->series_count;
+}
+static inline uint8_t params_get_groups_num (const Params_TypeDef *cfg) {
+    return cfg->groups_count;
+}
+static inline uint8_t params_get_devices_num (const Params_TypeDef *cfg) {
+    return cfg->devices_count;
+}
+static inline uint8_t params_get_sequences_num (const Params_TypeDef *cfg) {
+    return cfg->sequences_count;
+}
+
+static inline 
+const MyString *params_get_seria_name (const Params_TypeDef *cfg, 
+                                       uint8_t ser_idx) {
+    return ((ser_idx < cfg->series_count) ? 
+            &cfg->series_names[ser_idx] : 
+            0);
+}
+
+static inline 
+const MyString *params_get_group_name (const Params_TypeDef *cfg, 
+                                       uint8_t grp_idx) {
+    return ((grp_idx < cfg->groups_count) ? 
+            &cfg->groups_names[grp_idx] : 
+            0);
+}
+
+static inline 
+const MyString *params_get_device_name (const Params_TypeDef *cfg, 
+                                        uint8_t dev_idx) {
+    return ((dev_idx < cfg->devices_count) ? 
+            &cfg->devices_names[dev_idx] : 
+            0);
+}
+
+static inline 
+const Params_TestSequence_TypeDef *params_get_sequence (const Params_TypeDef *cfg, 
+                                                        uint8_t seq_idx) {
+    return ((seq_idx < cfg->sequences_count) ? 
+            &cfg->sequences[seq_idx] : 
+            0);
+}
+
+static inline 
+const Params_Device_TypeDef *params_get_device (const Params_TypeDef *cfg, 
+                                                uint8_t dev_idx) {
+    return ((dev_idx < cfg->devices_count) ? 
+            &cfg->devices[dev_idx] : 
+            0);
+}
+
+
+
+#endif /* PARAMS_H_ */

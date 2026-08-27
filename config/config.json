@@ -1,0 +1,258 @@
+[
+    {
+        "Groups": [
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 250,
+                        "MaxVoltage": 250,
+                        "Discharger": 250,
+                        "Connector": 0,
+                        "Sequence": null,
+                        "Name": "Device 1"
+                    },
+                    {
+                        "MinVoltage": 200,
+                        "MaxVoltage": 200,
+                        "Discharger": 150,
+                        "Connector": 0,
+                        "Sequence": null,
+                        "Name": "Device 2"
+                    }
+                ],
+                "Name": "Devices Group 1"
+            },
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 60,
+                        "MaxVoltage": 100,
+                        "Discharger": 50,
+                        "Connector": 0,
+                        "Sequence": null,
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 2"
+            }
+        ],
+        "Name": "Devices Series 1"
+    },
+    {
+        "Groups": [
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 60,
+                        "MaxVoltage": 100,
+                        "Discharger": 50,
+                        "Connector": 1,
+                        "Sequence": [
+                            {
+                                "OutPin": 0,
+                                "InPin": 0
+                            },
+                            {
+                                "OutPin": 2,
+                                "InPin": 4
+                            },
+                            {
+                                "OutPin": 5,
+                                "InPin": 1
+                            }
+                        ],
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 1"
+            }
+        ],
+        "Name": "Devices Series 2"
+    },
+    {
+        "Groups": [
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 60,
+                        "MaxVoltage": 100,
+                        "Discharger": 50,
+                        "Connector": 2,
+                        "Sequence": [
+                            {
+                                "OutPin": 5,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 5,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 5,
+                                "InPin": 1
+                            }
+                        ],
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 1"
+            },
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 30,
+                        "MaxVoltage": 60,
+                        "Discharger": 10,
+                        "Connector": 2,
+                        "Sequence": [
+                            {
+                                "OutPin": 5,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 1,
+                                "InPin": 1
+                            }
+                        ],
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 2"
+            },
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 30,
+                        "MaxVoltage": 60,
+                        "Discharger": 10,
+                        "Connector": 0,
+                        "Sequence": null,
+                        "Name": "Device 1"
+                    },
+                    {
+                        "MinVoltage": 100,
+                        "MaxVoltage": 150,
+                        "Discharger": 50,
+                        "Connector": 0,
+                        "Sequence": null,
+                        "Name": "Device 2"
+                    }
+                ],
+                "Name": "Devices Group 3"
+            },
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 100,
+                        "MaxVoltage": 150,
+                        "Discharger": 50,
+                        "Connector": 0,
+                        "Sequence": null,
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 4"
+            }
+        ],
+        "Name": "Devices Series 3"
+    },
+    {
+        "Groups": [
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 100,
+                        "MaxVoltage": 150,
+                        "Discharger": 50,
+                        "Connector": 1,
+                        "Sequence": [
+                            {
+                                "OutPin": 1,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            }
+                        ],
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 1"
+            },
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 100,
+                        "MaxVoltage": 150,
+                        "Discharger": 50,
+                        "Connector": 1,
+                        "Sequence": [
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            }
+                        ],
+                        "Name": "Device 1"
+                    }
+                ],
+                "Name": "Devices Group 2"
+            },
+            {
+                "Devices": [
+                    {
+                        "MinVoltage": 100,
+                        "MaxVoltage": 150,
+                        "Discharger": 50,
+                        "Connector": 1,
+                        "Sequence": [],
+                        "Name": "Device 1"
+                    },
+                    {
+                        "MinVoltage": 100,
+                        "MaxVoltage": 150,
+                        "Discharger": 50,
+                        "Connector": 1,
+                        "Sequence": [
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 1
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 0
+                            },
+                            {
+                                "OutPin": 0,
+                                "InPin": 5
+                            }
+                        ],
+                        "Name": "Device 2"
+                    }
+                ],
+                "Name": "Devices Group 3"
+            }
+        ],
+        "Name": "Devices Series 4"
+    }
+]

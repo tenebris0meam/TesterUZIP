@@ -1,0 +1,8 @@
+.vscode
+.cache
+
+*.drd
+
+docs/pdf/*
+
+compile_commands.json

@@ -1,0 +1,15 @@
+﻿{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "debug",
+            "displayName": "Cross-compile with ARM GNU Toolchain Debug",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/arm-none-eabi.cmake",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ]
+}

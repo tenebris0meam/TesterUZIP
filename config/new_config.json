@@ -1,0 +1,81 @@
+[
+    {
+        "SeriesAmount": 1,
+        "GroupsAmount": 2,
+        "DevicesAmount": 3,
+        "SequencesAmount": 4,
+        "SeriesNames": [
+            "UZL"
+        ],
+        "GroupsNames": [
+            "UZL",
+            "UZL-E"
+        ],
+        "DevicesNames": [
+            "UZL",
+            "UZL-E",
+            "UZL-EP"
+        ],
+        "Sequences": [
+            {
+                "InputPin": 0,
+                "OutputPin": 1
+            },
+            {
+                "InputPin": 2,
+                "OutputPin": 5
+            },
+            {
+                "InputPin": 3,
+                "OutputPin": 4
+            },
+            {
+                "InputPin": 6,
+                "OutputPin": 7
+            }
+        ]
+    },
+    {
+        "SeriaID": 0,
+        "GroupID": 0,
+        "DeviceID": 0,
+        "SequenceIDs": [
+            0
+        ],
+        "SequenceIDAmount": 1,
+        "MinimalVoltage": 100,
+        "MaximalVoltage": 150,
+        "DischargerVoltage": 80,
+        "ConnectorMask": 1
+    },
+    {
+        "SeriaID": 0,
+        "GroupID": 1,
+        "DeviceID": 1,
+        "SequenceIDs": [
+            0,
+            1
+        ],
+        "SequenceIDAmount": 2,
+        "MinimalVoltage": 100,
+        "MaximalVoltage": 150,
+        "DischargerVoltage": 80,
+        "ConnectorMask": 3
+    },
+    {
+        "SeriaID": 0,
+        "GroupID": 1,
+        "DeviceID": 2,
+        "SequenceIDs": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "SequenceIDAmount": 4,
+        "MinimalVoltage": 100,
+        "MaximalVoltage": 150,
+        "DischargerVoltage": 80,
+        "ConnectorMask": 3
+    }
+]

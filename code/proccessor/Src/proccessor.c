@@ -240,7 +240,7 @@ static bool proccessor_apply_setpoint (void) {
     }
 
     calc_integrator_set_target_voltage(hv_feedback_volts_to_target_uV((uint16_t)volts));
-    return true; //delay_register_task(&generation_delay_task_id, GENERATION_STEP_TIMEOUT_MS, Millis);
+    return delay_register_task(&generation_delay_task_id, GENERATION_STEP_TIMEOUT_MS, Millis);
 }
 
 /** @brief Записать результат очередной проверки в модель. */
@@ -459,8 +459,8 @@ void proccessor_generation_proccess (void) {
      * Такой исход и по смыслу превышение тока: прибор проводит больше, чем
      * генератор может продавить.
      */
-    if (calc_integrator_is_settled()/* && 
-        !delay_is_not_yet_expired(generation_delay_task_id)*/) {
+    if (!calc_integrator_is_settled() && 
+        !delay_is_not_yet_expired(generation_delay_task_id)) {
         proccessor_raise_event(DeviceCurrentOverCurrent);
     }
 

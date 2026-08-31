@@ -1,6 +1,7 @@
 ﻿#include "proccessor.h"
 #include "commutator.h"
 #include "display.h"
+#include "ina239.h"
 #include "model.h"
 #include "calc.h"
 #include "hv_feedback.h"
@@ -126,6 +127,9 @@ static uint8_t generation_step = 0;
 /** @brief Идентификатор задачи для сторожевого таймера. */
 static int32_t generation_step_start = 0;
 static uint8_t generation_delay_task_id = 0;
+
+/** @brief Тип аппаратной ошибки */
+volatile TypeFail typefail = NoFail;
 
 /* test_config и test_results определены в model.c вместе с операциями над
  * ними - см. code/proccessor/Src/model.c */
@@ -589,10 +593,53 @@ void proccessor_hardwarefail_on_enter (void) {
 
     buzzer_turn_on();
     display_set_screen(ScreenHardwareFail);
+
+	INA239_Handle_t *hina = INA239_GetInstance();
+	uint16_t cur_diag_alert = 0;
+    uint8_t delay_id = 0;
+    delay_register_task(&delay_id, 3000, Millis);
+    while (INA239_ReadDiagAlert(hina, &cur_diag_alert) != INA239_OK) {
+        if (!delay_is_not_yet_expired(delay_id)) {
+            return;
+        }
+    }
+    delay_unregister_task(delay_id);
+
+    if (cur_diag_alert & INA239_DIAG_SHNTUL_Msk) {
+        /** Ток пошёл не в ту сторону */
+        typefail |= UnderCurrent;
+    }
+    if (cur_diag_alert & INA239_DIAG_BUSUL_Msk) {
+        /** Не та полярность напряжения */
+        typefail |= UnderVoltage;
+    }
+    if (cur_diag_alert & INA239_DIAG_SHNTOL_Msk) {
+        /** Превышение хардварного порога по току */
+        typefail |= OverCurrent;
+    }
+    if (cur_diag_alert & INA239_DIAG_BUSOL_Msk) {
+        /** Превышение хардварного порога по напряжению */
+        typefail |= OverVoltage;
+    }
+    if ((cur_diag_alert & INA239_DIAG_MATHOF_Msk) || 
+        !(cur_diag_alert & INA239_DIAG_MEMSTAT_Msk)) {
+        /** Математическая ошибка */
+        typefail |= MathOverflow;
+    }
+    if (!(cur_diag_alert & INA239_DIAG_MEMSTAT_Msk)) {
+        /** Ошибка памяти INA239 */
+        typefail |= MemoryError;
+    }
     return;
 }
 
 void proccessor_hardwarefail_on_exit (void) {
+    if ((typefail & MathOverflow) || 
+        (typefail & MemoryError)) {
+        if (!INA239_MainInit()) {
+            /** TODO: Ошибка повторной инициализации */
+        }
+    }
     return;
 }
 

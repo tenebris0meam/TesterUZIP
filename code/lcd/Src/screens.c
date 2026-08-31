@@ -348,6 +348,7 @@ void screen_settingsdevices_on_exit (void) {
 }
 
 void screen_hardwarefail_on_exit (void) {
+    typefail = NoFail;
     return;
 }
 
@@ -540,7 +541,33 @@ void screen_hardwarefail_render (void) {
                 LCDFONT_HEIGHT, 
                 LCDFONT_FIRST_CHAR, 
                 LCDFONT_LAST_CHAR);
-    fb_draw_string_xy(1, 19, "Hardware Fail");
+
+    uint8_t x = 1, y = 6;
+    if (typefail & UnderCurrent) {
+        fb_draw_string_xy(x, y, "Under Current");
+        y += 13;
+    }
+    if (typefail & UnderVoltage) {
+        fb_draw_string_xy(x, y, "Under Voltage");
+        y += 13;
+    }
+    if (typefail & OverCurrent) {
+        fb_draw_string_xy(x, y, "Over Current");
+        y += 13;
+    }
+    if (typefail & OverVoltage) {
+        fb_draw_string_xy(x, y, "Over Voltage");
+        y += 13;
+    }
+    if (typefail & MathOverflow) {
+        fb_draw_string_xy(x, y, "Math Overflow");
+        y += 13;
+    }
+    if (typefail == NoFail) {
+        fb_draw_string_xy(x, y, "No Fail");
+        y += 13;
+    }
+
     fb_set_font(JetBrains_Mono7x13_Cyrilic, 
                 LCDFONT_WIDTH, 
                 LCDFONT_HEIGHT, 

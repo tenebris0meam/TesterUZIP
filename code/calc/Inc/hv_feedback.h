@@ -10,13 +10,20 @@
  * @details ЭТО ЕДИНСТВЕННОЕ МЕСТО, где живёт эта связь. Всё остальное считает
  *          через hv_feedback_volts_to_target_uV().
  */
-#define HV_FEEDBACK_DIVIDER (7.291f)
+#if defined DEBUG
+#define HV_FEEDBACK_DIVIDER (5.994f)
 
-/** @brief Предел шины INA239, мкВ. Соответствует BOVL_RAW из ina239.h. */
-#define HV_FEEDBACK_BUS_LIMIT_uV (82500000UL)
+/** @brief Максимальное напряжение теста, допускаемое схемой конфигурации, В. */
+#define HV_FEEDBACK_MAX_TEST_V (400UL)
+#else 
+#define HV_FEEDBACK_DIVIDER (7.291f)
 
 /** @brief Максимальное напряжение теста, допускаемое схемой конфигурации, В. */
 #define HV_FEEDBACK_MAX_TEST_V (550UL)
+#endif
+
+/** @brief Предел шины INA239, мкВ. Соответствует BOVL_RAW из ina239.h. */
+#define HV_FEEDBACK_BUS_LIMIT_uV (82500000UL)
 
 /**
  * @brief Уставка регулятора в микровольтах на входе INA239.

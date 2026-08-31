@@ -42,6 +42,17 @@ typedef enum {
     Event_Count
 } Event;
 
+typedef enum {
+    NoFail,
+    UnderCurrent = (1UL << 0), 
+    UnderVoltage = (1UL << 1), 
+    OverCurrent = (1UL << 2), 
+    OverVoltage = (1UL << 3), 
+    MathOverflow = (1UL << 4),
+    MemoryError = (1UL << 5),
+    TypeFail_Count = 7
+} TypeFail;
+
 typedef struct {
     void (*on_enter) (void);
     void (*on_exit) (void);
@@ -51,6 +62,7 @@ typedef struct {
 
 extern const FiniteStateMachine proccessor[State_Count];
 extern volatile Event current_event;
+extern volatile TypeFail typefail;
 
 
 

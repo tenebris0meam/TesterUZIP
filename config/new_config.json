@@ -2,19 +2,22 @@
     {
         "SeriesAmount": 1,
         "GroupsAmount": 2,
-        "DevicesAmount": 3,
-        "SequencesAmount": 4,
+        "DevicesAmount": 6,
+        "SequencesAmount": 8,
         "SeriesNames": [
-            "UZL"
+            "SGK"
         ],
         "GroupsNames": [
-            "UZL",
-            "UZL-E"
+            "SGK",
+            "SGK-E"
         ],
         "DevicesNames": [
-            "UZL",
-            "UZL-E",
-            "UZL-EP"
+            "SGK-5",
+            "SGK-14",
+            "SGK-27",
+            "SGK",
+            "SGK-E",
+            "SGK-EO"
         ],
         "Sequences": [
             {
@@ -22,16 +25,32 @@
                 "OutputPin": 1
             },
             {
+                "InputPin": 1,
+                "OutputPin": 0
+            },
+            {
                 "InputPin": 2,
                 "OutputPin": 5
+            },
+            {
+                "InputPin": 5,
+                "OutputPin": 2
             },
             {
                 "InputPin": 3,
                 "OutputPin": 4
             },
             {
+                "InputPin": 4,
+                "OutputPin": 3
+            },
+            {
                 "InputPin": 6,
                 "OutputPin": 7
+            },
+            {
+                "InputPin": 7,
+                "OutputPin": 6
             }
         ]
     },
@@ -40,23 +59,68 @@
         "GroupID": 0,
         "DeviceID": 0,
         "SequenceIDs": [
-            0
+            0,
+            1
         ],
-        "SequenceIDAmount": 1,
-        "MinimalVoltage": 100,
-        "MaximalVoltage": 150,
-        "DischargerVoltage": 80,
+        "SequenceIDAmount": 2,
+        "MinimalVoltage": 5,
+        "MaximalVoltage": 8,
+        "DischargerVoltage": 0,
         "ConnectorMask": 1
     },
     {
         "SeriaID": 0,
-        "GroupID": 1,
+        "GroupID": 0,
         "DeviceID": 1,
         "SequenceIDs": [
             0,
             1
         ],
         "SequenceIDAmount": 2,
+        "MinimalVoltage": 10,
+        "MaximalVoltage": 18,
+        "DischargerVoltage": 0,
+        "ConnectorMask": 1
+    },
+    {
+        "SeriaID": 0,
+        "GroupID": 0,
+        "DeviceID": 2,
+        "SequenceIDs": [
+            0,
+            1
+        ],
+        "SequenceIDAmount": 2,
+        "MinimalVoltage": 25,
+        "MaximalVoltage": 30,
+        "DischargerVoltage": 0,
+        "ConnectorMask": 1
+    },
+    {
+        "SeriaID": 0,
+        "GroupID": 0,
+        "DeviceID": 3,
+        "SequenceIDs": [
+            0,
+            1
+        ],
+        "SequenceIDAmount": 2,
+        "MinimalVoltage": 100,
+        "MaximalVoltage": 150,
+        "DischargerVoltage": 0,
+        "ConnectorMask": 1
+    },
+    {
+        "SeriaID": 0,
+        "GroupID": 1,
+        "DeviceID": 4,
+        "SequenceIDs": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "SequenceIDAmount": 4,
         "MinimalVoltage": 100,
         "MaximalVoltage": 150,
         "DischargerVoltage": 80,
@@ -65,14 +129,18 @@
     {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 2,
+        "DeviceID": 5,
         "SequenceIDs": [
             0,
             1,
             2,
-            3
+            3,
+            4,
+            5,
+            6,
+            7
         ],
-        "SequenceIDAmount": 4,
+        "SequenceIDAmount": 8,
         "MinimalVoltage": 100,
         "MaximalVoltage": 150,
         "DischargerVoltage": 80,

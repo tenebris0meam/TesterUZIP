@@ -45,7 +45,7 @@ bool INA239_MainInit (void) {
                             INA239_CT_50US,
                             INA239_CT_50US,
                             INA239_CT_50US,
-                            INA239_AVG_1) != INA239_OK) {
+                            INA239_AVG_4) != INA239_OK) {
         return false;
     }
 

@@ -21,7 +21,6 @@
 #include "stm32f1xx_it.h"
 #include "calc.h"
 #include "commutator.h"
-#include "ina239.h"
 #include "ina239_user.h"
 #include "proccessor.h"
 #include "spi.h"
@@ -213,38 +212,13 @@ void TIM1_BRK_IRQHandler(void) {
 	 */
 	NVIC_DisableIRQ(TIM1_BRK_IRQn);
 
-	/* Сбрасываем флаг прерывания аппаратной остановки */
-	LL_TIM_ClearFlag_BRK(TIM1);
-
 	/** Деактивируем схему коммутации. Неблокирующий вариант: обычный
-	 * commutator_deny_commutation() ждёт срабатывания контактов по 5 мс
-	 * на каждое реле, а это обработчик приоритета 0. */
+	* commutator_deny_commutation() ждёт срабатывания контактов по 5 мс
+	* на каждое реле, а это обработчик приоритета 0. */
 	commutator_forcedeny_commutation();
 
 	/** Выставляем состояние "аппаратная ошибка" */
 	proccessor_force_raise_event(AlertActive);
-
-	INA239_Handle_t *hina = INA239_GetInstance();
-	uint16_t cur_diag_alert = 0;
-	INA239_ReadDiagAlert(hina, &cur_diag_alert);
-	if (cur_diag_alert & INA239_DIAG_SHNTUL_Msk) {
-		/** Ток пошёл не в ту сторону */
-	}
-	if (cur_diag_alert & INA239_DIAG_BUSUL_Msk) {
-		/** Не та полярность напряжения */
-	}
-	if (cur_diag_alert & INA239_DIAG_SHNTOL_Msk) {
-		/** Превышение хардварного порога по току */
-	}
-	if (cur_diag_alert & INA239_DIAG_BUSOL_Msk) {
-		/** Превышение хардварного порога по напряжению */
-	}
-	if (cur_diag_alert & INA239_DIAG_MATHOF_Msk) {
-		/** Математическая ошибка. Реинициализируем INA239 */
-		if (!INA239_MainInit()) {
-			/** Ошибка повторной инициализации */
-		}
-	}
 
 	return;
 }

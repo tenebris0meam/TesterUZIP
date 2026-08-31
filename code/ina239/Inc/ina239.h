@@ -28,8 +28,12 @@ extern "C" {
 #include <stddef.h>
 #include "stm32f103xb.h"
 
+#define SHUNT_MAX_CURRENT_nA (1500000) // nA
+#define SHUNT_CURRENT_LSB (46) // nA/LSB
+#define SHUNT_CONDUCTANCE_mS (45455) // mS (1 / kOhm)
+// формула 819,2e6 * SHUNT_CURRENT_LSB * SHUNT_RESISTANCE_Ohm
 #if defined DEBUG
-#define SHUNT_CAL_RAW   0x09C4UL // CURRENT_LSB = 30 nA/LSB, SHUNT_CAL = 2500
+#define SHUNT_CAL_RAW   0x0339L
 #define SOVL_RAW        0x7530L // 150 mV limit, 160mV/5uV = 32000
 #else 
 #define SHUNT_CAL_RAW   0x0F5CUL // CURRENT_LSB = 32 nA/LSB, SHUNT_CAL = 3932

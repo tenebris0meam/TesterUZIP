@@ -26,15 +26,14 @@ const Params_TestSequence_TypeDef *model_get_sequence_at (uint8_t pos) {
         return 0;
     }
 
-    uint8_t seq_pos = (uint8_t)(pos / MODEL_TESTS_PER_SEQUENCE);
-    if (seq_pos >= device->num_seqs) {
+    if (pos >= device->num_seqs) {
         return 0;
     }
     if (device->sequence_idxs == 0) {
         return 0;
     }
 
-    return params_get_sequence(&params, device->sequence_idxs[seq_pos]);
+    return params_get_sequence(&params, device->sequence_idxs[pos]);
 }
 
 uint8_t model_get_total_tests (void) {
@@ -43,8 +42,7 @@ uint8_t model_get_total_tests (void) {
         return 0;
     }
 
-    uint16_t total = (uint16_t)device->num_seqs * MODEL_TESTS_PER_SEQUENCE;
-    return (uint8_t)((total > MODEL_MAX_TESTS) ? MODEL_MAX_TESTS : total);
+    return (uint8_t)((device->num_seqs > MODEL_MAX_TESTS) ? MODEL_MAX_TESTS : device->num_seqs);
 }
 
 void model_reset_results (void) {

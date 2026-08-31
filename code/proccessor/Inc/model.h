@@ -14,11 +14,6 @@
 /** @brief Разрядность масок результатов: столько позиций проверки помещается. */
 #define MODEL_MAX_TESTS (32)
 
-/**
- * @brief Сколько проверок приходится на одну тестовую последовательность.
- */
-#define MODEL_TESTS_PER_SEQUENCE (2)
-
 /** @brief Что выбрано пользователем на экранах настроек. */
 typedef struct {
     Param_Connector interface_id;

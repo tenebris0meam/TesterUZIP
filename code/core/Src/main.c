@@ -24,17 +24,6 @@
 
 
 
-static __attribute__((noreturn)) void Error_Handler (void) {
-    __disable_irq();
-    while (true) {
-        LL_GPIO_ResetOutputPin(BUZZER_GPIO_Port, BUZZER_GPIO_Pin);
-        delay_ms(500);
-
-        LL_GPIO_SetOutputPin(BUZZER_GPIO_Port, BUZZER_GPIO_Pin);
-        delay_ms(500);
-    }
-}
-
 static void disable_JTAG (void) {
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
     LL_GPIO_AF_Remap_SWJ_NOJTAG();
@@ -157,3 +146,14 @@ __attribute__((noreturn)) void main (void) {
     }
 }
 #pragma clang diagnostic pop
+
+__attribute__((noreturn)) void Error_Handler (void) {
+    __disable_irq();
+    while (true) {
+        LL_GPIO_ResetOutputPin(BUZZER_GPIO_Port, BUZZER_GPIO_Pin);
+        delay_ms(500);
+
+        LL_GPIO_SetOutputPin(BUZZER_GPIO_Port, BUZZER_GPIO_Pin);
+        delay_ms(500);
+    }
+}

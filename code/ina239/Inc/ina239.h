@@ -28,9 +28,9 @@ extern "C" {
 #include <stddef.h>
 #include "stm32f103xb.h"
 
-#define SHUNT_MAX_CURRENT_nA (1500000) // nA
-#define SHUNT_CURRENT_LSB (46) // nA/LSB
-#define SHUNT_CONDUCTANCE_mS (45455) // mS (1 / kOhm)
+// #define SHUNT_MAX_CURRENT_nA (1500000) // nA
+// #define SHUNT_CURRENT_LSB (46) // nA/LSB
+// #define SHUNT_CONDUCTANCE_mS (45455) // mS (1 / kOhm)
 // формула 819,2e6 * SHUNT_CURRENT_LSB * SHUNT_RESISTANCE_Ohm
 #if defined DEBUG
 #define SHUNT_CAL_RAW   0x0339L
@@ -69,11 +69,15 @@ extern "C" {
 /* =========================================================================
  *  LSB / масштабные коэффициенты (datasheet Table 8-1, Section 7.6.1.x)
  * ========================================================================= */
-#define INA239_VSHUNT_LSB_RANGE0_NV  5000U     /* 5 uV/LSB   при ADCRANGE = 0 (±163.84 mV) */
-#define INA239_VSHUNT_LSB_RANGE1_NV  1250U     /* 1.25 uV/LSB при ADCRANGE = 1 (±40.96 mV) */
+#define INA239_VSHUNT_LSB_RANGE0_uV  5U        /* 5 uV/LSB   при ADCRANGE = 0 (±163.84 mV) */
+#define INA239_VSHUNT_LSB_RANGE1_nV  1250U     /* 1.25 uV/LSB при ADCRANGE = 1 (±40.96 mV) */
 #define INA239_VBUS_LSB_uV           3125U     /* 3.125 mV/LSB */
 #define INA239_DIETEMP_LSB_MC        125U      /* 125 m°C/LSB */
+#if defined DEBUG
+#define INA239_CURRENT_LSB_nA        46U       /* 46 nA/LSB */
+#else 
 #define INA239_CURRENT_LSB_nA        32U       /* 32 nA/LSB */
+#endif
 
 /* =========================================================================
  *  CONFIG register (0x00) — битовые поля (datasheet 7.6.1.1)

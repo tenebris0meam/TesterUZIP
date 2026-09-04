@@ -32,6 +32,8 @@ typedef enum {
 typedef enum {
     EnterAccepted, 
     CommutationComplete, 
+    DeviceVoltageUnderVoltage,
+    DeviceVoltageOverVoltage,
     DeviceCurrentWithinTheRange, 
     DeviceCurrentUnderCurrent,
     DeviceCurrentOverCurrent,

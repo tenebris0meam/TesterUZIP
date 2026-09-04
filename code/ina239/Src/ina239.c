@@ -353,8 +353,8 @@ INA239_Status_t INA239_ReadShuntVoltage_uV(INA239_Handle_t *hdev,
     }
 
     float lsb_nv = (range == INA239_ADCRANGE_40_96_MV)
-                       ? INA239_VSHUNT_LSB_RANGE1_NV
-                       : INA239_VSHUNT_LSB_RANGE0_NV;
+                       ? INA239_VSHUNT_LSB_RANGE1_nV
+                       : INA239_VSHUNT_LSB_RANGE0_uV * 1000;
 
     /* lsb_nv хранит LSB в наноВольтах для сохранения точности без float
      * промежуточных ошибок; переводим итог в микровольты. */

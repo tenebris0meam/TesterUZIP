@@ -1,5 +1,5 @@
 ﻿#include "calc.h"
-#include "proccessor.h"
+#include "hv_feedback.h"
 #include "ina239.h"
 #include "ina239_user.h"
 #include "utils.h"
@@ -16,23 +16,9 @@ volatile bool have_new_data = false;
 
 static IntegratorTypeDef integrator = { 0 };
 
-/** @brief Сколько подряд измерений уже попали в допуск по напряжению. */
-static uint32_t settle_counter = 0;
-
-/** @brief Последний вердикт по току. */
-static CalcVerdict last_verdict = CalcVerdict_NotSettled;
-
-/** @brief Данные, на которых вердикт был вынесен. */
+/** @brief Актуальные данные о напряжении и токе теста */
 static int32_t voltage_test = 0;
 static int32_t current_test = 0;
-
-/**
- * @brief Потолок измерения тока, нА.
- * @details Регистр CURRENT 16-битный знаковый, младший разряд - 32 нА.
- *          Всё, что выше, читается как 32767 и неотличимо от гораздо большего
- *          тока. Поэтому зашкал трактуется как превышение
- */
-#define CALC_CURRENT_SATURATION_RAW (32767)
 
 
 
@@ -62,10 +48,6 @@ static int16_t calc_get_raw_val (const uint8_t *frame, RawValType type) {
 }
 
 
-
-/* ------------------------------------------------------------------------ */
-/*                            Слой регулятора                                */
-/* ------------------------------------------------------------------------ */
 
 bool calc_integrator_Init (void) {
     INA239_Handle_t *hina = INA239_GetInstance();
@@ -101,11 +83,6 @@ void calc_integrator_set_delta_time (uint32_t delta_time_us) {
 }
 
 void calc_integrator_set_target_voltage (uint32_t target_voltage_after_div_uV) {
-    if (integrator.target_voltage_uV != target_voltage_after_div_uV) {
-        /* Уставка сменилась - выходить на неё придётся заново */
-        settle_counter = 0;
-        last_verdict = CalcVerdict_NotSettled;
-    }
     integrator.target_voltage_uV = target_voltage_after_div_uV;
     return;
 }
@@ -118,14 +95,8 @@ int32_t calc_integrator_get_integral_value (void) {
     return integrator.integral;
 }
 
-bool calc_integrator_is_settled (void) {
-    return (settle_counter >= CALC_SETTLE_SAMPLES);
-}
-
 void calc_reset_integrator (void) {
     memset(&integrator, 0, sizeof(IntegratorTypeDef));
-    settle_counter = 0;
-    last_verdict = CalcVerdict_NotSettled;
     voltage_test = 0;
     current_test = 0;
     return;
@@ -153,44 +124,6 @@ static void calc_integrator_step (int32_t measured_uV) {
     return;
 }
 
-/** @brief Обновить счётчик удержания уставки. */
-static void calc_update_settling (int32_t measured_uV) {
-    int32_t error_uV = (int32_t)integrator.target_voltage_uV - measured_uV;
-    if (error_uV < 0) {
-        error_uV = -error_uV;
-    }
-
-    if ((uint32_t)error_uV <= CALC_TARGET_TOLERANCE_uV) {
-        if (settle_counter < CALC_SETTLE_SAMPLES) {
-            settle_counter++;
-        }
-    } else {
-        settle_counter = 0;
-    }
-    return;
-}
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                              Слой вердикта                                */
-/* ------------------------------------------------------------------------ */
-
-/** @brief Разобрать ток. Вызывается только после выхода на уставку. */
-static CalcVerdict calc_judge_current (int16_t current_raw, int32_t current_nA) {
-    if (current_raw >= CALC_CURRENT_SATURATION_RAW) {
-        /* Измерение упёрлось в потолок: сколько там на самом деле - неизвестно */
-        return CalcVerdict_OverCurrent;
-    }
-    if (current_nA > CALC_CURRENT_HIGH_nA) {
-        return CalcVerdict_OverCurrent;
-    }
-    if (current_nA < CALC_CURRENT_LOW_nA) {
-        return CalcVerdict_UnderCurrent;
-    }
-    return CalcVerdict_WithinRange;
-}
-
 void calc_routine (void) {
     uint8_t frame[INA239_FRAME_SIZE];
     calc_snapshot_frame(frame);
@@ -198,45 +131,12 @@ void calc_routine (void) {
     int16_t voltage_raw = calc_get_raw_val(frame, VOLTAGE);
     int16_t current_raw = calc_get_raw_val(frame, CURRENT);
 
-    int32_t voltage_uV = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV;
-    int32_t current_nA = (int32_t)current_raw * (int32_t)INA239_CURRENT_LSB_nA;
+    int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
+    voltage_test = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV;
+    current_test = hv_shunt_uV_to_nA(shunt_dropvoltage);
 
-    /* 1. Регулятор двигается всегда - он держит напряжение */
-    calc_integrator_step(voltage_uV);
-    calc_update_settling(voltage_uV);
-
-    /*
-     * 2. Ток разбираем только после выхода на уставку. Пока напряжение растёт,
-     *    ток через прибор ничего о приборе не говорит.
-     */
-    if (!calc_integrator_is_settled()) {
-        last_verdict = CalcVerdict_NotSettled;
-        return;
-    }
-
-    CalcVerdict verdict = calc_judge_current(current_raw, current_nA);
-    last_verdict = verdict;
-    voltage_test = voltage_uV;
-    current_test = current_nA;
-
-    switch (verdict) {
-        case CalcVerdict_WithinRange:
-            proccessor_raise_event(DeviceCurrentWithinTheRange);
-            break;
-        case CalcVerdict_UnderCurrent:
-            proccessor_raise_event(DeviceCurrentUnderCurrent);
-            break;
-        case CalcVerdict_OverCurrent:
-            proccessor_raise_event(DeviceCurrentOverCurrent);
-            break;
-        default:
-            break;
-    }
+    calc_integrator_step(voltage_test);
     return;
-}
-
-CalcVerdict calc_get_verdict (void) {
-    return last_verdict;
 }
 
 void calc_get_test_data (int32_t *voltage, int32_t *current) {

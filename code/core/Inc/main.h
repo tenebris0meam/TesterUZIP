@@ -133,4 +133,6 @@
 
 extern uint32_t SystemCoreClock;
 
+void Error_Handler (void);
+
 #endif /* MAIN_H_ */

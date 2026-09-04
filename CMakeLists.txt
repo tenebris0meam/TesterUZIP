@@ -31,7 +31,7 @@ add_compile_options(
     -ffunction-sections
     $<$<CONFIG:Debug>:-g>
     $<$<CONFIG:Debug>:-gdwarf-2>
-    $<$<CONFIG:Debug>:-Og>
+    $<$<CONFIG:Debug>:-O0>
     $<$<CONFIG:Release>:-Os>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>

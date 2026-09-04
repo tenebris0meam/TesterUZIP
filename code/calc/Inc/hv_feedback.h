@@ -5,22 +5,21 @@
 
 /**
  * @file hv_feedback.h
- * @brief Связь между напряжением на выходе генератора и тем, что видит INA239.
+ * @brief Связь между напряжением на выходе генератора, током после устройства и тем, что видит INA239.
  *
  * @details ЭТО ЕДИНСТВЕННОЕ МЕСТО, где живёт эта связь. Всё остальное считает
  *          через hv_feedback_volts_to_target_uV().
  */
-// #if defined DEBUG
-// #define HV_FEEDBACK_DIVIDER (5.994f)
 
-// /** @brief Максимальное напряжение теста, допускаемое схемой конфигурации, В. */
-// #define HV_FEEDBACK_MAX_TEST_V (400UL)
-// #else 
-#define HV_FEEDBACK_DIVIDER (7.267f)
+/* -------------------------------------------------------------------------------- */
+/* ------------------------------- Напряжение ------------------------------------- */
+/* -------------------------------------------------------------------------------- */
+
+/** @brief Коэффициент резистивного делителя напряжения K = 1 + R1/R2 */
+#define HV_FEEDBACK_DIVIDER (7.274f)
 
 /** @brief Максимальное напряжение теста, допускаемое схемой конфигурации, В. */
 #define HV_FEEDBACK_MAX_TEST_V (550UL)
-// #endif
 
 /** @brief Предел шины INA239, мкВ. Соответствует BOVL_RAW из ina239.h. */
 #define HV_FEEDBACK_BUS_LIMIT_uV (82500000UL)
@@ -49,5 +48,43 @@ _Static_assert((HV_FEEDBACK_MAX_TEST_V * 1000000UL) / HV_FEEDBACK_DIVIDER
                < HV_FEEDBACK_BUS_LIMIT_uV,
                "HV_FEEDBACK_DIVIDER занижен: максимальное напряжение теста "
                "выходит за предел BOVL INA239");
+
+/* -------------------------------------------------------------------------------- */
+/* ------------------------------------ Ток --------------------------------------- */
+/* -------------------------------------------------------------------------------- */
+
+/** @brief Проводимость шунта в микросименсах */
+#define HV_SHUNT_CONDUCTANCE_uS 45455UL
+#define HV_SHUNT_RESISTANCE_Ohm 22UL
+
+/** @brief Максимальный ожидаемый ток DUT */
+#define HV_SHUNT_MAX_CURRENT_nA 2000000L
+
+/** @brief Предел показаний шунта, мкВ */
+#define HV_SHUNT_LIMIT_uV 163840
+
+/** 
+ * @brief Получить ток устройства по падению напряжения на шунте
+ * @details Формула I[нА] = U[мкВ] / R[кОм] = U[мкВ] * 1000 / R[Ом]
+ */
+static inline int32_t hv_shunt_uV_to_nA (int32_t measured_uV) {
+    return (measured_uV * 1000 / HV_SHUNT_RESISTANCE_Ohm);
+}
+
+/**
+ * @brief Получить падение напряжения по току устройства
+ * @details Формула U[мкВ] = I[нА] * R[кОм] = I[нА] * R[Ом] / 1000
+ */
+static inline int32_t hv_shunt_nA_to_uV (int32_t current_nA) {
+    return (current_nA * HV_SHUNT_RESISTANCE_Ohm / 1000);
+}
+
+/*
+ * Сборка встанет, если при выбранном шунте максимальный ток
+ * теста выйдет за предел INA239: значит значение проводимости занижено.
+ */
+_Static_assert(HV_SHUNT_MAX_CURRENT_nA * HV_SHUNT_RESISTANCE_Ohm / 1000 < HV_SHUNT_LIMIT_uV,
+               "HV_SHUNT_RESISTANCE_Ohm завышен: максимальный ток теста "
+               "выходит за предел SOVL INA239");
 
 #endif /* HV_FEEDBACK_H_ */

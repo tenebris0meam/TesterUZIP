@@ -8,7 +8,7 @@
 INA239_Handle_t ina239 = { 0 };
 
 const uint32_t request_size = REQ_SIZE;
-const uint8_t request_vbus_and_current[REQ_SIZE] = { 0x15, 0x00, 0x00, 0x1D, 0x00, 0x00 };
+const uint8_t request_vbus_and_current[REQ_SIZE] = { 0x15, 0x00, 0x00, 0x11, 0x00, 0x00 };
 volatile uint32_t answer_size;
 volatile uint8_t answer_vbus_and_current[REQ_SIZE];
 const uint32_t request_timeout = 1;
@@ -42,10 +42,10 @@ bool INA239_MainInit (void) {
      * время преобразования 50 мкс на канал, усреднения нет */
     if (INA239_ConfigureAdc(&ina239,
                             INA239_MODE_SHUTDOWN,
-                            INA239_CT_50US,
-                            INA239_CT_50US,
-                            INA239_CT_50US,
-                            INA239_AVG_16) != INA239_OK) {
+                            INA239_CT_540US,
+                            INA239_CT_540US,
+                            INA239_CT_540US,
+                            INA239_AVG_4) != INA239_OK) {
         return false;
     }
 
@@ -56,7 +56,8 @@ bool INA239_MainInit (void) {
 
     /* SHUNT_CAL — расчёт по Rshunt/Imax НЕ делается драйвером,
      * значение должно быть подготовлено заранее (см. datasheet 8.1.2). */
-    if (INA239_WriteShuntCal(&ina239, SHUNT_CAL_RAW) != INA239_OK) {
+    /* Считываем только падение напряжения на шунте */
+    if (INA239_WriteShuntCal(&ina239, 0) != INA239_OK) {
         return false;
     }
 

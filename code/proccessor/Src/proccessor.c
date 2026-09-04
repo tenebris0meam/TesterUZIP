@@ -2,6 +2,7 @@
 #include "commutator.h"
 #include "display.h"
 #include "ina239.h"
+#include "main.h"
 #include "model.h"
 #include "calc.h"
 #include "hv_feedback.h"
@@ -66,7 +67,7 @@
  *          то есть 11 * 2 с = 22 с под напряжением. Дальше автомат уйдёт
  *          в TestFailed при любом исходе.
  */
-#define GENERATION_STEP_TIMEOUT_MS (2000U)
+#define GENERATION_STEP_TIMEOUT_MS (200U)
 
 /** @brief Номера выводов в конфигурации: 0..8, что соответствует ActiveLine_1..9. */
 #define PROCCESSOR_PINS_NUM (9U)
@@ -130,6 +131,10 @@ static uint8_t generation_delay_task_id = 0;
 
 /** @brief Тип аппаратной ошибки */
 volatile TypeFail typefail = NoFail;
+
+/** @brief Переменные для хранения порогов напряжения устройства */
+static int32_t voltage_lowth_uV = 0;
+static int32_t voltage_highth_uV = 0;
 
 /* test_config и test_results определены в model.c вместе с операциями над
  * ними - см. code/proccessor/Src/model.c */
@@ -243,8 +248,9 @@ static bool proccessor_apply_setpoint (void) {
         volts = HV_FEEDBACK_MAX_TEST_V;
     }
 
-    calc_integrator_set_target_voltage(hv_feedback_volts_to_target_uV((uint16_t)volts));
-    return delay_register_task(&generation_delay_task_id, GENERATION_STEP_TIMEOUT_MS, Millis);
+    calc_integrator_set_target_voltage(
+        hv_feedback_volts_to_target_uV((uint16_t)volts));
+    return true; 
 }
 
 /** @brief Записать результат очередной проверки в модель. */
@@ -413,6 +419,10 @@ void proccessor_generation_on_enter (void) {
     /* На шаге 0 уставка есть всегда: диапазон проверен в proccessor_setup_lines() */
     (void)proccessor_apply_setpoint();
 
+    /* Заранее вычисляем пороги по напряжению для данного устройства */
+    voltage_lowth_uV = hv_feedback_volts_to_target_uV(test_results.current_device->minimal_voltage_test);
+    voltage_highth_uV = hv_feedback_volts_to_target_uV(test_results.current_device->maximal_voltage_test);
+
     INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS);
     TIM3_Start_Count();
     TIM1_Start_PWM();
@@ -453,19 +463,51 @@ void proccessor_generation_proccess (void) {
         if (new_CCR1_val != LL_TIM_OC_GetCompareCH1(TIM1)) {
             TIM1_set_CCR_value(new_CCR1_val);
         }
-    }
 
-    /*
-     * Сторожевой таймер шага. Вердикт по току выносится только после выхода
-     * на уставку, поэтому отказ, при котором на уставку выйти нельзя
-     * (пробитый прибор держит напряжение у нуля), не породил бы ни одного
-     * события - и высокое напряжение осталось бы на выходе навсегда.
-     * Такой исход и по смыслу превышение тока: прибор проводит больше, чем
-     * генератор может продавить.
-     */
-    if (!calc_integrator_is_settled() && 
-        !delay_is_not_yet_expired(generation_delay_task_id)) {
-        proccessor_raise_event(DeviceCurrentOverCurrent);
+        int32_t current_nA, voltage_uV;
+        calc_get_test_data(&voltage_uV, &current_nA);
+        if (current_nA >= CALC_CURRENT_HIGH_nA) {
+            /* Ток устройства превысил верхний порог тока теста */
+            if ((voltage_uV >= voltage_lowth_uV) && (voltage_uV < voltage_highth_uV)) {
+                /* Ток превысил верхний порог, но напряжение держится в диапазоне
+                 * Устройство в рабочем состоянии, 
+                 * тестер не успел считать момент, 
+                 * когда ток был в диапазоне
+                 */
+                proccessor_raise_event(DeviceCurrentWithinTheRange);
+            } else {
+                /* Ток превысил верхний порог и напряжение не в диапазоне. Поломка */
+                proccessor_raise_event(DeviceCurrentOverCurrent);
+            }
+        } else if (voltage_uV >= voltage_highth_uV) {
+            /* Напряжение превысило максимальное значение, точно поломка */
+            proccessor_raise_event(DeviceVoltageOverVoltage);
+        } else if (voltage_uV < voltage_lowth_uV) {
+            /* Напряжение не достигло минимального значения, ждём ещё */
+            proccessor_raise_event(DeviceVoltageUnderVoltage);
+        } else {
+            /* Напряжение в диапазоне, проверяем ток */
+
+            /* Заводим таймер на 1мс */
+            static bool delay_registered = false;
+            if (!delay_registered) {
+                delay_registered = delay_register_task(&generation_delay_task_id, 
+                                                       1000, 
+                                                       Micros);
+            }
+
+            if (!delay_is_not_yet_expired(generation_delay_task_id)) {
+                /* Проверяем ток каждую 1мс */
+                if (current_nA < CALC_CURRENT_LOW_nA) {
+                    /* Ток устройства ещё не достиг тока теста */
+                    proccessor_raise_event(DeviceCurrentUnderCurrent);
+                } else {
+                    /* Ток устройства в диапазоне тока теста */
+                    proccessor_raise_event(DeviceCurrentWithinTheRange);
+                }
+                delay_registered = false;
+            }
+        }
     }
 
     buzzer_routine();
@@ -475,22 +517,29 @@ void proccessor_generation_proccess (void) {
 State proccessor_generation_handle_event (Event event) {
     switch (event) {
         case DeviceCurrentWithinTheRange: return TestPassed;
-        case DeviceCurrentOverCurrent: return TestFailed;
+
+        case DeviceVoltageOverVoltage:
+        case DeviceCurrentOverCurrent: 
+            delay_unregister_task(generation_delay_task_id);
+            return TestFailed;
+
         case DeviceCurrentUnderCurrent: 
-            /*
-             * Ток ниже нормы - прибор ещё не открылся. Поднимаем уставку на
-             * шаг (10 % ширины диапазона из конфига) и остаёмся здесь же.
-             * Смена уставки сбрасывает признак выхода на неё, так что
-             * следующий вердикт придёт только после нового устоявшегося
-             * измерения. Кончился диапазон - прибор не открылся на всём
-             * рабочем напряжении, это провал.
-             */
-            generation_step++;
-            if (!proccessor_apply_setpoint()) {
-                return TestFailed;
+        case DeviceVoltageUnderVoltage: {
+            uint32_t target_voltage = calc_integrator_get_target_voltage();
+            int32_t actual_voltage;
+            calc_get_test_data(&actual_voltage, NULL);
+            if (target_voltage - actual_voltage < CALC_TARGET_TOLERANCE_uV) {
+                generation_step++;
+                if (!proccessor_apply_setpoint()) {
+                    return TestFailed;
+                }
             }
             return Generation;
-        case AlertActive: return HardwareFail;
+        }
+        case AlertActive: 
+            delay_unregister_task(generation_delay_task_id);
+            return HardwareFail;
+
         default: return Generation;
     }
 }
@@ -637,7 +686,7 @@ void proccessor_hardwarefail_on_exit (void) {
     if ((typefail & MathOverflow) || 
         (typefail & MemoryError)) {
         if (!INA239_MainInit()) {
-            /** TODO: Ошибка повторной инициализации */
+            Error_Handler();
         }
     }
     return;

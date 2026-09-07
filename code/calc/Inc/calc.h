@@ -25,15 +25,15 @@ extern volatile bool have_new_data;
 /** @brief Номинальный ток испытания, нА. */
 #define CALC_NOMINAL_CURRENT_nA (1000000L)
 
-#define CALC_CURRENT_LOW_nA 800000L
-#define CALC_CURRENT_HIGH_nA 2000000L
+#define CALC_CURRENT_LOW_nA 950000L
+#define CALC_CURRENT_HIGH_nA 1050000L
 
 /**
  * @brief Допуск, при котором считаем, что регулятор вышел на уставку, мкВ.
  * @details 1 % от максимума шины INA239. Меньше делать нет смысла: младший
  *          разряд VBUS - 3.125 мВ.
  */
-#define CALC_TARGET_TOLERANCE_uV (68804UL)
+#define CALC_TARGET_TOLERANCE_PERCENT 5UL
 
 /** @brief Верхняя граница скважности, миллионные доли. */
 #define CALC_DUTY_MAX_PPM (970000L)
@@ -69,5 +69,6 @@ void calc_routine (void);
 
 /** @brief Данные последнего вынесенного вердикта. */
 void calc_get_test_data (int32_t *voltage, int32_t *current);
+bool calc_is_voltage_achieved (void);
 
 #endif /* CALC_H */

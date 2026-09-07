@@ -20,6 +20,10 @@ static IntegratorTypeDef integrator = { 0 };
 static int32_t voltage_test = 0;
 static int32_t current_test = 0;
 
+static bool is_voltage_achieved = false;
+static int32_t voltage_lowth = 0;
+static int32_t voltage_highth = 0;
+
 
 
 /**
@@ -83,7 +87,12 @@ void calc_integrator_set_delta_time (uint32_t delta_time_us) {
 }
 
 void calc_integrator_set_target_voltage (uint32_t target_voltage_after_div_uV) {
-    integrator.target_voltage_uV = target_voltage_after_div_uV;
+    if (integrator.target_voltage_uV != target_voltage_after_div_uV) {
+        integrator.target_voltage_uV = target_voltage_after_div_uV;
+        voltage_lowth = (100 - CALC_TARGET_TOLERANCE_PERCENT) * (integrator.target_voltage_uV / 100);
+        voltage_highth = (100 + CALC_TARGET_TOLERANCE_PERCENT) * (integrator.target_voltage_uV / 100);
+        is_voltage_achieved = false;
+    }
     return;
 }
 
@@ -99,6 +108,9 @@ void calc_reset_integrator (void) {
     memset(&integrator, 0, sizeof(IntegratorTypeDef));
     voltage_test = 0;
     current_test = 0;
+    is_voltage_achieved = false;
+    voltage_lowth = 0;
+    voltage_highth = 0;
     return;
 }
 
@@ -110,6 +122,10 @@ void calc_reset_integrator (void) {
  *          безопасную скважность.
  */
 static void calc_integrator_step (int32_t measured_uV) {
+    if ((measured_uV >= voltage_lowth) && (measured_uV < voltage_highth)) {
+        is_voltage_achieved = true;
+    }
+
     int32_t error_uV = (int32_t)integrator.target_voltage_uV - measured_uV;
     int32_t delta_ppm = (int32_t)((float)error_uV * integrator.delta_time);
     int32_t sum_ppm = integrator.integral + delta_ppm;
@@ -147,4 +163,8 @@ void calc_get_test_data (int32_t *voltage, int32_t *current) {
         *current = current_test;
     }
     return;
+}
+
+bool calc_is_voltage_achieved (void) {
+    return is_voltage_achieved;
 }

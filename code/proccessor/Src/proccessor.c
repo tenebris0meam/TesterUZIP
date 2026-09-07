@@ -420,8 +420,10 @@ void proccessor_generation_on_enter (void) {
     (void)proccessor_apply_setpoint();
 
     /* Заранее вычисляем пороги по напряжению для данного устройства */
-    voltage_lowth_uV = hv_feedback_volts_to_target_uV(test_results.current_device->minimal_voltage_test);
-    voltage_highth_uV = hv_feedback_volts_to_target_uV(test_results.current_device->maximal_voltage_test);
+    voltage_lowth_uV = (100 - CALC_TARGET_TOLERANCE_PERCENT) * 
+            (hv_feedback_volts_to_target_uV(test_results.current_device->minimal_voltage_test) / 100);
+    voltage_highth_uV = (100 + CALC_TARGET_TOLERANCE_PERCENT) * 
+            (hv_feedback_volts_to_target_uV(test_results.current_device->maximal_voltage_test) / 100);
 
     INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS);
     TIM3_Start_Count();
@@ -470,8 +472,7 @@ void proccessor_generation_proccess (void) {
             /* Ток устройства превысил верхний порог тока теста */
             if ((voltage_uV >= voltage_lowth_uV) && (voltage_uV < voltage_highth_uV)) {
                 /* Ток превысил верхний порог, но напряжение держится в диапазоне
-                 * Устройство в рабочем состоянии, 
-                 * тестер не успел считать момент, 
+                 * Устройство в рабочем состоянии, тестер не успел считать момент, 
                  * когда ток был в диапазоне
                  */
                 proccessor_raise_event(DeviceCurrentWithinTheRange);
@@ -524,18 +525,14 @@ State proccessor_generation_handle_event (Event event) {
             return TestFailed;
 
         case DeviceCurrentUnderCurrent: 
-        case DeviceVoltageUnderVoltage: {
-            uint32_t target_voltage = calc_integrator_get_target_voltage();
-            int32_t actual_voltage;
-            calc_get_test_data(&actual_voltage, NULL);
-            if (target_voltage - actual_voltage < CALC_TARGET_TOLERANCE_uV) {
+        case DeviceVoltageUnderVoltage: 
+            if (calc_is_voltage_achieved()) {
                 generation_step++;
                 if (!proccessor_apply_setpoint()) {
                     return TestFailed;
                 }
             }
             return Generation;
-        }
         case AlertActive: 
             delay_unregister_task(generation_delay_task_id);
             return HardwareFail;

@@ -43,7 +43,7 @@ void mux_set_active_line (const Multiplexer_TypeDef *mux,
 }
 
 void mux_enable_operation (const Multiplexer_TypeDef *mux) {
-    Pin_Set_State((Pin_TypeDef *)mux->Enable, true);
+    Pin_Set_State((Pin_TypeDef *)mux->Enable, false);
     delay_us(1);
     if (mux == &MUX_POS) {
         operation_enable_pos = true;
@@ -54,7 +54,7 @@ void mux_enable_operation (const Multiplexer_TypeDef *mux) {
 }
 
 void mux_disable_operation (const Multiplexer_TypeDef *mux) {
-    Pin_Set_State((Pin_TypeDef *)mux->Enable, false);
+    Pin_Set_State((Pin_TypeDef *)mux->Enable, true);
     delay_us(1);
     if (mux == &MUX_POS) {
         operation_enable_pos = false;

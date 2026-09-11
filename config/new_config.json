@@ -3,7 +3,7 @@
         "SeriesAmount": 3,
         "GroupsAmount": 17,
         "DevicesAmount": 46,
-        "SequencesAmount": 24,
+        "SequencesAmount": 72,
         "SeriesNames": [
             "SGK",
             "SGO",
@@ -82,102 +82,78 @@
             "RBQ15"
         ],
         "Sequences": [
-            {
-                "InputPin": 0,
-                "OutputPin": 1
-            },
-            {
-                "InputPin": 1,
-                "OutputPin": 0
-            },
-            {
-                "InputPin": 2,
-                "OutputPin": 5
-            },
-            {
-                "InputPin": 5,
-                "OutputPin": 2
-            },
-            {
-                "InputPin": 3,
-                "OutputPin": 4
-            },
-            {
-                "InputPin": 4,
-                "OutputPin": 3
-            },
-            {
-                "InputPin": 6,
-                "OutputPin": 7
-            },
-            {
-                "InputPin": 7,
-                "OutputPin": 6
-            },
-            {
-                "InputPin": 0,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 0
-            },
-            {
-                "InputPin": 1,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 1
-            },
-            {
-                "InputPin": 2,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 2
-            },
-            {
-                "InputPin": 3,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 3
-            },
-            {
-                "InputPin": 4,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 4
-            },
-            {
-                "InputPin": 5,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 5
-            },
-            {
-                "InputPin": 6,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 6
-            },
-            {
-                "InputPin": 7,
-                "OutputPin": 8
-            },
-            {
-                "InputPin": 8,
-                "OutputPin": 7
-            }
+            { "InputPin": 0, "OutputPin": 1 },
+            { "InputPin": 0, "OutputPin": 2 },
+            { "InputPin": 0, "OutputPin": 3 },
+            { "InputPin": 0, "OutputPin": 4 },
+            { "InputPin": 0, "OutputPin": 5 },
+            { "InputPin": 0, "OutputPin": 6 },
+            { "InputPin": 0, "OutputPin": 7 },
+            { "InputPin": 0, "OutputPin": 8 },
+            { "InputPin": 1, "OutputPin": 0 },
+            { "InputPin": 1, "OutputPin": 2 },
+            { "InputPin": 1, "OutputPin": 3 },
+            { "InputPin": 1, "OutputPin": 4 },
+            { "InputPin": 1, "OutputPin": 5 },
+            { "InputPin": 1, "OutputPin": 6 },
+            { "InputPin": 1, "OutputPin": 7 },
+            { "InputPin": 1, "OutputPin": 8 },
+            { "InputPin": 2, "OutputPin": 0 },
+            { "InputPin": 2, "OutputPin": 1 },
+            { "InputPin": 2, "OutputPin": 3 },
+            { "InputPin": 2, "OutputPin": 4 },
+            { "InputPin": 2, "OutputPin": 5 },
+            { "InputPin": 2, "OutputPin": 6 },
+            { "InputPin": 2, "OutputPin": 7 },
+            { "InputPin": 2, "OutputPin": 8 },
+            { "InputPin": 3, "OutputPin": 0 },
+            { "InputPin": 3, "OutputPin": 1 },
+            { "InputPin": 3, "OutputPin": 2 },
+            { "InputPin": 3, "OutputPin": 4 },
+            { "InputPin": 3, "OutputPin": 5 },
+            { "InputPin": 3, "OutputPin": 6 },
+            { "InputPin": 3, "OutputPin": 7 },
+            { "InputPin": 3, "OutputPin": 8 },
+            { "InputPin": 4, "OutputPin": 0 },
+            { "InputPin": 4, "OutputPin": 1 },
+            { "InputPin": 4, "OutputPin": 2 },
+            { "InputPin": 4, "OutputPin": 3 },
+            { "InputPin": 4, "OutputPin": 5 },
+            { "InputPin": 4, "OutputPin": 6 },
+            { "InputPin": 4, "OutputPin": 7 },
+            { "InputPin": 4, "OutputPin": 8 },
+            { "InputPin": 5, "OutputPin": 0 },
+            { "InputPin": 5, "OutputPin": 1 },
+            { "InputPin": 5, "OutputPin": 2 },
+            { "InputPin": 5, "OutputPin": 3 },
+            { "InputPin": 5, "OutputPin": 4 },
+            { "InputPin": 5, "OutputPin": 6 },
+            { "InputPin": 5, "OutputPin": 7 },
+            { "InputPin": 5, "OutputPin": 8 },
+            { "InputPin": 6, "OutputPin": 0 },
+            { "InputPin": 6, "OutputPin": 1 },
+            { "InputPin": 6, "OutputPin": 2 },
+            { "InputPin": 6, "OutputPin": 3 },
+            { "InputPin": 6, "OutputPin": 4 },
+            { "InputPin": 6, "OutputPin": 5 },
+            { "InputPin": 6, "OutputPin": 7 },
+            { "InputPin": 6, "OutputPin": 8 },
+            { "InputPin": 7, "OutputPin": 0 },
+            { "InputPin": 7, "OutputPin": 1 },
+            { "InputPin": 7, "OutputPin": 2 },
+            { "InputPin": 7, "OutputPin": 3 },
+            { "InputPin": 7, "OutputPin": 4 },
+            { "InputPin": 7, "OutputPin": 5 },
+            { "InputPin": 7, "OutputPin": 6 },
+            { "InputPin": 7, "OutputPin": 8 },
+            { "InputPin": 8, "OutputPin": 0 },
+            { "InputPin": 8, "OutputPin": 1 },
+            { "InputPin": 8, "OutputPin": 2 },
+            { "InputPin": 8, "OutputPin": 3 },
+            { "InputPin": 8, "OutputPin": 4 },
+            { "InputPin": 8, "OutputPin": 5 },
+            { "InputPin": 8, "OutputPin": 6 },
+            { "InputPin": 8, "OutputPin": 7 }
         ]
     },
 
@@ -499,26 +475,48 @@
         "SeriaID": 0,
         "GroupID": 6,
         "DeviceID": 24,
-        "SequenceIDAmount": 1,
+        "SequenceIDAmount": 12,
         "SequenceIDs": [
-            0
+            0,
+            8,
+            1,
+            16,
+            9,
+            17,
+            27,
+            35,
+            26,
+            18,
+            34,
+            19
         ],
         "MinimalVoltage": 15,
         "MaximalVoltage": 19,
         "DischargerVoltage": 90,
-        "ConnectorMask": 1
+        "ConnectorMask": 5
     }, {
         "SeriaID": 0,
         "GroupID": 6,
         "DeviceID": 25,
-        "SequenceIDAmount": 1,
+        "SequenceIDAmount": 12,
         "SequenceIDs": [
-            0
+            0,
+            8,
+            1,
+            16,
+            9,
+            17,
+            27,
+            35,
+            26,
+            18,
+            34,
+            19
         ],
         "MinimalVoltage": 28,
         "MaximalVoltage": 35,
         "DischargerVoltage": 90,
-        "ConnectorMask": 1
+        "ConnectorMask": 5
     },
 
 

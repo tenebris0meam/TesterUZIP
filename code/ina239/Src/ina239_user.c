@@ -113,3 +113,30 @@ INA239_Status_t INA239_SetMode (INA239_Mode_t new_mode) {
     }
     return INA239_OK;
 }
+
+INA239_Status_t INA239_HandleMathOFError (void) {
+    INA239_Mode_t cur_mode;
+    if (INA239_GetMode(&cur_mode) != INA239_OK) {
+        return INA239_ERROR_SPI;
+    }
+
+    OnceMore:
+    if (INA239_SetMode(INA239_MODE_SHUTDOWN) != INA239_OK) {
+        return INA239_ERROR_SPI;
+    }
+    if (INA239_SetMode(INA239_MODE_TRIG_SHUNT_BUS) != INA239_OK) {
+        return INA239_ERROR_SPI;
+    }
+
+    uint16_t cur_diag_alert = 0x0000;
+    while (!(cur_diag_alert & INA239_DIAG_CNVR_Msk)) {
+        if (INA239_ReadDiagAlert(&ina239, &cur_diag_alert) != INA239_OK) {
+            return INA239_ERROR_SPI;
+        }
+        if (cur_diag_alert & INA239_DIAG_MATHOF_Msk) {
+            goto OnceMore;
+        }
+    }
+
+    return INA239_SetMode(cur_mode);
+}

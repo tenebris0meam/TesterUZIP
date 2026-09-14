@@ -348,7 +348,6 @@ void screen_settingsdevices_on_exit (void) {
 }
 
 void screen_hardwarefail_on_exit (void) {
-    typefail = NoFail;
     return;
 }
 

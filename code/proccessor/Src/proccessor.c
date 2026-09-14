@@ -667,8 +667,7 @@ void proccessor_hardwarefail_on_enter (void) {
         /** Превышение хардварного порога по напряжению */
         typefail |= OverVoltage;
     }
-    if ((cur_diag_alert & INA239_DIAG_MATHOF_Msk) || 
-        !(cur_diag_alert & INA239_DIAG_MEMSTAT_Msk)) {
+    if (cur_diag_alert & INA239_DIAG_MATHOF_Msk) {
         /** Математическая ошибка */
         typefail |= MathOverflow;
     }
@@ -680,12 +679,15 @@ void proccessor_hardwarefail_on_enter (void) {
 }
 
 void proccessor_hardwarefail_on_exit (void) {
-    if ((typefail & MathOverflow) || 
-        (typefail & MemoryError)) {
+    if ((typefail & MathOverflow) || (typefail & MemoryError)) {
         if (!INA239_MainInit()) {
             Error_Handler();
         }
     }
+    if (typefail != NoFail) {
+        typefail = NoFail;
+    }
+    current_event = Event_Count;
     return;
 }
 

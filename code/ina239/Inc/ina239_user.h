@@ -7,7 +7,6 @@ INA239_Handle_t *INA239_GetInstance (void);
 bool INA239_MainInit (void);
 INA239_Status_t INA239_GetMode (INA239_Mode_t* res);
 INA239_Status_t INA239_SetMode (INA239_Mode_t new_mode);
-INA239_Status_t INA239_HandleMathOFError (void);
 
 /** @brief Длина кадра запроса и ответа INA239, байт. */
 #define INA239_FRAME_SIZE (6)

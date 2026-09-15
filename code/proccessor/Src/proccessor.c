@@ -7,6 +7,7 @@
 #include "calc.h"
 #include "hv_feedback.h"
 #include "ina239_user.h"
+#include "stm32f103xb.h"
 #include "stm32f1xx_ll_tim.h"
 #include "tim.h"
 #include "keyboard.h"
@@ -650,6 +651,14 @@ void proccessor_hardwarefail_on_enter (void) {
         }
     }
     delay_unregister_task(delay_id);
+    
+    /* После чтения регистра DIAG все источники ALERT очищаются.
+       Пин ALARM поднимется, BKIN можно очищать */
+    LL_TIM_ClearFlag_BRK(TIM1);
+
+    /* Запрос на прерывание уже улетел в NVIC
+       Очищаем очередь ожидания */
+    NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
 
     if (cur_diag_alert & INA239_DIAG_SHNTUL_Msk) {
         /** Ток пошёл не в ту сторону */
@@ -683,9 +692,19 @@ void proccessor_hardwarefail_on_exit (void) {
         if (!INA239_MainInit()) {
             Error_Handler();
         }
+        typefail &= ~(MathOverflow | MemoryError); 
     }
-    if (typefail != NoFail) {
-        typefail = NoFail;
+    if (typefail & OverCurrent) {
+        typefail &= ~(OverCurrent);
+    }
+    if (typefail & OverVoltage) {
+        typefail &= ~(OverVoltage);
+    }
+    if (typefail & UnderCurrent) {
+        typefail &= ~(UnderCurrent);
+    }
+    if (typefail & UnderVoltage) {
+        typefail &= ~(UnderVoltage);
     }
     current_event = Event_Count;
     return;

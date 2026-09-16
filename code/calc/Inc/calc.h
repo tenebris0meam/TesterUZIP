@@ -25,8 +25,8 @@ extern volatile bool have_new_data;
 /** @brief Номинальный ток испытания, нА. */
 #define CALC_NOMINAL_CURRENT_nA (1000000L)
 
-#define CALC_CURRENT_LOW_nA 950000L
-#define CALC_CURRENT_HIGH_nA 1050000L
+#define CALC_CURRENT_LOW_nA 1000000L
+#define CALC_CURRENT_HIGH_nA 1100000L
 
 /**
  * @brief Допуск, при котором считаем, что регулятор вышел на уставку, мкВ.

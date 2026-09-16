@@ -187,14 +187,35 @@
         "SeriaID": 0,
         "GroupID": 0,
         "DeviceID": 2,
-        "SequenceIDAmount": 1,
+        "SequenceIDAmount": 20,
         "SequenceIDs": [
-            0
+            0,
+            8,
+            20,
+            42,
+            27,
+            35,
+            54,
+            62,
+
+            1,
+            16, 
+            29, 
+            51, 
+
+            7,
+            15,
+            23,
+            31,
+            39,
+            47,
+            55,
+            63
         ],
-        "MinimalVoltage": 60,
-        "MaximalVoltage": 75,
+        "MinimalVoltage": 5,
+        "MaximalVoltage": 9,
         "DischargerVoltage": 150,
-        "ConnectorMask": 1
+        "ConnectorMask": 7
     },
 
 

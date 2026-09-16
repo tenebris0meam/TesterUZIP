@@ -196,6 +196,7 @@ void TIM3_Start_Count (void) {
 
 void TIM3_Stop_Count (void) {
     NVIC_DisableIRQ(TIM3_IRQn);
+    NVIC_ClearPendingIRQ(TIM3_IRQn);
     LL_TIM_DisableCounter(TIM3);
     return;
 }

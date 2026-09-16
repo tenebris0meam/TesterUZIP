@@ -60,7 +60,7 @@
 #define GENERATION_STEP_PERCENT (10U)
 
 /** @brief Сколько шагов укладывается в диапазон MiV..MaV. */
-#define GENERATION_MAX_STEPS (100U / GENERATION_STEP_PERCENT)
+#define GENERATION_MAX_STEPS (10U)
 
 /**
  * @brief Сколько ждать выхода на уставку, мс.
@@ -125,10 +125,6 @@ volatile Event current_event = Event_Count;
 
 /** @brief Номер шага подъёма уставки внутри текущей проверки, 0..GENERATION_MAX_STEPS. */
 static uint8_t generation_step = 0;
-
-/** @brief Идентификатор задачи для сторожевого таймера. */
-static int32_t generation_step_start = 0;
-static uint8_t generation_delay_task_id = 0;
 
 /** @brief Тип аппаратной ошибки */
 volatile TypeFail typefail = NoFail;
@@ -236,21 +232,21 @@ static bool proccessor_apply_setpoint (void) {
         return false;
     }
 
-    uint32_t span = (uint32_t)(device->maximal_voltage_test - 
-                               device->minimal_voltage_test);
+    uint32_t max_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(device->maximal_voltage_test);
+    uint32_t min_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(device->minimal_voltage_test);
+
+    uint32_t span = max_volt_afterdiv_uV - min_volt_afterdiv_uV;
     /* Диапазон нулевой - поднимать уставку некуда, шаг может быть только один */
     if ((span == 0U) && (generation_step > 0U)) {
         return false;
     }
 
-    uint32_t volts = (uint32_t)device->minimal_voltage_test + 
-                     ((span * generation_step) / GENERATION_MAX_STEPS);
-    if (volts > HV_FEEDBACK_MAX_TEST_V) {
-        volts = HV_FEEDBACK_MAX_TEST_V;
+    uint32_t volts = min_volt_afterdiv_uV + (span * generation_step) / GENERATION_MAX_STEPS;
+    if (volts > HV_FEEDBACK_BUS_LIMIT_uV) {
+        volts = HV_FEEDBACK_BUS_LIMIT_uV;
     }
 
-    calc_integrator_set_target_voltage(
-        hv_feedback_volts_to_target_uV((uint16_t)volts));
+    calc_integrator_set_target_voltage(volts);
     return true; 
 }
 
@@ -296,7 +292,6 @@ static void proccessor_shutdown_generation (void) {
 void proccessor_init_state (void) {
     model_init();
     generation_step = 0;
-    generation_step_start = 0;
     current_state = Idle_Setting;
     return;
 }
@@ -489,25 +484,12 @@ void proccessor_generation_proccess (void) {
             proccessor_raise_event(DeviceVoltageUnderVoltage);
         } else {
             /* Напряжение в диапазоне, проверяем ток */
-
-            /* Заводим таймер на 1мс */
-            static bool delay_registered = false;
-            if (!delay_registered) {
-                delay_registered = delay_register_task(&generation_delay_task_id, 
-                                                       1000, 
-                                                       Micros);
-            }
-
-            if (!delay_is_not_yet_expired(generation_delay_task_id)) {
-                /* Проверяем ток каждую 1мс */
-                if (current_nA < CALC_CURRENT_LOW_nA) {
-                    /* Ток устройства ещё не достиг тока теста */
-                    proccessor_raise_event(DeviceCurrentUnderCurrent);
-                } else {
-                    /* Ток устройства в диапазоне тока теста */
-                    proccessor_raise_event(DeviceCurrentWithinTheRange);
-                }
-                delay_registered = false;
+            if (current_nA < CALC_CURRENT_LOW_nA) {
+                /* Ток устройства ещё не достиг тока теста */
+                proccessor_raise_event(DeviceCurrentUnderCurrent);
+            } else {
+                /* Ток устройства в диапазоне тока теста */
+                proccessor_raise_event(DeviceCurrentWithinTheRange);
             }
         }
     }
@@ -521,9 +503,7 @@ State proccessor_generation_handle_event (Event event) {
         case DeviceCurrentWithinTheRange: return TestPassed;
 
         case DeviceVoltageOverVoltage:
-        case DeviceCurrentOverCurrent: 
-            delay_unregister_task(generation_delay_task_id);
-            return TestFailed;
+        case DeviceCurrentOverCurrent: return TestFailed;
 
         case DeviceCurrentUnderCurrent: 
         case DeviceVoltageUnderVoltage: 
@@ -534,9 +514,8 @@ State proccessor_generation_handle_event (Event event) {
                 }
             }
             return Generation;
-        case AlertActive: 
-            delay_unregister_task(generation_delay_task_id);
-            return HardwareFail;
+
+        case AlertActive: return HardwareFail;
 
         default: return Generation;
     }

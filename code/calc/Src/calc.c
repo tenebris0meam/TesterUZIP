@@ -5,16 +5,23 @@
 #include "utils.h"
 #include "stm32f103xb.h"   /* __disable_irq / __get_PRIMASK */
 #include "tim.h"
+#include "window.h"
 
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#define CALC_WINDOW_LENGTH 32
 
 
 
 volatile bool have_new_data = false;
 
 static IntegratorTypeDef integrator = { 0 };
+static Window_TypeDef voltage_window = { 0 };
+static Window_TypeDef current_window = { 0 };
+static int32_t voltage_buf[CALC_WINDOW_LENGTH] = { 0 };
+static int32_t current_buf[CALC_WINDOW_LENGTH] = { 0 };
 
 /** @brief Актуальные данные о напряжении и токе теста */
 static int32_t voltage_test = 0;
@@ -51,6 +58,19 @@ static int16_t calc_get_raw_val (const uint8_t *frame, RawValType type) {
     }
 }
 
+static int32_t calc_get_average_from_window (Window_TypeDef *window) {
+    if (window->cnt == window->num_elements) {
+        int64_t acc = 0;
+        for (uint32_t i = 0; i < window->cnt; i++) {
+            acc += (int64_t)*(int32_t *)(window->buf + i * window->element_size);
+        }
+        acc /= (int64_t)window->cnt;
+        return (int32_t)acc;
+    } else {
+        return 0;
+    }
+}
+
 
 
 bool calc_integrator_Init (void) {
@@ -73,6 +93,9 @@ bool calc_integrator_Init (void) {
 
     TIM3_Change_Update_Time(delta_time_us);
     calc_integrator_set_delta_time(delta_time_us);
+
+    window_init(&voltage_window, sizeof(int32_t), CALC_WINDOW_LENGTH, voltage_buf);
+    window_init(&current_window, sizeof(int32_t), CALC_WINDOW_LENGTH, current_buf);
 
     /*
      * Уставку здесь НЕ трогаем: её ставит процессор под конкретный прибор.
@@ -111,6 +134,8 @@ void calc_reset_integrator (void) {
     is_voltage_achieved = false;
     voltage_lowth = 0;
     voltage_highth = 0;
+    window_reset(&voltage_window);
+    window_reset(&current_window);
     return;
 }
 
@@ -148,8 +173,14 @@ void calc_routine (void) {
     int16_t current_raw = calc_get_raw_val(frame, CURRENT);
 
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
-    voltage_test = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV;
-    current_test = hv_shunt_uV_to_nA(shunt_dropvoltage);
+    int32_t u_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    int32_t n_amperage = hv_shunt_uV_to_nA(shunt_dropvoltage);
+
+    window_push(&voltage_window, &u_voltage);
+    window_push(&current_window, &n_amperage);
+
+    voltage_test = calc_get_average_from_window(&voltage_window);
+    current_test = calc_get_average_from_window(&current_window);
 
     calc_integrator_step(voltage_test);
     return;

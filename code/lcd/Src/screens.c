@@ -176,16 +176,34 @@ static void screen_draw_title (StrBuf_TypeDef *sb,
 static uint8_t screen_name_count (NameListKind kind) {
     switch (kind) {
         case NameList_Series: return params_get_series_num(&params);
-        case NameList_Groups: return params_get_groups_num(&params);
-        default: return params_get_devices_num(&params);
+        case NameList_Groups: {
+            const Params_Range_TypeDef *groups_is_seria = 
+                params_get_groups_in_seria(&params, test_config.series_id);
+            return groups_is_seria->count;
+        } 
+        default: {
+            const Params_Range_TypeDef *devices_in_group = 
+                params_get_devices_in_group(&params, test_config.group_id);
+            return devices_in_group->count;
+        }
     }
 }
 
 static const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
     switch (kind) {
         case NameList_Series: return params_get_seria_name(&params, idx);
-        case NameList_Groups: return params_get_group_name(&params, idx);
-        default: return params_get_device_name(&params, idx);
+        case NameList_Groups: {
+            const Params_Range_TypeDef *groups_in_seria = 
+                params_get_groups_in_seria(&params, test_config.series_id);
+            return params_get_group_name(&params, groups_in_seria->begin_idx + idx);
+        }
+        default: {
+            // const Params_Range_TypeDef *groups_in_seria = 
+            //     params_get_groups_in_seria(&params, test_config.series_id);
+            const Params_Range_TypeDef *devices_in_group = 
+                params_get_devices_in_group(&params, test_config.group_id);
+            return params_get_device_name(&params, devices_in_group->begin_idx + idx);
+        }
     }
 }
 
@@ -281,14 +299,14 @@ void screen_settingsseries_on_enter (void) {
 
 void screen_settingsgroups_on_enter (void) {
     cursor_init(&options_in_list[0], 
-                params_get_groups_num(&params),
+                params_get_groups_in_seria(&params, test_config.series_id)->count,
                 test_config.group_id);
     return;
 }
 
 void screen_settingsdevices_on_enter (void) {
     cursor_init(&options_in_list[0], 
-                params_get_devices_num(&params),
+                params_get_devices_in_group(&params, test_config.group_id)->count,
                 test_config.device_id);
     return;
 }
@@ -483,7 +501,7 @@ void screen_checkfailed_render (void) {
         row++;
     }
 
-    // Курсор не выделяем
+    cursor_draw_highlight();
     return;
 }
 
@@ -701,9 +719,12 @@ ScreenID screen_settingsgroups_handle_event (InputEvent event) {
         case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenSettingsGroups;
         case InputEvent_ButtonPressed_Cancel: return ScreenSettingsSeries;
         case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenSettingsGroups;
-        case InputEvent_ButtonPressed_Enter: 
-            test_config.group_id = cursor_get_current_selected_index();
+        case InputEvent_ButtonPressed_Enter: {
+            const Params_Range_TypeDef *groups_in_seria = 
+                params_get_groups_in_seria(&params, test_config.series_id);
+            test_config.group_id = groups_in_seria->begin_idx + cursor_get_current_selected_index();
             return ScreenSettingsDevices;
+        }
         default: return ScreenSettingsGroups;
     }
 }
@@ -713,9 +734,12 @@ ScreenID screen_settingsdevices_handle_event (InputEvent event) {
         case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenSettingsDevices;
         case InputEvent_ButtonPressed_Cancel: return ScreenSettingsGroups;
         case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenSettingsDevices;
-        case InputEvent_ButtonPressed_Enter: 
-            model_select_device(cursor_get_current_selected_index());
+        case InputEvent_ButtonPressed_Enter: {
+            const Params_Range_TypeDef *devices_in_group = 
+                params_get_devices_in_group(&params, test_config.group_id);
+            model_select_device(devices_in_group->begin_idx + cursor_get_current_selected_index());
             return ScreenMain;
+        }
         default: return ScreenSettingsDevices;
     }
 }

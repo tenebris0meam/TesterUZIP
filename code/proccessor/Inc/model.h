@@ -33,6 +33,7 @@ typedef struct {
 /** @brief Ход текущей проверки прибора. */
 typedef struct {
     const Params_TestSequence_TypeDef *current_sequence;
+    const Params_TestParam_TypeDef *current_test_params;
     const Params_Device_TypeDef *current_device;
     uint32_t done_mask;         /**< бит i: проверка i выполнена  */
     uint32_t pass_mask;         /**< бит i: проверка i пройдена   */
@@ -70,5 +71,8 @@ bool model_is_test_failed (uint8_t pos);
 
 /** @brief Тестовая последовательность, соответствующая позиции проверки. */
 const Params_TestSequence_TypeDef *model_get_sequence_at (uint8_t pos);
+
+/** @brief Тестовые параметры, соответствующая позиции проверки. */
+const Params_TestParam_TypeDef *model_get_testparams_at (uint8_t pos);
 
 #endif /* MODEL_H_ */

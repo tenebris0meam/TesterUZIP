@@ -17,6 +17,7 @@ static uint8_t model_next_position (void) {
 /** @brief Навести current_sequence на проверку с указанной позицией. */
 static void model_point_to (uint8_t pos) {
     test_results.current_sequence = model_get_sequence_at(pos);
+    test_results.current_test_params = model_get_testparams_at(pos);
     return;
 }
 
@@ -25,15 +26,29 @@ const Params_TestSequence_TypeDef *model_get_sequence_at (uint8_t pos) {
     if (device == 0) {
         return 0;
     }
-
     if (pos >= device->num_seqs) {
         return 0;
     }
-    if (device->sequence_idxs == 0) {
+    if (device->test_sequences == 0) {
         return 0;
     }
 
-    return params_get_sequence(&params, device->sequence_idxs[pos]);
+    return params_get_sequence(&params, device->test_sequences[pos].seq_idx);
+}
+
+const Params_TestParam_TypeDef *model_get_testparams_at (uint8_t pos) {
+    const Params_Device_TypeDef *device = test_results.current_device;
+    if (device == 0) {
+        return 0;
+    }
+    if (pos >= device->num_seqs) {
+        return 0;
+    }
+    if (device->test_sequences == 0) {
+        return 0;
+    }
+
+    return params_get_test_params(&params, device->test_sequences[pos].test_param_idx);
 }
 
 uint8_t model_get_total_tests (void) {

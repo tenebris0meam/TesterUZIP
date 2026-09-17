@@ -7,6 +7,7 @@
 #include "calc.h"
 #include "hv_feedback.h"
 #include "ina239_user.h"
+#include "params.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_tim.h"
 #include "tim.h"
@@ -171,9 +172,12 @@ static bool proccessor_more_tests_left (void) {
  */
 static bool proccessor_setup_lines (void) {
     const Params_TestSequence_TypeDef *sequence = test_results.current_sequence;
+    const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
     const Params_Device_TypeDef *device = test_results.current_device;
 
-    if ((sequence == NULL) || (device == NULL)) {
+    if ((sequence == NULL) || 
+        (device == NULL) || 
+        (testparams == NULL)) {
         return false;
     }
 
@@ -183,9 +187,9 @@ static bool proccessor_setup_lines (void) {
     }
 
     /* Диапазон напряжений теста должен быть осмысленным и достижимым */
-    if ((device->minimal_voltage_test == 0U) || 
-        (device->maximal_voltage_test < device->minimal_voltage_test) || 
-        (device->maximal_voltage_test > HV_FEEDBACK_MAX_TEST_V)) {
+    if ((testparams->min_voltage == 0U) || 
+        (testparams->max_voltage < testparams->min_voltage) || 
+        (testparams->max_voltage > HV_FEEDBACK_MAX_TEST_V)) {
         return false;
     }
 
@@ -223,17 +227,17 @@ static bool proccessor_setup_lines (void) {
  *          делением, и последний шаг не попадал бы точно в MaV.
  */
 static bool proccessor_apply_setpoint (void) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
 
-    if (device == NULL) {
+    if (testparams == NULL) {
         return false;
     }
     if (generation_step > GENERATION_MAX_STEPS) {
         return false;
     }
 
-    uint32_t max_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(device->maximal_voltage_test);
-    uint32_t min_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(device->minimal_voltage_test);
+    uint32_t max_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(testparams->max_voltage);
+    uint32_t min_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(testparams->min_voltage);
 
     uint32_t span = max_volt_afterdiv_uV - min_volt_afterdiv_uV;
     /* Диапазон нулевой - поднимать уставку некуда, шаг может быть только один */
@@ -415,11 +419,11 @@ void proccessor_generation_on_enter (void) {
     /* На шаге 0 уставка есть всегда: диапазон проверен в proccessor_setup_lines() */
     (void)proccessor_apply_setpoint();
 
-    /* Заранее вычисляем пороги по напряжению для данного устройства */
+    /* Заранее вычисляем пороги по напряжению для данного теста */
     voltage_lowth_uV = (100 - CALC_TARGET_TOLERANCE_PERCENT) * 
-            (hv_feedback_volts_to_target_uV(test_results.current_device->minimal_voltage_test) / 100);
+            (hv_feedback_volts_to_target_uV(test_results.current_test_params->min_voltage) / 100);
     voltage_highth_uV = (100 + CALC_TARGET_TOLERANCE_PERCENT) * 
-            (hv_feedback_volts_to_target_uV(test_results.current_device->maximal_voltage_test) / 100);
+            (hv_feedback_volts_to_target_uV(test_results.current_test_params->max_voltage) / 100);
 
     INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS);
     TIM3_Start_Count();

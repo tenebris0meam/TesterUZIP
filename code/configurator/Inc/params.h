@@ -51,16 +51,29 @@ typedef struct {
     uint8_t output_pin;
 } Params_TestSequence_TypeDef;
 
+typedef struct {
+    uint16_t min_voltage;
+    uint16_t max_voltage;
+    uint8_t current;
+} Params_TestParam_TypeDef;
+
+typedef struct {
+    uint8_t seq_idx;
+    uint8_t test_param_idx;
+} Params_TestSeq_TypeDef;
+
+typedef struct {
+    uint8_t begin_idx;
+    uint8_t count;
+} Params_Range_TypeDef;
+
 /** @brief Описание одного испытуемого прибора. */
 typedef struct {
     uint8_t seria_idx;
     uint8_t group_idx;
     uint8_t device_idx;
-    const uint8_t *sequence_idxs;   /**< индексы в Params_TypeDef::sequences */
+    const Params_TestSeq_TypeDef *test_sequences;   /**< индексы в Params_TypeDef::sequences */
     uint8_t num_seqs;
-    uint16_t minimal_voltage_test;
-    uint16_t maximal_voltage_test;
-    uint16_t discharger_voltage; 
     uint8_t connector_types;        /**< битовая маска Param_Connector */
 } Params_Device_TypeDef;
 
@@ -77,10 +90,14 @@ typedef struct {
     uint8_t groups_count;
     uint8_t devices_count;
     uint8_t sequences_count;
+    uint8_t test_params_count;
     const MyString *series_names;
     const MyString *groups_names;
     const MyString *devices_names;
     const Params_TestSequence_TypeDef *sequences;
+    const Params_TestParam_TypeDef *test_params;
+    const Params_Range_TypeDef *series_groups;
+    const Params_Range_TypeDef *group_devices;
     const Params_Device_TypeDef *devices;
 } Params_TypeDef;
 
@@ -144,6 +161,30 @@ const Params_Device_TypeDef *params_get_device (const Params_TypeDef *cfg,
                                                 uint8_t dev_idx) {
     return ((dev_idx < cfg->devices_count) ? 
             &cfg->devices[dev_idx] : 
+            0);
+}
+
+static inline 
+const Params_Range_TypeDef *params_get_groups_in_seria (const Params_TypeDef *cfg, 
+                                                        uint8_t seria_idx) {
+    return ((seria_idx < cfg->series_count) ? 
+            &cfg->series_groups[seria_idx] : 
+            0);
+}
+
+static inline 
+const Params_Range_TypeDef *params_get_devices_in_group (const Params_TypeDef *cfg, 
+                                                         uint8_t group_idx) {
+    return ((group_idx < cfg->groups_count) ? 
+            &cfg->group_devices[group_idx] : 
+            0);
+}
+
+static inline
+const Params_TestParam_TypeDef *params_get_test_params (const Params_TypeDef *cfg, 
+                                                        uint8_t test_idx) {
+    return ((test_idx < cfg->test_params_count) ? 
+            &cfg->test_params[test_idx] : 
             0);
 }
 

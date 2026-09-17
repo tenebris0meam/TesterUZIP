@@ -1,34 +1,30 @@
 [
     {
-        "SeriesAmount": 3,
-        "GroupsAmount": 17,
-        "DevicesAmount": 46,
+        "SeriesAmount": 2,
+        "GroupsAmount": 15,
+        "DevicesAmount": 42,
         "SequencesAmount": 72,
-        "SeriesNames": [
-            "SGK",
-            "SGO",
-            "REQR"
+        "TestParamsAmount": 12,
+        "Series": [
+            { "SeriaName": "SGK", "GroupBeginID": 0, "GroupCount": 10 },
+            { "SeriaName": "SGO", "GroupBeginID": 10, "GroupCount": 5 }
         ],
-        "GroupsNames": [
-            "SGK",
-            "SGK-H",
-            "SGK-H2",
-            "SGK-H2-5/5",
-            "SGK-J",
-            "SGKO-EO",
-            "SGK-QD",
-            "SGK-QJ",
-            "SGK-R",
-            "SGK-R2",
-
-            "SGO",
-            "SGO-BW",
-            "SGOT-220",
-            "SGO2",
-            "SGO12", 
-
-            "PEG",
-            "RBQ"
+        "Groups": [
+            { "GroupName": "SGK", "DeviceBeginID": 0, "DeviceCount": 3 }, 
+            { "GroupName": "SGK-H", "DeviceBeginID": 3, "DeviceCount": 6 }, 
+            { "GroupName": "SGK-H2", "DeviceBeginID": 9, "DeviceCount": 7 }, 
+            { "GroupName": "SGK-H2-5/5", "DeviceBeginID": 16, "DeviceCount": 6 }, 
+            { "GroupName": "SGK-J", "DeviceBeginID": 22, "DeviceCount": 1 }, 
+            { "GroupName": "SGKO-EO", "DeviceBeginID": 23, "DeviceCount": 1 }, 
+            { "GroupName": "SGK-QD", "DeviceBeginID": 24, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-QJ", "DeviceBeginID": 26, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-R", "DeviceBeginID": 28, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-R2", "DeviceBeginID": 30, "DeviceCount": 2 }, 
+            { "GroupName": "SGO", "DeviceBeginID": 32, "DeviceCount": 5 }, 
+            { "GroupName": "SGO-BW", "DeviceBeginID": 37, "DeviceCount": 2 }, 
+            { "GroupName": "SGOT-220", "DeviceBeginID": 39, "DeviceCount": 1 }, 
+            { "GroupName": "SGO2", "DeviceBeginID": 40, "DeviceCount": 1 }, 
+            { "GroupName": "SGO12", "DeviceBeginID": 41, "DeviceCount": 1 }
         ],
         "DevicesNames": [
             "SGK-7,5-10j@-12/24-B",
@@ -73,13 +69,7 @@
             "SGO-BW T",
             "SGOT-220",
             "SGO2-220",
-            "SGO12-220",
-
-            "PEG5j",
-            "PEG14j",
-            "PEG27j",
-
-            "RBQ15"
+            "SGO12-220"
         ],
         "Sequences": [
             { "InputPin": 0, "OutputPin": 1 },
@@ -154,6 +144,20 @@
             { "InputPin": 8, "OutputPin": 5 },
             { "InputPin": 8, "OutputPin": 6 },
             { "InputPin": 8, "OutputPin": 7 }
+        ],
+        "TestParams": [
+            { "MinVoltage": 5, "MaxVoltage": 10, "Current": 1 },
+            { "MinVoltage": 15, "MaxVoltage": 20, "Current": 1 },
+            { "MinVoltage": 26, "MaxVoltage": 35, "Current": 1 }, 
+            { "MinVoltage": 30, "MaxVoltage": 40, "Current": 1 }, 
+            { "MinVoltage": 36, "MaxVoltage": 47, "Current": 1 }, 
+            { "MinVoltage": 40, "MaxVoltage": 52, "Current": 1 },
+            { "MinVoltage": 52, "MaxVoltage": 75, "Current": 1 },
+            { "MinVoltage": 66, "MaxVoltage": 85, "Current": 1 }, 
+            { "MinVoltage": 128, "MaxVoltage": 161, "Current": 1 },
+            { "MinVoltage": 180, "MaxVoltage": 220, "Current": 1 },
+            { "MinVoltage": 320, "MaxVoltage": 480, "Current": 1 },
+            { "MinVoltage": 420, "MaxVoltage": 530, "Current": 1 }
         ]
     },
 
@@ -163,58 +167,40 @@
         "SeriaID": 0,
         "GroupID": 0,
         "DeviceID": 0,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequencesAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 2 }
         ],
-        "MinimalVoltage": 26,
-        "MaximalVoltage": 34,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 0,
         "DeviceID": 1,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequencesAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 0 }
         ],
-        "MinimalVoltage": 5,
-        "MaximalVoltage": 10,
-        "DischargerVoltage": 150,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 0,
         "DeviceID": 2,
-        "SequenceIDAmount": 20,
-        "SequenceIDs": [
-            0,
-            8,
-            20,
-            42,
-            27,
-            35,
-            54,
-            62,
+        "TestSequencesAmount": 12,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 0 },
+            { "SequenceID": 8, "TestID": 0 },
+            { "SequenceID": 20, "TestID": 0 },
+            { "SequenceID": 42, "TestID": 0 },
+            { "SequenceID": 27, "TestID": 0 },
+            { "SequenceID": 35, "TestID": 0 },
+            { "SequenceID": 54, "TestID": 0 },
+            { "SequenceID": 62, "TestID": 0 },
 
-            1,
-            16, 
-            29, 
-            51, 
-
-            7,
-            15,
-            23,
-            31,
-            39,
-            47,
-            55,
-            63
+            { "SequenceID": 1, "TestID": 7 },
+            { "SequenceID": 16,  "TestID": 7 },
+            { "SequenceID": 29,  "TestID": 7 },
+            { "SequenceID": 51,  "TestID": 7 }
         ],
-        "MinimalVoltage": 5,
-        "MaximalVoltage": 9,
-        "DischargerVoltage": 150,
         "ConnectorMask": 7
     },
 
@@ -224,73 +210,55 @@
         "SeriaID": 0,
         "GroupID": 1,
         "DeviceID": 3,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 20,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 1,
         "DeviceID": 4,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 3 }
         ],
-        "MinimalVoltage": 30,
-        "MaximalVoltage": 40,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 1,
         "DeviceID": 5,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 4 }
         ],
-        "MinimalVoltage": 36,
-        "MaximalVoltage": 47,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 1,
         "DeviceID": 6,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 6 }
         ],
-        "MinimalVoltage": 52,
-        "MaximalVoltage": 75,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 1,
         "DeviceID": 7,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 7 }
         ],
-        "MinimalVoltage": 66,
-        "MaximalVoltage": 85,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 1,
         "DeviceID": 8,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 8 }
         ],
-        "MinimalVoltage": 128,
-        "MaximalVoltage": 161,
-        "DischargerVoltage": 200,
         "ConnectorMask": 1
     },
     
@@ -300,85 +268,64 @@
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 9,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 20,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 10,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 20,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 11,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 3 }
         ],
-        "MinimalVoltage": 30,
-        "MaximalVoltage": 40,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 12,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 4 }
         ],
-        "MinimalVoltage": 36,
-        "MaximalVoltage": 47,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 13,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 6 }
         ],
-        "MinimalVoltage": 52,
-        "MaximalVoltage": 75,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 14,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 7 }
         ],
-        "MinimalVoltage": 66,
-        "MaximalVoltage": 85,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 2,
         "DeviceID": 15,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 8 }
         ],
-        "MinimalVoltage": 128,
-        "MaximalVoltage": 161,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     },
 
@@ -388,73 +335,55 @@
         "SeriaID": 0,
         "GroupID": 3,
         "DeviceID": 16,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 20,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 3,
         "DeviceID": 17,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 3 }
         ],
-        "MinimalVoltage": 30,
-        "MaximalVoltage": 40,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 3,
         "DeviceID": 18,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 4 }
         ],
-        "MinimalVoltage": 36,
-        "MaximalVoltage": 47,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 3,
         "DeviceID": 19,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 6 }
         ],
-        "MinimalVoltage": 52,
-        "MaximalVoltage": 75,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 3,
         "DeviceID": 20,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 7 }
         ],
-        "MinimalVoltage": 66,
-        "MaximalVoltage": 85,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 3,
         "DeviceID": 21,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 8 }
         ],
-        "MinimalVoltage": 128,
-        "MaximalVoltage": 161,
-        "DischargerVoltage": 200,
         "ConnectorMask": 1
     },
 
@@ -464,13 +393,10 @@
         "SeriaID": 0,
         "GroupID": 4,
         "DeviceID": 22,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 2 }
         ],
-        "MinimalVoltage": 26,
-        "MaximalVoltage": 34,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     },
 
@@ -480,13 +406,10 @@
         "SeriaID": 0,
         "GroupID": 5,
         "DeviceID": 23,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 6 }
         ],
-        "MinimalVoltage": 60,
-        "MaximalVoltage": 75,
-        "DischargerVoltage": 150,
         "ConnectorMask": 1
     },
 
@@ -496,47 +419,41 @@
         "SeriaID": 0,
         "GroupID": 6,
         "DeviceID": 24,
-        "SequenceIDAmount": 12,
-        "SequenceIDs": [
-            0,
-            8,
-            1,
-            16,
-            9,
-            17,
-            27,
-            35,
-            26,
-            18,
-            34,
-            19
+        "TestSequenceAmount": 12,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 },
+            { "SequenceID": 8, "TestID": 1 },
+            { "SequenceID": 1, "TestID": 1 },
+            { "SequenceID": 16, "TestID": 1 },
+            { "SequenceID": 9, "TestID": 1 },
+            { "SequenceID": 17, "TestID": 1 },
+            { "SequenceID": 27, "TestID": 1 },
+            { "SequenceID": 35, "TestID": 1 },
+            { "SequenceID": 26, "TestID": 1 }, 
+            { "SequenceID": 18, "TestID": 1 }, 
+            { "SequenceID": 34, "TestID": 1 },
+            { "SequenceID": 19, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 19,
-        "DischargerVoltage": 90,
         "ConnectorMask": 5
     }, {
         "SeriaID": 0,
         "GroupID": 6,
         "DeviceID": 25,
-        "SequenceIDAmount": 12,
-        "SequenceIDs": [
-            0,
-            8,
-            1,
-            16,
-            9,
-            17,
-            27,
-            35,
-            26,
-            18,
-            34,
-            19
+        "TestSequenceAmount": 12,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 2 },
+            { "SequenceID": 8, "TestID": 2 },
+            { "SequenceID": 1, "TestID": 2 },
+            { "SequenceID": 16, "TestID": 2 },
+            { "SequenceID": 9, "TestID": 2 },
+            { "SequenceID": 17, "TestID": 2 },
+            { "SequenceID": 27, "TestID": 2 },
+            { "SequenceID": 35, "TestID": 2 },
+            { "SequenceID": 26, "TestID": 2 }, 
+            { "SequenceID": 18, "TestID": 2 }, 
+            { "SequenceID": 34, "TestID": 2 },
+            { "SequenceID": 19, "TestID": 2 }
         ],
-        "MinimalVoltage": 28,
-        "MaximalVoltage": 35,
-        "DischargerVoltage": 90,
         "ConnectorMask": 5
     },
 
@@ -546,25 +463,19 @@
         "SeriaID": 0,
         "GroupID": 7,
         "DeviceID": 26,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 19,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 7,
         "DeviceID": 27,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 2 }
         ],
-        "MinimalVoltage": 28,
-        "MaximalVoltage": 35,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     },
 
@@ -574,25 +485,19 @@
         "SeriaID": 0,
         "GroupID": 8,
         "DeviceID": 28,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 6 }
         ],
-        "MinimalVoltage": 55,
-        "MaximalVoltage": 75,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 8,
         "DeviceID": 29,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 9 }
         ],
-        "MinimalVoltage": 180,
-        "MaximalVoltage": 220,
-        "DischargerVoltage": 200,
         "ConnectorMask": 1
     },
 
@@ -602,25 +507,19 @@
         "SeriaID": 0,
         "GroupID": 9,
         "DeviceID": 30,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 6 }
         ],
-        "MinimalVoltage": 55,
-        "MaximalVoltage": 75,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 0,
         "GroupID": 9,
         "DeviceID": 31,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 9 }
         ],
-        "MinimalVoltage": 180,
-        "MaximalVoltage": 220,
-        "DischargerVoltage": 200,
         "ConnectorMask": 1
     },
 
@@ -634,194 +533,104 @@
         "SeriaID": 1,
         "GroupID": 10,
         "DeviceID": 32,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 1 }
         ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 20,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 1,
         "GroupID": 10,
         "DeviceID": 33,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 3 }
         ],
-        "MinimalVoltage": 30,
-        "MaximalVoltage": 40,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 1,
         "GroupID": 10,
         "DeviceID": 34,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 5 }
         ],
-        "MinimalVoltage": 40,
-        "MaximalVoltage": 52,
-        "DischargerVoltage": 90,
         "ConnectorMask": 1
     }, {
         "SeriaID": 1,
         "GroupID": 10,
         "DeviceID": 35,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 11 }
         ],
-        "MinimalVoltage": 420,
-        "MaximalVoltage": 530,
-        "DischargerVoltage": 350,
         "ConnectorMask": 1
     }, {
         "SeriaID": 1,
         "GroupID": 10,
         "DeviceID": 36,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 11 }
         ],
-        "MinimalVoltage": 420,
-        "MaximalVoltage": 530,
-        "DischargerVoltage": 350,
         "ConnectorMask": 1
     },
 
 
 
     {
-        "SeriaID": 0,
+        "SeriaID": 1,
         "GroupID": 11,
         "DeviceID": 37,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
-        ],
-        "MinimalVoltage": 0,
-        "MaximalVoltage": 0,
-        "DischargerVoltage": 90,
+        "TestSequenceAmount": 0,
+        "TestSequences": [ ],
         "ConnectorMask": 1
     },
     {
-        "SeriaID": 0,
+        "SeriaID": 1,
         "GroupID": 11,
         "DeviceID": 38,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
-        ],
-        "MinimalVoltage": 0,
-        "MaximalVoltage": 0,
-        "DischargerVoltage": 90,
+        "TestSequenceAmount": 0,
+        "TestSequences": [ ],
         "ConnectorMask": 1
     },
 
 
 
     {
-        "SeriaID": 0,
+        "SeriaID": 1,
         "GroupID": 12,
         "DeviceID": 39,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 11 }
         ],
-        "MinimalVoltage": 420,
-        "MaximalVoltage": 530,
-        "DischargerVoltage": 350,
         "ConnectorMask": 1
     },
 
 
 
     {
-        "SeriaID": 0,
+        "SeriaID": 1,
         "GroupID": 13,
         "DeviceID": 40,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 10 }
         ],
-        "MinimalVoltage": 380,
-        "MaximalVoltage": 480,
-        "DischargerVoltage": 0,
         "ConnectorMask": 1
     },
 
 
 
     {
-        "SeriaID": 0,
+        "SeriaID": 1,
         "GroupID": 14,
         "DeviceID": 41,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
+        "TestSequenceAmount": 1,
+        "TestSequences": [
+            { "SequenceID": 0, "TestID": 10 }
         ],
-        "MinimalVoltage": 380,
-        "MaximalVoltage": 480,
-        "DischargerVoltage": 0,
-        "ConnectorMask": 1
-    },
-
-
-
-    {
-        "SeriaID": 2,
-        "GroupID": 15,
-        "DeviceID": 42,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
-        ],
-        "MinimalVoltage": 4,
-        "MaximalVoltage": 6,
-        "DischargerVoltage": 90,
-        "ConnectorMask": 1
-    }, {
-        "SeriaID": 2,
-        "GroupID": 15,
-        "DeviceID": 43,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
-        ],
-        "MinimalVoltage": 12,
-        "MaximalVoltage": 16,
-        "DischargerVoltage": 90,
-        "ConnectorMask": 1
-    }, {
-        "SeriaID": 2,
-        "GroupID": 15,
-        "DeviceID": 44,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
-        ],
-        "MinimalVoltage": 25,
-        "MaximalVoltage": 29,
-        "DischargerVoltage": 90,
-        "ConnectorMask": 1
-    },
-    
-    
-
-    {
-        "SeriaID": 2,
-        "GroupID": 16,
-        "DeviceID": 45,
-        "SequenceIDAmount": 1,
-        "SequenceIDs": [
-            0
-        ],
-        "MinimalVoltage": 15,
-        "MaximalVoltage": 19,
-        "DischargerVoltage": 0,
         "ConnectorMask": 1
     }
 ]

@@ -8,16 +8,23 @@
 Зачем: разбор JSON на месте требовал массива токенов jsmn (1696 байт ОЗУ уже
 на текущем конфиге в 395 байт и порядка 35 КБ на конфиге в 8 КБ, то есть не
 помещался в 20 КБ вовсе) плюс дерево через malloc. Здесь стоимость по ОЗУ - 0.
-Подробности: docs/markdown/ram_audit.md, раздел "Разбор конфигурации".
 
 Формат входного файла (config/new_config.json) - массив, где:
-  * элемент 0     - каталог: SeriesAmount/GroupsAmount/DevicesAmount/SeqencesAmount (счётчики), 
-                    SeriesNames/GroupsNames/DevicesNames (имена серий,
-                    групп, приборов), Sequences (список тестовых последовательностей
-                    {InputPin, OutputPin});
+  * элемент 0     - каталог: SeriesAmount/GroupsAmount/DevicesAmount/SequencesAmount/
+                    TestParamsAmount (счётчики, необязательны, сверяются с фактом),
+                    DevicesNames (имена приборов),
+                    Sequences (список тестовых последовательностей {InputPin, OutputPin}),
+                    TestParams (список параметров теста {Voltage_V, Current_mA}),
+                    Series (для каждой серии - имя и диапазон групп {SeriaName, GroupBeginID, GroupCount}),
+                    Groups (для каждой группы - имя и диапазон приборов {GroupName, DeviceBeginID, DeviceCount}).
+                    Приборы в элементах 1..N обязаны идти отсортированными по
+                    (SeriaID, GroupID), т.к. диапазоны Series/Groups ссылаются на
+                    непрерывные позиции в списках групп/приборов;
   * элементы 1..N - приборы: SeriaID/GroupID/DeviceID (индексы серии, группы, имени),
-                    SequenceIDs (индексы в Sequence), MinimalVoltage/MaximalVoltage (диапазон напряжения),
-                    DischargerVoltage (напряжение разрядника), ConnectorMask (маска разъёмов).
+                    TestSequences (список тестовых шагов {ID, TestID}, где ID - индекс
+                    в Sequences, TestID - индекс в TestParams), MinimalVoltage/MaximalVoltage
+                    (диапазон напряжения), DischargerVoltage (напряжение разрядника),
+                    ConnectorMask (маска разъёмов).
 
 Использование:
     python tools/minify_json.py -i config/new_config.json -o build/config_data.c
@@ -32,6 +39,7 @@ import sys
 
 MAX_NAME_SIZE = 31          # params.h: MAX_NAME_SIZE
 MAX_VOLTAGE = 550           # config_testerUZIP_schema.json
+MAX_CURRENT_MA = 2          # code/Inc/hv_feedback.h: HV_SHUNT_MAX_CURRENT_nA = 2 000 000 нА = 2 мА
 MAX_PIN = 8                 # ActiveLine_1..ActiveLine_9 в commutator.h
 MAX_CONNECTOR_MASK = 0x07   # Probe | RJ45 | K1
 CONFIG_REGION_SIZE = 8 * 1024   # секция CONFIG в STM32F103XB_FLASH.ld
@@ -45,21 +53,34 @@ CATALOG_SERIES_AMOUNT = "SeriesAmount"
 CATALOG_GROUPS_AMOUNT = "GroupsAmount"
 CATALOG_DEVICES_AMOUNT = "DevicesAmount"
 CATALOG_SEQUENCES_AMOUNT = "SequencesAmount"
-CATALOG_SERIES_NAMES = "SeriesNames"
-CATALOG_GROUPS_NAMES = "GroupsNames"
 CATALOG_DEVICES_NAMES = "DevicesNames"
 CATALOG_SEQUENCES = "Sequences"
 CATALOG_SEQUENCES_INPUT_PIN = "InputPin"
 CATALOG_SEQUENCES_OUTPUT_PIN = "OutputPin"
 
+CATALOG_TEST_PARAMS = "TestParams"
+CATALOG_TEST_PARAMS_MINVOLTAGE = "MinVoltage"
+CATALOG_TEST_PARAMS_MAXVOLTAGE = "MaxVoltage"
+CATALOG_TEST_PARAMS_CURRENT = "Current"
+CATALOG_TEST_PARAMS_AMOUNT = "TestParamsAmount"
+
+CATALOG_SERIES = "Series"
+CATALOG_SERIA_NAME = "SeriaName"
+CATALOG_SERIES_GROUP_BEGIN = "GroupBeginID"
+CATALOG_SERIES_GROUP_COUNT = "GroupCount"
+
+CATALOG_GROUPS = "Groups"
+CATALOG_GROUP_NAME = "GroupName"
+CATALOG_GROUPS_DEVICE_BEGIN = "DeviceBeginID"
+CATALOG_GROUPS_DEVICE_COUNT = "DeviceCount"
+
 DEVICES_SERIA_ID = "SeriaID"
 DEVICES_GROUP_ID = "GroupID"
 DEVICES_DEVICE_ID = "DeviceID"
-DEVICES_SEQUENCE_IDS = "SequenceIDs"
-DEVICES_SEQUENCE_AMOUNT = "SequenceIDAmount"
-DEVICES_MIN_VOLT = "MinimalVoltage"
-DEVICES_MAX_VOLT = "MaximalVoltage"
-DEVICES_DISCHARGER = "DischargerVoltage"
+DEVICES_TEST_SEQUENCES = "TestSequences"
+DEVICES_TEST_SEQUENCES_SEQ_ID = "SequenceID"
+DEVICES_TEST_SEQUENCES_TEST_ID = "TestID"
+DEVICES_TEST_SEQUENCES_AMOUNT = "TestSequencesAmount"
 DEVICES_CONNECTOR_MASK = "ConnectorMask"
 
 class ConfigError(Exception):
@@ -90,6 +111,21 @@ def _get_int(obj, key, where, lo, hi):
             f"{where}: поле '{key}' = {val}, допустимо {lo}..{hi}")
     return val
 
+def _get_str(obj, key, where):
+    require(key in obj, f"{where}: отсутствует поле '{key}'")
+    val = obj[key]
+    require(isinstance(val, str), 
+            f"{where}: '{key}' должно быть строкой, получено {val!r}")
+    raw = val.encode("utf-8")
+    require(len(raw) < MAX_NAME_SIZE, 
+                f"{where}: '{key}' = {val!r} длиной {len(raw)} байт, "
+                f"максимум {MAX_NAME_SIZE}")
+    for byte in raw:
+            if not (0x20 <= byte <= 0x7F):
+                warn(f"{where}: '{key}' = {val!r} содержит байт 0x{byte:02X} "
+                     f"вне диапазона шрифта 0x20..0x7F - на экране будет точка. "
+                     f"Кириллицу задавать по docs/markdown/character_table.md")
+    return val
 
 def _get_names(catalog, key, where):
     require(key in catalog, f"{where}: отсутствует список имён '{key}'")
@@ -123,8 +159,6 @@ def parse_config(raw):
     catalog = raw[0]
     require(isinstance(catalog, dict), "элемент 0 (каталог) должен быть объектом")
 
-    series_names = _get_names(catalog, CATALOG_SERIES_NAMES, "каталог")
-    groups_names = _get_names(catalog, CATALOG_GROUPS_NAMES, "каталог")
     devices_names = _get_names(catalog, CATALOG_DEVICES_NAMES, "каталог")
 
     require(CATALOG_SEQUENCES in catalog, "каталог: отсутствует список последовательностей '" + CATALOG_SEQUENCES + "'")
@@ -138,15 +172,66 @@ def parse_config(raw):
             _get_int(seq, CATALOG_SEQUENCES_OUTPUT_PIN, where, 0, MAX_PIN),
         ))
 
+    require(CATALOG_TEST_PARAMS in catalog, "каталог: отсутствует список параметров теста '" + CATALOG_TEST_PARAMS + "'")
+    require(isinstance(catalog[CATALOG_TEST_PARAMS], list), "каталог: '" + CATALOG_TEST_PARAMS + "' должен быть массивом")
+    test_params = []
+    for idx, tp in enumerate(catalog[CATALOG_TEST_PARAMS]):
+        where = f"каталог: '" + CATALOG_TEST_PARAMS + f"'[{idx}]"
+        require(isinstance(tp, dict), f"{where}: должен быть объектом")
+        test_params.append((
+            _get_int(tp, CATALOG_TEST_PARAMS_MINVOLTAGE, where, 0, MAX_VOLTAGE),
+            _get_int(tp, CATALOG_TEST_PARAMS_MAXVOLTAGE, where, 0, MAX_VOLTAGE),
+            _get_int(tp, CATALOG_TEST_PARAMS_CURRENT, where, 0, MAX_CURRENT_MA)
+        ))
+    require(test_params, "каталог: '" + CATALOG_TEST_PARAMS + "' пуст - " +
+            "каждой тестовой последовательности прибора нужен параметр теста")
+
+    def _parse_ranges(list_key, name_key, begin_key, count_key, owner_count_key, owner_name):
+        require(list_key in catalog, f"каталог: отсутствует список диапазонов '{list_key}'")
+        require(isinstance(catalog[list_key], list), f"каталог: '{list_key}' должен быть массивом")
+        ranges = []
+        names = []
+        for idx, item in enumerate(catalog[list_key]):
+            where = f"каталог: '{list_key}'[{idx}]"
+            require(isinstance(item, dict), f"{where}: должен быть объектом")
+            name = _get_str(item, name_key, where)
+            begin = _get_int(item, begin_key, where, 0, 254)
+            count = _get_int(item, count_key, where, 0, 255)
+            ranges.append((begin, count))
+            names.append(name)
+        return ranges, names
+
+    series_ranges, series_names = _parse_ranges(CATALOG_SERIES, 
+                                                CATALOG_SERIA_NAME, 
+                                                CATALOG_SERIES_GROUP_BEGIN,
+                                                CATALOG_SERIES_GROUP_COUNT, 
+                                                CATALOG_GROUPS_AMOUNT, 
+                                                "групп")
+    group_ranges, groups_names = _parse_ranges(CATALOG_GROUPS, 
+                                               CATALOG_GROUP_NAME, 
+                                               CATALOG_GROUPS_DEVICE_BEGIN,
+                                               CATALOG_GROUPS_DEVICE_COUNT, 
+                                               CATALOG_DEVICES_AMOUNT, 
+                                               "приборов")
+
+    require(len(series_ranges) == len(series_names),
+            f"каталог: '" + CATALOG_SERIES + f"' содержит {len(series_ranges)} диапазонов, "
+            f"а имён серий {len(series_names)} - должно быть по одному диапазону на серию")
+    require(len(group_ranges) == len(groups_names),
+            f"каталог: '" + CATALOG_GROUPS + f"' содержит {len(group_ranges)} диапазонов, "
+            f"а имён групп {len(groups_names)} - должно быть по одному диапазону на группу")
+
     _check_declared_count(catalog, CATALOG_SERIES_AMOUNT, len(series_names), "имён серий")
     _check_declared_count(catalog, CATALOG_GROUPS_AMOUNT, len(groups_names), "имён групп")
     _check_declared_count(catalog, CATALOG_DEVICES_AMOUNT, len(devices_names), "имён приборов")
     _check_declared_count(catalog, CATALOG_SEQUENCES_AMOUNT, len(sequences), "последовательностей")
+    _check_declared_count(catalog, CATALOG_TEST_PARAMS_AMOUNT, len(test_params), "параметров теста")
 
     for name, count in (("серий", len(series_names)),
                         ("групп", len(groups_names)),
                         ("приборов", len(devices_names)),
-                        ("последовательностей", len(sequences))):
+                        ("последовательностей", len(sequences)),
+                        ("параметров теста", len(test_params))):
         require(count <= 255, f"{name} {count}, а счётчики в params.h - uint8_t "
                               f"(максимум 255)")
 
@@ -162,42 +247,39 @@ def parse_config(raw):
         require(len(groups_names) > 0, f"{where}: список групп пуст")
         require(len(devices_names) > 0, f"{where}: список имён приборов пуст")
 
-        require(DEVICES_SEQUENCE_IDS in dev, f"{where}: отсутствует список '" + DEVICES_SEQUENCE_IDS + "'")
-        require(isinstance(dev[DEVICES_SEQUENCE_IDS], list), f"{where}: '" + DEVICES_SEQUENCE_IDS + "' должен быть массивом")
-        seq_idxs = []
-        for k, sidx in enumerate(dev[DEVICES_SEQUENCE_IDS]):
-            require(isinstance(sidx, int) and not isinstance(sidx, bool),
-                    f"{where}: " + DEVICES_SEQUENCE_IDS + f"[{k}] должен быть целым, получено {sidx!r}")
+        require(DEVICES_TEST_SEQUENCES in dev, f"{where}: отсутствует список '" + DEVICES_TEST_SEQUENCES + "'")
+        require(isinstance(dev[DEVICES_TEST_SEQUENCES], list), f"{where}: '" + DEVICES_TEST_SEQUENCES + "' должен быть массивом")
+        test_seqs = []
+        for k, ts in enumerate(dev[DEVICES_TEST_SEQUENCES]):
+            sub_where = f"{where}: " + DEVICES_TEST_SEQUENCES + f"[{k}]"
+            require(isinstance(ts, dict), f"{sub_where}: должен быть объектом")
+            sidx = _get_int(ts, DEVICES_TEST_SEQUENCES_SEQ_ID, sub_where, 0, max(len(sequences) - 1, 0))
             require(0 <= sidx < len(sequences),
-                    f"{where}: " + DEVICES_SEQUENCE_IDS + f"[{k}] = {sidx}, а последовательностей "
+                    f"{sub_where}: " + DEVICES_TEST_SEQUENCES_SEQ_ID + f" = {sidx}, а последовательностей "
                     f"{len(sequences)} (допустимо 0..{len(sequences) - 1})")
-            seq_idxs.append(sidx)
+            tidx = _get_int(ts, DEVICES_TEST_SEQUENCES_TEST_ID, sub_where, 0, max(len(test_params) - 1, 0))
+            require(0 <= tidx < len(test_params),
+                    f"{sub_where}: " + DEVICES_TEST_SEQUENCES_TEST_ID + f" = {tidx}, а параметров теста "
+                    f"{len(test_params)} (допустимо 0..{len(test_params) - 1})")
+            test_seqs.append((sidx, tidx))
 
-        require(len(seq_idxs) <= MAX_SEQUENCES_PER_DEVICE,
-                f"{where}: {len(seq_idxs)} последовательностей, а маска "
+        require(len(test_seqs) <= MAX_SEQUENCES_PER_DEVICE,
+                f"{where}: {len(test_seqs)} последовательностей, а маска "
                 f"результатов в model.h рассчитана на {MAX_SEQUENCES_PER_DEVICE}")
 
-        if DEVICES_SEQUENCE_AMOUNT in dev and dev[DEVICES_SEQUENCE_AMOUNT] != len(seq_idxs):
-            warn(f"{where}: " + DEVICES_SEQUENCE_AMOUNT +
-                 f" = {dev[DEVICES_SEQUENCE_AMOUNT]}, а в " + DEVICES_SEQUENCE_IDS +
-                 f" {len(seq_idxs)} элементов. " +
-                 f"Использую фактическое значение {len(seq_idxs)}")
+        if DEVICES_TEST_SEQUENCES_AMOUNT in dev and dev[DEVICES_TEST_SEQUENCES_AMOUNT] != len(test_seqs):
+            warn(f"{where}: " + DEVICES_TEST_SEQUENCES_AMOUNT +
+                 f" = {dev[DEVICES_TEST_SEQUENCES_AMOUNT]}, а в " + DEVICES_TEST_SEQUENCES +
+                 f" {len(test_seqs)} элементов. " +
+                 f"Использую фактическое значение {len(test_seqs)}")
 
-        min_v = _get_int(dev, DEVICES_MIN_VOLT, where, 0, MAX_VOLTAGE)
-        max_v = _get_int(dev, DEVICES_MAX_VOLT, where, 0, MAX_VOLTAGE)
-        require(min_v <= max_v,
-                f"{where}: " + DEVICES_MIN_VOLT + f" = {min_v} больше " + DEVICES_MAX_VOLT + f" = {max_v}")
-        discharger = _get_int(dev, DEVICES_DISCHARGER, where, 0, MAX_VOLTAGE)
         connector = _get_int(dev, DEVICES_CONNECTOR_MASK, where, 1, MAX_CONNECTOR_MASK)
 
         devices.append({
             "seria_idx": seria_idx,
             "group_idx": group_idx,
             "device_idx": device_idx,
-            "seq_idxs": seq_idxs,
-            "min_v": min_v,
-            "max_v": max_v,
-            "discharger": discharger,
+            "test_seqs": test_seqs,
             "connector": connector,
         })
 
@@ -231,11 +313,89 @@ def parse_config(raw):
                  f"повторно - экран выбора покажет только первый")
         seen.add(key)
 
+    # Иерархия Series -> Groups -> Devices опирается на то, что приборы во
+    # входном JSON идут отсортированными по (seria_idx, group_idx): тогда
+    # каждой серии/группе соответствует непрерывный диапазон позиций в
+    # плоских массивах cfg_groups_names / cfg_devices. Экран меню использует
+    # диапазоны из Series/Groups напрямую, поэтому расхождение с фактическим
+    # порядком приборов молча сломает навигацию - проверяем строго.
+
+    require(len(groups_names) > 0, "каталог: список групп пуст")
+    require(len(devices_names) > 0, "каталог: список имён приборов пуст")
+
+    prev_seria, prev_group = -1, -1
+    for pos, dev in enumerate(devices):
+        pair = (dev["seria_idx"], dev["group_idx"])
+        prev_pair = (prev_seria, prev_group)
+        require(pair >= prev_pair,
+                f"прибор (элемент {pos + 1}): " + DEVICES_SERIA_ID + f"={dev['seria_idx']} " +
+                DEVICES_GROUP_ID + f"={dev['group_idx']} нарушает сортировку - "
+                f"приборы должны идти по возрастанию (SeriaID, GroupID), "
+                f"иерархия Series/Groups опирается на непрерывные диапазоны позиций")
+        prev_seria, prev_group = pair
+
+    def _check_ranges(ranges, owner_names, owner_label, child_count, child_label):
+        covered = [False] * child_count
+        for idx, (begin, count) in enumerate(ranges):
+            where = f"каталог: '" + (CATALOG_SERIES if owner_label == "серии" else CATALOG_GROUPS) + f"'[{idx}]"
+            end = begin + count
+            require(end <= child_count,
+                    f"{where}: диапазон [{begin}, {end}) выходит за пределы "
+                    f"{child_label} ({child_count} шт.)")
+            for i in range(begin, end):
+                require(not covered[i],
+                        f"{where}: позиция {i} среди {child_label} уже покрыта "
+                        f"другим диапазоном {owner_label} - диапазоны не должны пересекаться")
+                covered[i] = True
+        uncovered = [i for i, c in enumerate(covered) if not c]
+        require(not uncovered,
+                f"каталог: {child_label} на позициях {uncovered} не входят ни в один "
+                f"диапазон {owner_label} - в '" +
+                (CATALOG_SERIES if owner_label == "серии" else CATALOG_GROUPS) +
+                "' пропущены записи")
+
+    _check_ranges(series_ranges, series_names, "серии", len(groups_names), "группы")
+    _check_ranges(group_ranges, groups_names, "группы", len(devices_names), "приборы")
+
+    # Диапазоны должны не просто покрывать все группы/приборы без дыр и
+    # пересечений (проверено выше), но и совпадать с тем, что реально следует
+    # из seria_idx/group_idx приборов - иначе экран меню, идущий по
+    # cfg_series_groups/cfg_group_devices, покажет не тех приборов не в той
+    # серии.
+    actual_group_owner = {}   # group_idx -> seria_idx, по факту встреченный у приборов
+    actual_device_owner = {}  # device_idx (= позиция) -> group_idx
+    for dev in devices:
+        actual_device_owner[dev["device_idx"]] = dev["group_idx"]
+        if dev["group_idx"] not in actual_group_owner:
+            actual_group_owner[dev["group_idx"]] = dev["seria_idx"]
+        else:
+            require(actual_group_owner[dev["group_idx"]] == dev["seria_idx"],
+                    f"прибор: GroupID={dev['group_idx']} встречается под разными "
+                    f"SeriaID ({actual_group_owner[dev['group_idx']]} и {dev['seria_idx']}) - "
+                    f"группа не может принадлежать двум сериям")
+
+    for seria_idx, (begin, count) in enumerate(series_ranges):
+        for group_idx in range(begin, begin + count):
+            require(actual_group_owner.get(group_idx) == seria_idx,
+                    f"каталог: '" + CATALOG_SERIES + f"'[{seria_idx}] относит группу "
+                    f"{group_idx} к серии {seria_idx}, но по SeriaID/GroupID приборов "
+                    f"эта группа принадлежит серии {actual_group_owner.get(group_idx)!r}")
+
+    for group_idx, (begin, count) in enumerate(group_ranges):
+        for device_idx in range(begin, begin + count):
+            require(actual_device_owner.get(device_idx) == group_idx,
+                    f"каталог: '" + CATALOG_GROUPS + f"'[{group_idx}] относит прибор "
+                    f"{device_idx} к группе {group_idx}, но по GroupID прибора "
+                    f"он принадлежит группе {actual_device_owner.get(device_idx)!r}")
+
     return {
         "series_names": series_names,
         "groups_names": groups_names,
         "devices_names": devices_names,
         "sequences": sequences,
+        "test_params": test_params,
+        "series_ranges": series_ranges,
+        "group_ranges": group_ranges,
         "devices": devices,
     }
 
@@ -275,11 +435,11 @@ def build_string_pool(cfg):
 def generate_c(cfg, source_name):
     pool, spans = build_string_pool(cfg)
 
-    seq_idx_pool = []
+    test_seq_pool = []   # плоский пул пар (seq_idx, test_param_idx) для всех приборов
     device_seq_offsets = []
     for dev in cfg["devices"]:
-        device_seq_offsets.append(len(seq_idx_pool))
-        seq_idx_pool.extend(dev["seq_idxs"])
+        device_seq_offsets.append(len(test_seq_pool))
+        test_seq_pool.extend(dev["test_seqs"])
 
     out = []
     add = out.append
@@ -331,15 +491,39 @@ def generate_c(cfg, source_name):
     add("};")
     add("")
 
-    # --- индексы последовательностей приборов ---
-    add("/** @brief Общий пул индексов последовательностей для всех приборов. */")
-    add("static const uint8_t cfg_sequence_idxs[] CFG_DATA = {")
-    if seq_idx_pool:
-        for i in range(0, len(seq_idx_pool), 16):
-            chunk = ", ".join(str(v) for v in seq_idx_pool[i:i + 16])
-            add(f"    {chunk},")
+    # --- параметры теста (напряжение/ток) ---
+    add("/** @brief Параметры теста: напряжение и ток, на которые ссылаются приборы. */")
+    add("static const Params_TestParam_TypeDef cfg_test_params[] CFG_DATA = {")
+    for idx, (voltage_min, voltage_max, current) in enumerate(cfg["test_params"]):
+        add(f"    {{ .min_voltage = {voltage_min}, .max_voltage = {voltage_max}, .current = {current} }}, /* [{idx}] */")
+    add("};")
+    add("")
+
+    # --- тестовые шаги приборов (последовательность + параметр теста) ---
+    add("/** @brief Общий пул тестовых шагов (seq_idx, test_param_idx) для всех приборов. */")
+    add("static const Params_TestSeq_TypeDef cfg_test_sequences[] CFG_DATA = {")
+    if test_seq_pool:
+        for seq_idx, test_idx in test_seq_pool:
+            add(f"    {{ .seq_idx = {seq_idx}, .test_param_idx = {test_idx} }},")
     else:
-        add("    0, /* ни одному прибору не назначено последовательностей */")
+        add("    { .seq_idx = 0, .test_param_idx = 0 }, /* ни одному прибору не назначено последовательностей */")
+    add("};")
+    add("")
+
+    # --- диапазоны: серия -> группы, группа -> приборы ---
+    add("/** @brief Для каждой серии - диапазон принадлежащих ей групп в cfg_groups_names/cfg_group_devices. */")
+    add("static const Params_Range_TypeDef cfg_series_groups[] CFG_DATA = {")
+    for idx, (begin, count) in enumerate(cfg["series_ranges"]):
+        name = cfg["series_names"][idx]
+        add(f"    {{ .begin_idx = {begin}, .count = {count} }}, /* {name!r} */".replace("'", '"'))
+    add("};")
+    add("")
+
+    add("/** @brief Для каждой группы - диапазон принадлежащих ей приборов в cfg_devices_names/cfg_devices. */")
+    add("static const Params_Range_TypeDef cfg_group_devices[] CFG_DATA = {")
+    for idx, (begin, count) in enumerate(cfg["group_ranges"]):
+        name = cfg["groups_names"][idx]
+        add(f"    {{ .begin_idx = {begin}, .count = {count} }}, /* {name!r} */".replace("'", '"'))
     add("};")
     add("")
 
@@ -352,11 +536,8 @@ def generate_c(cfg, source_name):
         add(f"        .seria_idx = {dev['seria_idx']},")
         add(f"        .group_idx = {dev['group_idx']},")
         add(f"        .device_idx = {dev['device_idx']},")
-        add(f"        .sequence_idxs = cfg_sequence_idxs + {off},")
-        add(f"        .num_seqs = {len(dev['seq_idxs'])},")
-        add(f"        .minimal_voltage_test = {dev['min_v']},")
-        add(f"        .maximal_voltage_test = {dev['max_v']},")
-        add(f"        .discharger_voltage = {dev['discharger']},")
+        add(f"        .test_sequences = cfg_test_sequences + {off},")
+        add(f"        .num_seqs = {len(dev['test_seqs'])},")
         add(f"        .connector_types = {dev['connector']}")
         add("    },")
     add("};")
@@ -371,15 +552,19 @@ def generate_c(cfg, source_name):
     add(f"    .groups_count = {len(cfg['groups_names'])},")
     add(f"    .devices_count = {len(cfg['devices_names'])},")
     add(f"    .sequences_count = {len(cfg['sequences'])},")
+    add(f"    .test_params_count = {len(cfg['test_params'])},")
     add("    .series_names = cfg_series_names,")
     add("    .groups_names = cfg_groups_names,")
     add("    .devices_names = cfg_devices_names,")
     add("    .sequences = cfg_sequences,")
+    add("    .test_params = cfg_test_params,")
+    add("    .series_groups = cfg_series_groups,")
+    add("    .group_devices = cfg_group_devices,")
     add("    .devices = cfg_devices")
     add("};")
     add("")
 
-    estimate = estimate_size(cfg, pool, seq_idx_pool)
+    estimate = estimate_size(cfg, pool, test_seq_pool)
     require(estimate <= CONFIG_REGION_SIZE,
             f"конфигурация занимает примерно {estimate} байт, а регион CONFIG "
             f"в STM32F103XB_FLASH.ld рассчитан на {CONFIG_REGION_SIZE}")
@@ -387,18 +572,21 @@ def generate_c(cfg, source_name):
     return "\n".join(out) + "\n", estimate
 
 
-def estimate_size(cfg, pool, seq_idx_pool):
+def estimate_size(cfg, pool, test_seq_pool):
     """Оценка сверху для занимаемого места во Flash (для ранней диагностики)."""
     n_names = (len(cfg["series_names"]) + len(cfg["groups_names"]) +
                len(cfg["devices_names"]))
     return (
         len(pool)
-        + n_names * 8                     # MyString: два указателя
-        + len(cfg["sequences"]) * 2       # Params_TestSequence_TypeDef
-        + len(seq_idx_pool)
-        + len(cfg["devices"]) * 20        # Params_Device_TypeDef с выравниванием
-        + 32                              # Params_TypeDef
-        + 64                              # запас на выравнивание секций
+        + n_names * 8                          # MyString: два указателя
+        + len(cfg["sequences"]) * 2            # Params_TestSequence_TypeDef
+        + len(cfg["test_params"]) * 3          # Params_TestParam_TypeDef (voltage_v:2 + current_ma:1)
+        + len(test_seq_pool) * 2               # Params_TestSeq_TypeDef: seq_idx + test_param_idx
+        + len(cfg["series_ranges"]) * 2        # Params_Range_TypeDef
+        + len(cfg["group_ranges"]) * 2         # Params_Range_TypeDef
+        + len(cfg["devices"]) * 20             # Params_Device_TypeDef с выравниванием
+        + 40                                   # Params_TypeDef (расширился новыми полями)
+        + 64                                   # запас на выравнивание секций
     )
 
 
@@ -450,7 +638,8 @@ def main():
     print(f"config: серий {len(cfg['series_names'])}, "
           f"групп {len(cfg['groups_names'])}, "
           f"приборов {len(cfg['devices'])}, "
-          f"последовательностей {len(cfg['sequences'])}")
+          f"последовательностей {len(cfg['sequences'])}, "
+          f"параметров теста {len(cfg['test_params'])}")
     print(f"config: во Flash примерно {estimate} байт из {CONFIG_REGION_SIZE}.")
     if _warnings:
         print(f"config: предупреждений: {len(_warnings)}")

@@ -16,14 +16,19 @@ bool configurator_read_config (void) {
     /* Пустой каталог сделал бы бессмысленными все экраны выбора */
     if ((params.series_count == 0) || 
         (params.groups_count == 0) || 
-        (params.devices_count == 0)) {
+        (params.devices_count == 0) || 
+        (params.sequences_count == 0) || 
+        (params.test_params_count == 0)) {
         return false;
     }
 
     if ((params.series_names == 0) || 
         (params.groups_names == 0) || 
         (params.devices_names == 0) || 
-        (params.devices == 0)) {
+        (params.devices == 0) || 
+        (params.test_params == 0) || 
+        (params.series_groups == 0) || 
+        (params.group_devices == 0)) {
         return false;
     }
 

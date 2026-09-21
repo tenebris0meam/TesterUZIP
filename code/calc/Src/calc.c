@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CALC_WINDOW_LENGTH 32
+#define CALC_WINDOW_LENGTH 16
 
 
 

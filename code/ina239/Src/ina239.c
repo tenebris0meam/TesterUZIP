@@ -310,7 +310,6 @@ INA239_Status_t INA239_ConfigureAdc(INA239_Handle_t *hdev,
                                     INA239_Mode_t mode,
                                     INA239_ConvTime_t vbus_ct,
                                     INA239_ConvTime_t vshunt_ct,
-                                    INA239_ConvTime_t vtemp_ct,
                                     INA239_Avg_t avg) {
     if (hdev == NULL) {
         return INA239_ERROR_PARAM;
@@ -320,7 +319,6 @@ INA239_Status_t INA239_ConfigureAdc(INA239_Handle_t *hdev,
     reg |= ((uint16_t)mode      << INA239_ADCCFG_MODE_Pos)   & INA239_ADCCFG_MODE_Msk;
     reg |= ((uint16_t)vbus_ct   << INA239_ADCCFG_VBUSCT_Pos) & INA239_ADCCFG_VBUSCT_Msk;
     reg |= ((uint16_t)vshunt_ct << INA239_ADCCFG_VSHCT_Pos)  & INA239_ADCCFG_VSHCT_Msk;
-    reg |= ((uint16_t)vtemp_ct  << INA239_ADCCFG_VTCT_Pos)   & INA239_ADCCFG_VTCT_Msk;
     reg |= ((uint16_t)avg       << INA239_ADCCFG_AVG_Pos)    & INA239_ADCCFG_AVG_Msk;
 
     return INA239_WriteAdcConfig(hdev, reg);

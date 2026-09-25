@@ -14,6 +14,7 @@
 #include "system_stm32f1xx.h"
 #include "tim.h"
 #include "delay.h"
+#include "buzzer.h"
 
 #include "calc.h"
 #include "display.h"
@@ -143,6 +144,10 @@ __attribute__((noreturn)) void main (void) {
             }
         }
         proccessor[tester_state].proccess();
+
+        keyboard_routine();
+        buzzer_routine();
+        display_routine();
     }
 }
 #pragma clang diagnostic pop

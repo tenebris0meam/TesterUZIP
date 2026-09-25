@@ -7,7 +7,7 @@
 // refer to character_table.md file                 //
 // ------------------------------------------------ //
 
-#define TO_TEST_CYRILIC ("Reqrhpnb`r|") // "Тестировать"
+#define TO_TEST_CYRILIC ("Reqr") // "Тестировать"
 #define INTERFACE_CYRILIC ("hmrepteiq") // "интерфейс"
 #define SETTINGS_CYRILIC ("M`qrpnijh") // "Настройки"
 #define CONTINUE_CYRILIC ("Opndnkfhr|") // "Продолжить"

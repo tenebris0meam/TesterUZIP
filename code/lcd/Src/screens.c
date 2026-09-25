@@ -1,5 +1,6 @@
 ﻿#include "screens.h"
 #include "LCDFont7x14.h"
+#include "fonts.h"
 #include "tachyon_logo.h"
 #include "framebuffer.h"
 #include "input_events.h"
@@ -11,6 +12,7 @@
 #include "strbuf.h"
 
 #include <stdint.h>
+#include <string.h>
 
 
 
@@ -95,21 +97,22 @@ const Screen_TypeDef screens[ScreenCount] = {
 /*                          Вспомогательные средства                         */
 /* ------------------------------------------------------------------------ */
 
-/**
- * @brief Длина строки экрана в знакоместах плюс место под '\0'.
- * @details Экран 128 px, знакоместо 7 px - помещается 18 символов.
- */
-#define LINE_MAX (19)
-
-/** @brief Строка заголовка экрана. */
-#define ROW_TITLE_Y (6)
-
 /** @brief Какой список имён показывает экран настроек. */
 typedef enum {
     NameList_Series,
     NameList_Groups,
     NameList_Devices
 } NameListKind;
+
+char *linebuffer = 0;
+uint8_t linebuffer_size = 0;
+
+uint8_t workspace_start_x = 0;
+uint8_t workspace_start_y = 0;
+uint8_t workspace_width_in_px = 0;
+uint8_t workspace_height_in_px = 0;
+uint8_t workspace_width_in_chars = 0;
+uint8_t workspace_height_in_chars = 0;
 
 /**
  * @brief Название активного интерфейса.
@@ -148,6 +151,17 @@ static void screen_append_device_name (StrBuf_TypeDef *sb) {
     return;
 }
 
+/** @brief Вычислить координату x начала отцентрированной строки заданной длины */
+static void screen_get_center_from_string (uint8_t *center_x_px, 
+                                           uint8_t str_length) {
+    if (str_length >= workspace_width_in_chars) {
+        *center_x_px = workspace_start_x;
+    } else {
+        *center_x_px = (FB_WIDTH - str_length * cgxyz.width_px) / 2;
+    }
+    return;
+}
+
 /** @brief Дописать "(вход,выход)" для тестовой последовательности. */
 static void screen_append_pins (StrBuf_TypeDef *sb, 
                                 const Params_TestSequence_TypeDef *sequence) {
@@ -163,13 +177,15 @@ static void screen_append_pins (StrBuf_TypeDef *sb,
 static void screen_draw_title (StrBuf_TypeDef *sb, 
                                const char *first_word, 
                                const char *second_word) {
+    uint8_t cur_x;
     strbuf_clear(sb);
     strbuf_str(sb, first_word);
     if (second_word != 0) {
         strbuf_char(sb, ' ');
         strbuf_str(sb, second_word);
     }
-    fb_draw_string_xy(1, ROW_TITLE_Y, strbuf_cstr(sb));
+    screen_get_center_from_string(&cur_x, sb->len);
+    fb_draw_string_xy(cur_x, workspace_start_y, strbuf_cstr(sb));
     return;
 }
 
@@ -198,8 +214,6 @@ static const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
             return params_get_group_name(&params, groups_in_seria->begin_idx + idx);
         }
         default: {
-            // const Params_Range_TypeDef *groups_in_seria = 
-            //     params_get_groups_in_seria(&params, test_config.series_id);
             const Params_Range_TypeDef *devices_in_group = 
                 params_get_devices_in_group(&params, test_config.group_id);
             return params_get_device_name(&params, devices_in_group->begin_idx + idx);
@@ -215,24 +229,25 @@ static const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
 static void screen_render_name_list (const char *first_word, 
                                      const char *second_word, 
                                      NameListKind kind) {
-    char line[LINE_MAX];
+    uint8_t cur_x;
     StrBuf_TypeDef sb;
-    strbuf_init(&sb, line, sizeof(line));
+    strbuf_init(&sb, linebuffer, linebuffer_size);
 
     screen_draw_title(&sb, first_word, second_word);
 
     uint8_t count = screen_name_count(kind);
     uint8_t first = cursor_get_window_first();
 
-    for (uint8_t row = 0; row < CURSOR_VISIBLE_ROWS; row++) {
+    for (uint8_t row = 0; row < options_amount; row++) {
         uint8_t idx = (uint8_t)(first + row);
         if (idx >= count) {
             break;
         }
         strbuf_clear(&sb);
         screen_append_mystring(&sb, screen_name_at(kind, idx));
-        fb_draw_string_xy(options_in_list[row].x, 
-                          options_in_list[row].y, 
+        screen_get_center_from_string(&cur_x, sb.len);
+        fb_draw_string_xy(cur_x, 
+                          options_strg[row].y, 
                           strbuf_cstr(&sb));
     }
 
@@ -251,7 +266,7 @@ void screen_hello_on_enter (void) {
 }
 
 void screen_main_on_enter (void) {
-    cursor_init(&options_in_list[1], 2, 0);
+    cursor_init(&options_strg[1], 2, 0);
     return;
 }
 
@@ -261,7 +276,7 @@ void screen_testing_on_enter (void) {
 
 void screen_runningtest_on_enter (void) {
     /* Новый прогон по тому же прибору должен начинаться с чистых результатов */
-    model_reset_results();
+    // model_reset_results();
     return;
 }
 
@@ -270,12 +285,12 @@ void screen_result_on_enter (void) {
 }
 
 void screen_checkfailed_on_enter (void) {
-    cursor_init(&options_in_list[0], test_results.failed_cnt, 0);
+    cursor_init(&options_strg[0], test_results.failed_cnt, 0);
     return;
 }
 
 void screen_settings_on_enter (void) {
-    cursor_init(&options_in_list[0], 2, 0);
+    cursor_init(&options_strg[0], 2, 0);
     return;
 }
 
@@ -286,26 +301,26 @@ void screen_settingsinterface_on_enter (void) {
         case K1: selected = 2; break;
         default: selected = 0; break;
     }
-    cursor_init(&options_in_list[0], 3, selected);
+    cursor_init(&options_strg[0], 3, selected);
     return; 
 }
 
 void screen_settingsseries_on_enter (void) {
-    cursor_init(&options_in_list[0], 
+    cursor_init(&options_strg[0], 
                 params_get_series_num(&params), 
                 test_config.series_id);
     return;
 }
 
 void screen_settingsgroups_on_enter (void) {
-    cursor_init(&options_in_list[0], 
+    cursor_init(&options_strg[0], 
                 params_get_groups_in_seria(&params, test_config.series_id)->count,
                 test_config.group_id);
     return;
 }
 
 void screen_settingsdevices_on_enter (void) {
-    cursor_init(&options_in_list[0], 
+    cursor_init(&options_strg[0], 
                 params_get_devices_in_group(&params, test_config.group_id)->count,
                 test_config.device_id);
     return;
@@ -385,60 +400,101 @@ void screen_hello_render (void) {
 }
 
 void screen_main_render (void) {
-    char line[LINE_MAX];
+    uint8_t cur_x = 0;
     StrBuf_TypeDef sb;
 
-    strbuf_init(&sb, line, sizeof(line));
+    strbuf_init(&sb, linebuffer, linebuffer_size);
     screen_append_device_name(&sb);
-    fb_draw_string_xy(1, ROW_TITLE_Y, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, workspace_start_y, strbuf_cstr(&sb));
 
-    fb_draw_string_xy(64, ROW_TITLE_Y, screen_interface_name(test_config.interface_id));
-    fb_draw_string_xy(options_in_list[1].x, options_in_list[1].y, TO_TEST_CYRILIC);
-    fb_draw_string_xy(options_in_list[2].x, options_in_list[2].y, SETTINGS_CYRILIC);
+    const char *str_interface = screen_interface_name(test_config.interface_id);
+    screen_get_center_from_string(&cur_x, strlen(str_interface));
+    fb_draw_string_xy(cur_x, 
+                      workspace_start_y + cgxyz.height_px, 
+                      str_interface);
+
+    screen_get_center_from_string(&cur_x, strlen(TO_TEST_CYRILIC));
+    fb_draw_string_xy(cur_x, options_strg[1].y, TO_TEST_CYRILIC);
+
+    screen_get_center_from_string(&cur_x, strlen(SETTINGS_CYRILIC));
+    fb_draw_string_xy(cur_x, options_strg[2].y, SETTINGS_CYRILIC);
+
     cursor_draw_highlight();
     return;
 }
 
 void screen_testing_render (void) {
-    char line[LINE_MAX];
     StrBuf_TypeDef sb;
+    strbuf_init(&sb, linebuffer, linebuffer_size);
 
-    strbuf_init(&sb, line, sizeof(line));
+    uint8_t cur_x;
+    uint8_t cur_y = workspace_start_y;
+
     strbuf_str(&sb, TO_TEST_CYRILIC);
-    strbuf_char(&sb, ' ');
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += cgxyz.height_px;
+
+    strbuf_clear(&sb);
     screen_append_device_name(&sb);
-    fb_draw_string_xy(1, ROW_TITLE_Y, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += 2 * cgxyz.height_px;
+    // пропускаем 2 строки для красоты
 
     strbuf_clear(&sb);
     strbuf_str(&sb, INTERFACE_CYRILIC);
-    strbuf_char(&sb, ' ');
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += cgxyz.height_px;
+
+    strbuf_clear(&sb);
     strbuf_str(&sb, screen_interface_name(test_config.interface_id));
-    fb_draw_string_xy(1, 19, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += 2 * cgxyz.height_px;
+    // Пропускаем 2 строки для красоты
 
     strbuf_clear(&sb);
     strbuf_str(&sb, CONTINUE_CYRILIC);
     strbuf_char(&sb, '?');
-    fb_draw_string_xy(1, 32, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     return;
 }
 
 void screen_runningtest_render (void) {
-    char line[LINE_MAX];
     StrBuf_TypeDef sb;
+    strbuf_init(&sb, linebuffer, linebuffer_size);
 
-    strbuf_init(&sb, line, sizeof(line));
+    uint8_t cur_x;
+    uint8_t cur_y = workspace_start_y;
+
     strbuf_str(&sb, TO_TEST_CYRILIC);
-    strbuf_char(&sb, ' ');
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += cgxyz.height_px;
+
+    strbuf_clear(&sb);
     screen_append_device_name(&sb);
-    fb_draw_string_xy(1, ROW_TITLE_Y, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += 2 * cgxyz.height_px;
+    // пропускаем 2 строки для красоты
 
     strbuf_clear(&sb);
     strbuf_str(&sb, INTERFACE_CYRILIC);
-    strbuf_char(&sb, ' ');
-    strbuf_str(&sb, screen_interface_name(test_config.interface_id));
-    fb_draw_string_xy(1, 19, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += cgxyz.height_px;
 
-    // Третья линия пропущена
+    strbuf_clear(&sb);
+    strbuf_str(&sb, screen_interface_name(test_config.interface_id));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    cur_y += 2 * cgxyz.height_px;
+    // Пропускаем 2 строки для красоты
 
     strbuf_clear(&sb);
     screen_append_pins(&sb, test_results.current_sequence);
@@ -446,21 +502,26 @@ void screen_runningtest_render (void) {
     strbuf_u32(&sb, test_results.passed_cnt, 3);
     strbuf_char(&sb, '/');
     strbuf_u32(&sb, model_get_total_tests(), 3);
-    fb_draw_string_xy(1, 45, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     return;
 }
 
 void screen_result_render (void) {
+    uint8_t cur_x = workspace_start_x;
+    uint8_t cur_y = workspace_start_y;
+
     // Пропускаем первую линию
+    cur_y += cgxyz.height_px;
 
-    char line[LINE_MAX];
     StrBuf_TypeDef sb;
-
-    strbuf_init(&sb, line, sizeof(line));
+    strbuf_init(&sb, linebuffer, linebuffer_size);
     strbuf_str(&sb, test_results.fail_was ? FAILED_CYRILIC : SUCCESS_CYRILIC);
-    fb_draw_string_xy(1, 19, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
 
     // Пропускаем третью линию
+    cur_y += cgxyz.height_px;
 
     strbuf_clear(&sb);
     strbuf_u32(&sb, test_results.passed_cnt, 3);
@@ -468,23 +529,27 @@ void screen_result_render (void) {
     strbuf_u32(&sb, model_get_total_tests(), 3);
     strbuf_char(&sb, ' ');
     strbuf_str(&sb, PASSED_CYRILIC);
-    fb_draw_string_xy(1, 45, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     return;
 }
 
 void screen_checkfailed_render (void) {
-    char line[LINE_MAX];
+    uint8_t cur_x = workspace_start_x;
+    uint8_t cur_y = workspace_start_y;
     StrBuf_TypeDef sb;
-    strbuf_init(&sb, line, sizeof(line));
+    strbuf_init(&sb, linebuffer, linebuffer_size);
 
-    fb_draw_string_xy(1, ROW_TITLE_Y, CHECK_LINES_CYRILIC);
+    const char *str_check = CHECK_LINES_CYRILIC;
+    screen_get_center_from_string(&cur_x, strlen(str_check));
+    fb_draw_string_xy(cur_x, cur_y, str_check);
 
     uint8_t total = model_get_total_tests();
     uint8_t first = cursor_get_window_first();
     uint8_t failed_seen = 0;
     uint8_t row = 0;
 
-    for (uint8_t pos = 0; (pos < total) && (row < CURSOR_VISIBLE_ROWS); pos++) {
+    for (uint8_t pos = 0; (pos < total) && (row < options_amount); pos++) {
         if (!model_is_test_failed(pos)) {
             continue;
         }
@@ -494,45 +559,64 @@ void screen_checkfailed_render (void) {
         }
         strbuf_clear(&sb);
         screen_append_pins(&sb, model_get_sequence_at(pos));
-        fb_draw_string_xy(options_in_list[row].x, 
-                          options_in_list[row].y, 
+        screen_get_center_from_string(&cur_x, sb.len);
+        fb_draw_string_xy(cur_x, 
+                          options_strg[row].y, 
                           strbuf_cstr(&sb));
         failed_seen++;
         row++;
     }
 
-    cursor_draw_highlight();
+    cursor_draw_highlight_row((uint8_t)(cursor_get_current_selected_index() - first));
     return;
 }
 
 void screen_settings_render (void) {
-    char line[LINE_MAX];
+    uint8_t cur_x = workspace_start_x;
+    uint8_t cur_y = workspace_start_y;
     StrBuf_TypeDef sb;
-    strbuf_init(&sb, line, sizeof(line));
+    strbuf_init(&sb, linebuffer, linebuffer_size);
 
-    fb_draw_string_xy(1, ROW_TITLE_Y, SETTINGS_CYRILIC);
+    const char *str_settings = SETTINGS_CYRILIC;
+    screen_get_center_from_string(&cur_x, strlen(str_settings));
+    fb_draw_string_xy(cur_x, cur_y, str_settings);
 
     strbuf_clear(&sb);
     strbuf_str(&sb, CHOSING_CYRILIC);
     strbuf_char(&sb, ' ');
     strbuf_str(&sb, DEVICES_CYRILIC);
-    fb_draw_string_xy(options_in_list[0].x, options_in_list[0].y, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, options_strg[0].y, strbuf_cstr(&sb));
 
     strbuf_clear(&sb);
     strbuf_str(&sb, CHOSING_CYRILIC);
     strbuf_char(&sb, ' ');
     strbuf_str(&sb, INTERFACE_CYRILIC);
-    fb_draw_string_xy(options_in_list[1].x, options_in_list[1].y, strbuf_cstr(&sb));
+    screen_get_center_from_string(&cur_x, sb.len);
+    fb_draw_string_xy(cur_x, options_strg[1].y, strbuf_cstr(&sb));
 
     cursor_draw_highlight();
     return;
 }
 
 void screen_settingsinterface_render (void) {
-    fb_draw_string_xy(1, ROW_TITLE_Y, INTERFACE_CYRILIC);
-    fb_draw_string_xy(options_in_list[0].x, options_in_list[0].y, PROBES_CYRILIC);
-    fb_draw_string_xy(options_in_list[1].x, options_in_list[1].y, RJ45_CYRILIC);
-    fb_draw_string_xy(options_in_list[2].x, options_in_list[2].y, K1_CYRILIC);
+    uint8_t cur_x;
+    char *str = INTERFACE_CYRILIC;
+    screen_get_center_from_string(&cur_x, strlen(str));
+    fb_draw_string_xy(cur_x, workspace_start_y, str);
+    
+    str = PROBES_CYRILIC;
+    screen_get_center_from_string(&cur_x, strlen(str));
+    fb_draw_string_xy(cur_x, options_strg[0].y, str);
+
+    str = RJ45_CYRILIC;
+    screen_get_center_from_string(&cur_x, strlen(str));
+    fb_draw_string_xy(cur_x, options_strg[1].y, RJ45_CYRILIC);
+
+    str = K1_CYRILIC;
+    screen_get_center_from_string(&cur_x, strlen(str));
+    fb_draw_string_xy(cur_x, options_strg[2].y, K1_CYRILIC);
+
     cursor_draw_highlight();
     return;
 }

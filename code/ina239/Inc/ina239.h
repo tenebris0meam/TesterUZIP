@@ -285,7 +285,6 @@ INA239_Status_t INA239_ConfigureAdc(INA239_Handle_t *hdev,
                                      INA239_Mode_t mode,
                                      INA239_ConvTime_t vbus_ct,
                                      INA239_ConvTime_t vshunt_ct,
-                                     INA239_ConvTime_t vtemp_ct,
                                      INA239_Avg_t avg);
 
 /** @brief Установка диапазона шунта (CONFIG.ADCRANGE), остальные поля CONFIG сохраняются. */

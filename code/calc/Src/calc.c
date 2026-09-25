@@ -11,7 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CALC_WINDOW_LENGTH 16
+#define CALC_WINDOW_LENGTH 32
+#define CALC_CURRENT_REJECTION_THRESHOLD (2000000UL)
 
 
 
@@ -175,6 +176,19 @@ void calc_routine (void) {
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
     int32_t u_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
     int32_t n_amperage = hv_shunt_uV_to_nA(shunt_dropvoltage);
+
+    /* Если измеренное значение тока больше усреднённого на 2 мА
+       то это измерение мы отбрасываем
+       это выброс от коммутации flyback */
+    if (n_amperage > current_test) {
+        if (n_amperage - current_test > CALC_CURRENT_REJECTION_THRESHOLD) {
+            return;
+        }
+    } else {
+        if (current_test - n_amperage > CALC_CURRENT_REJECTION_THRESHOLD) {
+            return;
+        }
+    }
 
     window_push(&voltage_window, &u_voltage);
     window_push(&current_window, &n_amperage);

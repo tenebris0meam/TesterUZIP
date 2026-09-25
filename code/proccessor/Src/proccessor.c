@@ -11,7 +11,6 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_tim.h"
 #include "tim.h"
-#include "keyboard.h"
 #include "buzzer.h"
 #include "input_events.h"
 #include "delay.h"
@@ -325,13 +324,13 @@ void proccessor_idle_on_exit (void) {
      */
     model_reset_results();
     generation_step = 0;
+
+    // Выключаем ввод
+    inputevent_deny_input();
     return;
 }
 
 void proccessor_idle_proccess (void) {
-    keyboard_routine();
-    buzzer_routine();
-    display_routine();
     return;
 }
 
@@ -356,6 +355,7 @@ void proccessor_commutation_on_enter (void) {
 }
 
 void proccessor_commutation_on_exit (void) {
+    display_deny_render();
     return;
 }
 
@@ -365,9 +365,6 @@ void proccessor_commutation_proccess (void) {
         return;
     }
 
-    /* Была нажата кнопка ОК */
-    buzzer_routine();
-
     /*
      * Единственное место, где экран перерисовывается во время прогона.
      * Во время генерации этого делать не стоит: шину SPI2 в этот момент
@@ -375,7 +372,6 @@ void proccessor_commutation_proccess (void) {
      * прогона меняются только номера выводов и счётчик проверок, то есть
      * ровно то, что обновляется здесь, между проверками.
      */
-    display_routine();
 
     if (!proccessor_setup_lines()) {
         /*
@@ -435,6 +431,7 @@ void proccessor_generation_on_exit (void) {
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
+    display_allow_render();
     /*
      * Интегратор здесь НЕ сбрасываем, хотя напрашивается. Главный цикл
      * вызывает on_exit прежнего состояния до on_enter нового, а нового -
@@ -497,8 +494,6 @@ void proccessor_generation_proccess (void) {
             }
         }
     }
-
-    buzzer_routine();
     return;
 }
 
@@ -587,6 +582,7 @@ void proccessor_testsequencecomplete_on_enter (void) {
     /* Экран сам перейдёт на итоги: событие увидит inputevent_routine() */
     inputevent_testing_completed();
     buzzer_turn_on();
+    inputevent_allow_input();
     return;
 }
 
@@ -620,6 +616,8 @@ void proccessor_hardwarefail_on_enter (void) {
     proccessor_shutdown_generation();
     commutator_forcedeny_commutation();
     calc_reset_integrator();
+    display_allow_render();
+    inputevent_allow_input();
 
     buzzer_turn_on();
     display_set_screen(ScreenHardwareFail);
@@ -694,13 +692,6 @@ void proccessor_hardwarefail_on_exit (void) {
 }
 
 void proccessor_hardwarefail_proccess (void) {
-    /*
-     * Генерации нет, поэтому крутим то же, что и в Idle: оператор должен
-     * увидеть экран аварии и подтвердить его кнопкой.
-     */
-    keyboard_routine();
-    buzzer_routine();
-    display_routine();
     return;
 }
 

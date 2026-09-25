@@ -30,6 +30,15 @@ typedef struct {
 } Screen_TypeDef;
 
 extern const Screen_TypeDef screens[ScreenCount];
+extern char *linebuffer;
+extern uint8_t linebuffer_size;
+
+extern uint8_t workspace_start_x;
+extern uint8_t workspace_start_y;
+extern uint8_t workspace_width_in_px;
+extern uint8_t workspace_height_in_px;
+extern uint8_t workspace_width_in_chars;
+extern uint8_t workspace_height_in_chars;
 
 void screen_hello_on_enter (void);
 void screen_main_on_enter (void);

@@ -19,11 +19,16 @@ typedef struct {
 } Cursor_TypeDef;
 
 /** @brief Сколько строк списка помещается под заголовком экрана. */
-#define CURSOR_VISIBLE_ROWS (3)
+// #define CURSOR_VISIBLE_ROWS (3)
 
 void cursor_init (const OptionRect_TypeDef *options, 
                   uint8_t amount_options, 
                   uint8_t initial_index);
+void options_init (uint8_t start_x_px, 
+                   uint8_t start_y_px, 
+                   uint8_t workspace_width_px, 
+                   uint8_t workspace_height_px,
+                   uint8_t workspace_height_chars);
 bool cursor_move (int8_t direction);
 const OptionRect_TypeDef *cursor_get_current_bounding_box (void);
 uint8_t cursor_get_current_selected_index (void);
@@ -51,6 +56,8 @@ void cursor_draw_highlight_row (uint8_t row);
 uint8_t cursor_get_window_first (void);
 
 extern Cursor_TypeDef cursor;
-extern const OptionRect_TypeDef options_in_list[CURSOR_VISIBLE_ROWS];
+// extern const OptionRect_TypeDef options_in_list[CURSOR_VISIBLE_ROWS];
+extern OptionRect_TypeDef *options_strg;
+extern uint32_t options_amount;
 
 #endif /* CURSOR_H_ */

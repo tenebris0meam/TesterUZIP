@@ -4,14 +4,14 @@
 
 #define RELAY_SETTLE_TIME_MS (5)
 
-static bool is_turn_on_rj45_pe_pos = false;
-static bool is_turn_on_rj45_pe_neg = false;
-static bool is_turn_on_probe_enable = false;
-static bool is_turn_on_rj45_enable = false;
+static volatile bool is_turn_on_rj45_pe_pos = false;
+static volatile bool is_turn_on_rj45_pe_neg = false;
+static volatile bool is_turn_on_probe_enable = false;
+static volatile bool is_turn_on_rj45_enable = false;
 
 static bool relay_resolve (const Relay_TypeDef relay, 
                            const Pin_TypeDef **nEnable, 
-                           bool **is_turn_on) {
+                           volatile bool **is_turn_on) {
     switch (relay) {
         case RJ45Shield_Neg: 
             *is_turn_on = &is_turn_on_rj45_pe_neg;
@@ -38,7 +38,7 @@ bool relay_get_state (const Relay_TypeDef relay) {
     const Pin_TypeDef *nEnable = 0;
     bool *is_turn_on = 0;
 
-    if (!relay_resolve(relay, &nEnable, &is_turn_on)) {
+    if (!relay_resolve(relay, &nEnable, (volatile bool **)&is_turn_on)) {
         return false;
     }
     return *is_turn_on;
@@ -48,7 +48,7 @@ void relay_set_state (const Relay_TypeDef relay, bool new_state) {
     const Pin_TypeDef *nEnable = 0;
     bool *is_turn_on = 0;
 
-    if (!relay_resolve(relay, &nEnable, &is_turn_on)) {
+    if (!relay_resolve(relay, &nEnable, (volatile bool **)&is_turn_on)) {
         return;
     }
 
@@ -64,7 +64,7 @@ void relay_force_off (const Relay_TypeDef relay) {
     const Pin_TypeDef *nEnable = 0;
     bool *is_turn_on = 0;
 
-    if (!relay_resolve(relay, &nEnable, &is_turn_on)) {
+    if (!relay_resolve(relay, &nEnable, (volatile bool **)&is_turn_on)) {
         return;
     }
 

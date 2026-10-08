@@ -12,8 +12,8 @@
      * @addtogroup BUZZER_PIN_DESCRIPTION 
      * @{
      */
-    #define BUZZER_GPIO_Port GPIOA
-    #define BUZZER_GPIO_Pin LL_GPIO_PIN_2
+    #define BUZZER_GPIO_Port GPIOB
+    #define BUZZER_GPIO_Pin LL_GPIO_PIN_9
     /**@} */
 
     /**

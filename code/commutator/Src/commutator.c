@@ -15,10 +15,10 @@ const Commutator_TypeDef commutator = {
     .PE_negative_ctrl = RJ45Shield_Neg, 
 };
 
-static Param_Connector active_interface;
-static Commutator_ActiveLine active_positive_line;
-static Commutator_ActiveLine active_negative_line;
-static bool commutation_allowed;
+static volatile Param_Connector active_interface;
+static volatile Commutator_ActiveLine active_positive_line;
+static volatile Commutator_ActiveLine active_negative_line;
+static volatile bool commutation_allowed;
 
 void commutator_set_active_interface (Param_Connector new_active_interface) {
     active_interface = new_active_interface;
@@ -144,8 +144,8 @@ void commutator_forcedeny_commutation (void) {
      */
     relay_force_off_all();
 
-    mux_disable_operation(commutator.positive_datalines_ctrl);
-    mux_disable_operation(commutator.negative_datalines_ctrl);
+    mux_forcedisable_operation(commutator.positive_datalines_ctrl);
+    mux_forcedisable_operation(commutator.negative_datalines_ctrl);
     mux_set_active_line(commutator.positive_datalines_ctrl, ActiveLine1);
     mux_set_active_line(commutator.negative_datalines_ctrl, ActiveLine1);
 

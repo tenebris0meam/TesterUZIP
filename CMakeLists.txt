@@ -68,7 +68,9 @@ file(GLOB_RECURSE PROJECT_C_SOURCES
     "${PROJ_ROOT}/code/ina239/Src/*.c"
     "${PROJ_ROOT}/code/keyboard/Src/*.c"
     "${PROJ_ROOT}/code/lcd/Src/*.c"
+    "${PROJ_ROOT}/code/lcd/Src/screens/*.c"
     "${PROJ_ROOT}/code/proccessor/Src/*.c"
+    "${PROJ_ROOT}/code/proccessor/Src/states/*.c"
     "${PROJ_ROOT}/code/utils/Src/*.c"
 )
 # lcd.c раньше собирался в составе цели glcd. От glcd отказались,
@@ -135,7 +137,9 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
     ${PROJ_ROOT}/code/ina239/Inc
     ${PROJ_ROOT}/code/keyboard/Inc
     ${PROJ_ROOT}/code/lcd/Inc
+    ${PROJ_ROOT}/code/lcd/Inc/screens
     ${PROJ_ROOT}/code/proccessor/Inc
+    ${PROJ_ROOT}/code/proccessor/Inc/states
     ${PROJ_ROOT}/code/utils/Inc
 )
 

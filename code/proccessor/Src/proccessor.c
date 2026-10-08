@@ -1,19 +1,18 @@
 ﻿#include "proccessor.h"
 #include "commutator.h"
-#include "display.h"
-#include "ina239.h"
-#include "main.h"
 #include "model.h"
 #include "calc.h"
 #include "hv_feedback.h"
-#include "ina239_user.h"
 #include "params.h"
-#include "stm32f103xb.h"
-#include "stm32f1xx_ll_tim.h"
 #include "tim.h"
-#include "buzzer.h"
-#include "input_events.h"
-#include "delay.h"
+
+#include "states/idle_setting.h"
+#include "states/commutation.h"
+#include "states/generation.h"
+#include "states/testpassed.h"
+#include "states/testfailed.h"
+#include "states/testsequence_complete.h"
+#include "states/hardware_fail.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -59,9 +58,6 @@
 /** @brief Шаг подъёма уставки, процентов от ширины диапазона из конфига. */
 #define GENERATION_STEP_PERCENT (10U)
 
-/** @brief Сколько шагов укладывается в диапазон MiV..MaV. */
-#define GENERATION_MAX_STEPS (10U)
-
 /**
  * @brief Сколько ждать выхода на уставку, мс.
  * @details Худший случай генерации - GENERATION_MAX_STEPS + 1 шагов подряд,
@@ -75,7 +71,7 @@
 
 
 
-const FiniteStateMachine proccessor[State_Count] = {
+FiniteStateMachine proccessor[State_Count] = {
     [Idle_Setting] = {
         .on_enter = proccessor_idle_on_enter, 
         .on_exit = proccessor_idle_on_exit, 
@@ -124,30 +120,18 @@ static State current_state = State_Count;
 volatile Event current_event = Event_Count;
 
 /** @brief Номер шага подъёма уставки внутри текущей проверки, 0..GENERATION_MAX_STEPS. */
-static uint8_t generation_step = 0;
+uint8_t generation_step = 0;
 
 /** @brief Тип аппаратной ошибки */
 volatile TypeFail typefail = NoFail;
 
-/** @brief Переменные для хранения порогов напряжения устройства */
-static int32_t voltage_lowth_uV = 0;
-static int32_t voltage_highth_uV = 0;
-
-/* test_config и test_results определены в model.c вместе с операциями над
- * ними - см. code/proccessor/Src/model.c */
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                          Вспомогательные функции                          */
-/* ------------------------------------------------------------------------ */
 
 /**
  * @brief Номер вывода из конфигурации -> линия коммутатора.
  * @details В конфигурации выводы нумеруются с нуля, а ноль у коммутатора
  *          занят под ActiveLine_None.
  */
-static Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin) {
+Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin) {
     if (pin >= PROCCESSOR_PINS_NUM) {
         return ActiveLine_None;
     }
@@ -155,7 +139,7 @@ static Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin) {
 }
 
 /** @brief Есть ли ещё невыполненные проверки у выбранного прибора. */
-static bool proccessor_more_tests_left (void) {
+bool proccessor_more_tests_left (void) {
     uint8_t done = (uint8_t)(test_results.passed_cnt + test_results.failed_cnt);
     return (done < model_get_total_tests());
 }
@@ -169,7 +153,7 @@ static bool proccessor_more_tests_left (void) {
  *          неисправен. Под напряжение в таком случае не идём вообще - проверка
  *          сразу засчитывается как проваленная. 
  */
-static bool proccessor_setup_lines (void) {
+bool proccessor_setup_lines (void) {
     const Params_TestSequence_TypeDef *sequence = test_results.current_sequence;
     const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
     const Params_Device_TypeDef *device = test_results.current_device;
@@ -225,7 +209,7 @@ static bool proccessor_setup_lines (void) {
  *          начале: иначе на узком диапазоне шаг обнулялся бы целочисленным
  *          делением, и последний шаг не попадал бы точно в MaV.
  */
-static bool proccessor_apply_setpoint (void) {
+bool proccessor_apply_setpoint (void) {
     const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
 
     if (testparams == NULL) {
@@ -254,15 +238,14 @@ static bool proccessor_apply_setpoint (void) {
 }
 
 /** @brief Записать результат очередной проверки в модель. */
-static void proccessor_record_result (bool pass) {
+void proccessor_record_result (bool pass) {
     int32_t voltage_uV = 0;
     int32_t current_nA = 0;
     calc_get_test_data(&voltage_uV, &current_nA);
 
     TestResult_TypeDef result;
     result.sequence_pos = (uint8_t)(test_results.passed_cnt + test_results.failed_cnt);
-    result.device_voltage = hv_feedback_uV_to_volts((voltage_uV > 0) ? 
-                                                    (uint32_t)voltage_uV : 0U);
+    result.device_voltage = voltage_uV;
     result.device_current = ((current_nA > 0) ? (uint32_t)current_nA : 0U);
     result.pass = pass;
 
@@ -271,7 +254,7 @@ static void proccessor_record_result (bool pass) {
 }
 
 /** @brief Что делать после записи результата: следующая проверка или итог. */
-static void proccessor_raise_after_result (void) {
+void proccessor_raise_after_result (void) {
     proccessor_raise_event(proccessor_more_tests_left() ? 
                            TestResultRecorded : 
                            TestSequenceFinished);
@@ -279,18 +262,12 @@ static void proccessor_raise_after_result (void) {
 }
 
 /** @brief Обесточить генерацию. Порядок: сначала возбуждение, потом цепь. */
-static void proccessor_shutdown_generation (void) {
+void proccessor_shutdown_generation (void) {
     TIM1_Stop_PWM();
     TIM1_set_CCR_value(0);
     TIM3_Stop_Count();
     return;
 }
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                            Служебные функции                              */
-/* ------------------------------------------------------------------------ */
 
 void proccessor_init_state (void) {
     model_init();
@@ -306,398 +283,4 @@ State proccessor_get_state (void) {
 void proccessor_change_state (State new_state) {
     current_state = new_state;
     return;
-}
-
-/* ------------------------------------------------------------------------ */
-/*                            Idle/Setting                                  */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_idle_on_enter (void) {
-    return; 
-}
-
-void proccessor_idle_on_exit (void) {
-    /*
-     * Выйти из Idle можно только на запуск прогона, поэтому результаты
-     * прошлого прогона обнуляем здесь - и счётчики, и указатель на
-     * очередную последовательность.
-     */
-    model_reset_results();
-    generation_step = 0;
-
-    // Выключаем ввод
-    inputevent_deny_input();
-    return;
-}
-
-void proccessor_idle_proccess (void) {
-    return;
-}
-
-State proccessor_idle_handle_event (Event event) {
-    switch (event) {
-        case EnterAccepted: 
-            if (display_get_current_screen() == ScreenRunningTest) {
-                return Commutation;
-            }
-            return Idle_Setting;
-        case AlertActive: return HardwareFail;
-        default: return Idle_Setting;
-    }
-}
-
-/* ------------------------------------------------------------------------ */
-/*                            Commutation                                   */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_commutation_on_enter (void) {
-    return;
-}
-
-void proccessor_commutation_on_exit (void) {
-    display_deny_render();
-    return;
-}
-
-void proccessor_commutation_proccess (void) {
-    if (!proccessor_more_tests_left() || (test_results.current_sequence == NULL)) {
-        proccessor_raise_event(TestSequenceFinished);
-        return;
-    }
-
-    /*
-     * Единственное место, где экран перерисовывается во время прогона.
-     * Во время генерации этого делать не стоит: шину SPI2 в этот момент
-     * каждые 100 мкс занимает INA239, а показывать нечего - на экране
-     * прогона меняются только номера выводов и счётчик проверок, то есть
-     * ровно то, что обновляется здесь, между проверками.
-     */
-
-    if (!proccessor_setup_lines()) {
-        /*
-         * Проверку выполнить нечем. Засчитываем провал и НЕ подаём напряжение;
-         * следующий проход возьмёт следующую позицию, а когда они кончатся -
-         * поднимет TestSequenceFinished ветвью выше.
-         */
-        proccessor_record_result(false);
-        return;
-    }
-
-    commutator_allow_commutation();
-    proccessor_raise_event(CommutationComplete);
-    return;
-}
-
-State proccessor_commutation_handle_event (Event event) {
-    switch (event) {
-        case CommutationComplete: return Generation;
-        case TestSequenceFinished: return TestSequenceComplete;
-        case AlertActive: return HardwareFail;
-        default: return Commutation;
-    }
-}
-
-/* ------------------------------------------------------------------------ */
-/*                             Generation                                   */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_generation_on_enter (void) {
-    calc_reset_integrator();
-    calc_integrator_Init();
-    generation_step = 0;
-
-    /*
-     * Скважность обнуляем ДО включения выходов: в CCR лежит остаток от
-     * предыдущей проверки, и без этого генератор рванул бы сразу на него.
-     */
-    TIM1_set_CCR_value(0);
-
-    /* На шаге 0 уставка есть всегда: диапазон проверен в proccessor_setup_lines() */
-    (void)proccessor_apply_setpoint();
-
-    /* Заранее вычисляем пороги по напряжению для данного теста */
-    voltage_lowth_uV = (100 - CALC_TARGET_TOLERANCE_PERCENT) * 
-            (hv_feedback_volts_to_target_uV(test_results.current_test_params->min_voltage) / 100);
-    voltage_highth_uV = (100 + CALC_TARGET_TOLERANCE_PERCENT) * 
-            (hv_feedback_volts_to_target_uV(test_results.current_test_params->max_voltage) / 100);
-
-    INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS);
-    TIM3_Start_Count();
-    TIM1_Start_PWM();
-    return;
-}
-
-void proccessor_generation_on_exit (void) {
-    proccessor_shutdown_generation();
-    INA239_SetMode(INA239_MODE_SHUTDOWN);
-    commutator_deny_commutation();
-    display_allow_render();
-    /*
-     * Интегратор здесь НЕ сбрасываем, хотя напрашивается. Главный цикл
-     * вызывает on_exit прежнего состояния до on_enter нового, а нового -
-     * TestPassed или TestFailed - первым делом читает calc_get_test_data().
-     * Сброс на этом месте обнулял бы напряжение и ток ровно перед тем, как
-     * их запишут, и в протокол ложились бы нули. Сбрасывает тот, кто
-     * начинает следующую генерацию, - proccessor_generation_on_enter().
-     */
-    return;
-}
-
-void proccessor_generation_proccess (void) {
-    if (have_new_data) {
-        have_new_data = false;
-        calc_routine();
-
-        int32_t duty_ppm = calc_integrator_get_integral_value();
-        if (duty_ppm < 0) {
-            duty_ppm = 0;
-        }
-        if (duty_ppm > CALC_DUTY_MAX_PPM) {
-            duty_ppm = CALC_DUTY_MAX_PPM;
-        }
-
-        uint32_t new_CCR1_val = 
-            (uint32_t)(((uint64_t)LL_TIM_GetAutoReload(TIM1) * (uint32_t)duty_ppm) / 
-                       1000000ULL);
-        if (new_CCR1_val != LL_TIM_OC_GetCompareCH1(TIM1)) {
-            TIM1_set_CCR_value(new_CCR1_val);
-        }
-
-        int32_t current_nA, voltage_uV;
-        calc_get_test_data(&voltage_uV, &current_nA);
-        if (current_nA >= CALC_CURRENT_HIGH_nA) {
-            /* Ток устройства превысил верхний порог тока теста */
-            if ((voltage_uV >= voltage_lowth_uV) && (voltage_uV < voltage_highth_uV)) {
-                /* Ток превысил верхний порог, но напряжение держится в диапазоне
-                 * Устройство в рабочем состоянии, тестер не успел считать момент, 
-                 * когда ток был в диапазоне
-                 */
-                proccessor_raise_event(DeviceCurrentWithinTheRange);
-            } else {
-                /* Ток превысил верхний порог и напряжение не в диапазоне. Поломка */
-                proccessor_raise_event(DeviceCurrentOverCurrent);
-            }
-        } else if (voltage_uV >= voltage_highth_uV) {
-            /* Напряжение превысило максимальное значение, точно поломка */
-            proccessor_raise_event(DeviceVoltageOverVoltage);
-        } else if (voltage_uV < voltage_lowth_uV) {
-            /* Напряжение не достигло минимального значения, ждём ещё */
-            proccessor_raise_event(DeviceVoltageUnderVoltage);
-        } else {
-            /* Напряжение в диапазоне, проверяем ток */
-            if (current_nA < CALC_CURRENT_LOW_nA) {
-                /* Ток устройства ещё не достиг тока теста */
-                proccessor_raise_event(DeviceCurrentUnderCurrent);
-            } else {
-                /* Ток устройства в диапазоне тока теста */
-                proccessor_raise_event(DeviceCurrentWithinTheRange);
-            }
-        }
-    }
-    return;
-}
-
-State proccessor_generation_handle_event (Event event) {
-    switch (event) {
-        case DeviceCurrentWithinTheRange: return TestPassed;
-
-        case DeviceVoltageOverVoltage:
-        case DeviceCurrentOverCurrent: return TestFailed;
-
-        case DeviceCurrentUnderCurrent: 
-        case DeviceVoltageUnderVoltage: 
-            if (calc_is_voltage_achieved()) {
-                generation_step++;
-                if (!proccessor_apply_setpoint()) {
-                    return TestFailed;
-                }
-            }
-            return Generation;
-
-        case AlertActive: return HardwareFail;
-
-        default: return Generation;
-    }
-}
-
-/* ------------------------------------------------------------------------ */
-/*                             TestPassed                                   */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_testpassed_on_enter (void) {
-    proccessor_record_result(true);
-    return;
-}
-
-void proccessor_testpassed_on_exit (void) {
-    return;
-}
-
-void proccessor_testpassed_proccess (void) {
-    proccessor_raise_after_result();
-    return;
-}
-
-State proccessor_testpassed_handle_event (Event event) {
-    switch (event) {
-        case TestResultRecorded: return Commutation;
-        case TestSequenceFinished: return TestSequenceComplete;
-        case AlertActive: return HardwareFail;
-        default: return TestPassed;
-    }
-}
-
-/* ------------------------------------------------------------------------ */
-/*                             TestFailed                                   */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_testfailed_on_enter (void) {
-    proccessor_record_result(false);
-    return;
-}
-
-void proccessor_testfailed_on_exit (void) {
-    return;
-}
-
-void proccessor_testfailed_proccess (void) {
-    proccessor_raise_after_result();
-    return;
-}
-
-State proccessor_testfailed_handle_event (Event event) {
-    switch (event) {
-        case TestResultRecorded: return Commutation;
-        case TestSequenceFinished: return TestSequenceComplete;
-        case AlertActive: return HardwareFail;
-        default: return TestFailed;
-    }
-}
-
-/* ------------------------------------------------------------------------ */
-/*                          TestSequenceComplete                            */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_testsequencecomplete_on_enter (void) {
-    /* Экран сам перейдёт на итоги: событие увидит inputevent_routine() */
-    inputevent_testing_completed();
-    buzzer_turn_on();
-    inputevent_allow_input();
-    return;
-}
-
-void proccessor_testsequencecomplete_on_exit (void) {
-    return;
-}
-
-void proccessor_testsequencecomplete_proccess (void) {
-    proccessor_raise_event(ReturnToIdle);
-    return;
-}
-
-State proccessor_testsequencecomplete_handle_event (Event event) {
-    switch (event) {
-        case ReturnToIdle: return Idle_Setting;
-        case AlertActive: return HardwareFail;
-        default: return TestSequenceComplete;
-    }
-}
-
-/* ------------------------------------------------------------------------ */
-/*                              HardwareFail                                */
-/* ------------------------------------------------------------------------ */
-
-void proccessor_hardwarefail_on_enter (void) {
-    /*
-     * Сюда попадаем и по AlertActive из TIM1_BRK, и из состояний, где
-     * генерации нет. Поэтому обесточиваем всё безусловно, не полагаясь на
-     * то, что это уже сделал обработчик прерывания.
-     */
-    proccessor_shutdown_generation();
-    commutator_forcedeny_commutation();
-    calc_reset_integrator();
-    display_allow_render();
-    inputevent_allow_input();
-
-    buzzer_turn_on();
-    display_set_screen(ScreenHardwareFail);
-
-	INA239_Handle_t *hina = INA239_GetInstance();
-	uint16_t cur_diag_alert = 0;
-    uint8_t delay_id = 0;
-    delay_register_task(&delay_id, 3000, Millis);
-    while (INA239_ReadDiagAlert(hina, &cur_diag_alert) != INA239_OK) {
-        if (!delay_is_not_yet_expired(delay_id)) {
-            return;
-        }
-    }
-    delay_unregister_task(delay_id);
-    
-    /* После чтения регистра DIAG все источники ALERT очищаются.
-       Пин ALARM поднимется, BKIN можно очищать */
-    LL_TIM_ClearFlag_BRK(TIM1);
-
-    /* Запрос на прерывание уже улетел в NVIC
-       Очищаем очередь ожидания */
-    NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
-
-    if (cur_diag_alert & INA239_DIAG_SHNTUL_Msk) {
-        /** Ток пошёл не в ту сторону */
-        typefail |= UnderCurrent;
-    }
-    if (cur_diag_alert & INA239_DIAG_BUSUL_Msk) {
-        /** Не та полярность напряжения */
-        typefail |= UnderVoltage;
-    }
-    if (cur_diag_alert & INA239_DIAG_SHNTOL_Msk) {
-        /** Превышение хардварного порога по току */
-        typefail |= OverCurrent;
-    }
-    if (cur_diag_alert & INA239_DIAG_BUSOL_Msk) {
-        /** Превышение хардварного порога по напряжению */
-        typefail |= OverVoltage;
-    }
-    if (cur_diag_alert & INA239_DIAG_MATHOF_Msk) {
-        /** Математическая ошибка */
-        typefail |= MathOverflow;
-    }
-    if (!(cur_diag_alert & INA239_DIAG_MEMSTAT_Msk)) {
-        /** Ошибка памяти INA239 */
-        typefail |= MemoryError;
-    }
-    return;
-}
-
-void proccessor_hardwarefail_on_exit (void) {
-    if ((typefail & MathOverflow) || (typefail & MemoryError)) {
-        if (!INA239_MainInit()) {
-            Error_Handler();
-        }
-        typefail &= ~(MathOverflow | MemoryError); 
-    }
-    if (typefail & OverCurrent) {
-        typefail &= ~(OverCurrent);
-    }
-    if (typefail & OverVoltage) {
-        typefail &= ~(OverVoltage);
-    }
-    if (typefail & UnderCurrent) {
-        typefail &= ~(UnderCurrent);
-    }
-    if (typefail & UnderVoltage) {
-        typefail &= ~(UnderVoltage);
-    }
-    current_event = Event_Count;
-    return;
-}
-
-void proccessor_hardwarefail_proccess (void) {
-    return;
-}
-
-State proccessor_hardwarefail_handle_event (Event event) {
-    switch (event) {
-        case EnterAccepted: return Idle_Setting;
-        default: return HardwareFail;
-    }
 }

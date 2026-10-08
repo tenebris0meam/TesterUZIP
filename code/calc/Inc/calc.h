@@ -25,7 +25,7 @@ extern volatile bool have_new_data;
 /** @brief Номинальный ток испытания, нА. */
 #define CALC_NOMINAL_CURRENT_nA (1000000L)
 
-#define CALC_CURRENT_LOW_nA 1000000L
+#define CALC_CURRENT_LOW_nA 900000L
 #define CALC_CURRENT_HIGH_nA 1100000L
 
 /**
@@ -45,20 +45,16 @@ typedef enum {
 
 typedef struct {
     uint32_t target_voltage_uV;
-    float delta_time;
+    uint32_t start_time_integral;
     int32_t integral;
 } IntegratorTypeDef;
 
-/* --------------------------- слой регулятора --------------------------- */
-
 bool calc_integrator_Init (void);
-void calc_integrator_set_delta_time (uint32_t delta_time_us);
 void calc_integrator_set_target_voltage (uint32_t target_voltage_after_div_uV);
+void calc_integrator_set_start_time (void);
 uint32_t calc_integrator_get_target_voltage (void);
 int32_t calc_integrator_get_integral_value (void);
 void calc_reset_integrator (void);
-
-/* ----------------------------- слой вердикта ---------------------------- */
 
 /**
  * @brief Один шаг: снять кадр измерений, подвинуть регулятор, вынести вердикт.

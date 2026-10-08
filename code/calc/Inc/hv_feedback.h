@@ -55,7 +55,7 @@ _Static_assert((HV_FEEDBACK_MAX_TEST_V * 1000000UL) / HV_FEEDBACK_DIVIDER
 
 /** @brief Проводимость шунта в микросименсах */
 #define HV_SHUNT_CONDUCTANCE_uS 45455UL
-#define HV_SHUNT_RESISTANCE_Ohm 22UL
+#define HV_SHUNT_RESISTANCE_Ohm 22L
 
 /** @brief Максимальный ожидаемый ток DUT */
 #define HV_SHUNT_MAX_CURRENT_nA 2000000L
@@ -68,7 +68,7 @@ _Static_assert((HV_FEEDBACK_MAX_TEST_V * 1000000UL) / HV_FEEDBACK_DIVIDER
  * @details Формула I[нА] = U[мкВ] / R[кОм] = U[мкВ] * 1000 / R[Ом]
  */
 static inline int32_t hv_shunt_uV_to_nA (int32_t measured_uV) {
-    return (measured_uV * 1000 / HV_SHUNT_RESISTANCE_Ohm);
+    return (measured_uV * 1000L / HV_SHUNT_RESISTANCE_Ohm);
 }
 
 /**

@@ -2,6 +2,8 @@
 #define SCREEN_H_
 
 #include "input_events.h"
+#include "strbuf.h"
+#include "params.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,6 +31,13 @@ typedef struct {
     ScreenID (*handle_event) (InputEvent);
 } Screen_TypeDef;
 
+/** @brief Какой список имён показывает экран настроек. */
+typedef enum {
+    NameList_Series,
+    NameList_Groups,
+    NameList_Devices
+} NameListKind;
+
 extern const Screen_TypeDef screens[ScreenCount];
 extern char *linebuffer;
 extern uint8_t linebuffer_size;
@@ -40,56 +49,20 @@ extern uint8_t workspace_height_in_px;
 extern uint8_t workspace_width_in_chars;
 extern uint8_t workspace_height_in_chars;
 
-void screen_hello_on_enter (void);
-void screen_main_on_enter (void);
-void screen_testing_on_enter (void);
-void screen_runningtest_on_enter (void);
-void screen_result_on_enter (void);
-void screen_checkfailed_on_enter (void);
-void screen_settings_on_enter (void);
-void screen_settingsinterface_on_enter (void);
-void screen_settingsseries_on_enter (void);
-void screen_settingsgroups_on_enter (void);
-void screen_settingsdevices_on_enter (void);
-void screen_hardwarefail_on_enter (void);
-
-void screen_hello_on_exit (void);
-void screen_main_on_exit (void);
-void screen_testing_on_exit (void);
-void screen_runningtest_on_exit (void);
-void screen_result_on_exit (void);
-void screen_checkfailed_on_exit (void);
-void screen_settings_on_exit (void);
-void screen_settingsinterface_on_exit (void);
-void screen_settingsseries_on_exit (void);
-void screen_settingsgroups_on_exit (void);
-void screen_settingsdevices_on_exit (void);
-void screen_hardwarefail_on_exit (void);
-
-void screen_hello_render (void);
-void screen_main_render (void);
-void screen_testing_render (void);
-void screen_runningtest_render (void);
-void screen_result_render (void);
-void screen_checkfailed_render (void);
-void screen_settings_render (void);
-void screen_settingsinterface_render (void);
-void screen_settingsseries_render (void);
-void screen_settingsgroups_render (void);
-void screen_settingsdevices_render (void);
-void screen_hardwarefail_render (void);
-
-ScreenID screen_hello_handle_event (InputEvent);
-ScreenID screen_main_handle_event (InputEvent);
-ScreenID screen_testing_handle_event (InputEvent);
-ScreenID screen_runningtest_handle_event (InputEvent);
-ScreenID screen_result_handle_event (InputEvent);
-ScreenID screen_checkfailed_handle_event (InputEvent);
-ScreenID screen_settings_handle_event (InputEvent);
-ScreenID screen_settingsinterface_handle_event (InputEvent);
-ScreenID screen_settingsseries_handle_event (InputEvent);
-ScreenID screen_settingsgroups_handle_event (InputEvent);
-ScreenID screen_settingsdevices_handle_event (InputEvent);
-ScreenID screen_hardwarefail_handle_event (InputEvent);
+void screen_render_name_list (const char *first_word, 
+                                const char *second_word, 
+                                NameListKind kind);
+const MyString *screen_name_at (NameListKind kind, uint8_t idx);
+uint8_t screen_name_count (NameListKind kind);
+void screen_draw_title (StrBuf_TypeDef *sb, 
+                        const char *first_word, 
+                        const char *second_word);
+void screen_append_pins (StrBuf_TypeDef *sb, 
+                        const Params_TestSequence_TypeDef *sequence);
+void screen_get_center_from_string (uint8_t *center_x_px, 
+                                    uint8_t str_length);
+void screen_append_device_name (StrBuf_TypeDef *sb);                                    
+void screen_append_mystring (StrBuf_TypeDef *sb, const MyString *name);
+const char *screen_interface_name (Param_Connector interface_id);
 
 #endif /* SCREEN_H_ */

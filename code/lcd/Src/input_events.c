@@ -11,7 +11,7 @@
 static InputEvent cur_display_state = InputEvent_Count;
 static bool is_init = false;
 static uint8_t init_task_id = 0;
-static bool is_input_allowed = false;
+static bool is_input_allowed = true;
 static bool is_testing_complete = false;
 
 /** @brief Кнопка, по которой уже выдано событие - нужна для детекта фронта. */
@@ -33,6 +33,10 @@ void inputevent_allow_input (void) {
 void inputevent_deny_input (void) {
     is_input_allowed = false;
     return;
+}
+
+bool inputevent_get_input (void) {
+    return is_input_allowed;
 }
 
 void inputevent_testing_completed (void) {

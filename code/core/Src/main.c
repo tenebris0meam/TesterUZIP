@@ -147,7 +147,9 @@ __attribute__((noreturn)) void main (void) {
 
         keyboard_routine();
         buzzer_routine();
-        display_routine();
+        if (display_get_render()) {
+            display_routine();
+        }
     }
 }
 #pragma clang diagnostic pop

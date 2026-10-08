@@ -11,8 +11,8 @@ const Multiplexer_TypeDef MUX_POS = {
     .C = &MUX1_C
 };
 
-static bool operation_enable_pos = false;
-static MUX_ActiveLine activeline_pos = ActiveLine1;
+static volatile bool operation_enable_pos = false;
+static volatile MUX_ActiveLine activeline_pos = ActiveLine1;
 
 const Multiplexer_TypeDef MUX_NEG = {
     .Enable = &nMUX2_EN,
@@ -21,8 +21,8 @@ const Multiplexer_TypeDef MUX_NEG = {
     .C = &MUX2_C
 };
 
-static bool operation_enable_neg = false;
-static MUX_ActiveLine activeline_neg = ActiveLine1;
+static volatile bool operation_enable_neg = false;
+static volatile MUX_ActiveLine activeline_neg = ActiveLine1;
 
 
 
@@ -56,6 +56,16 @@ void mux_enable_operation (const Multiplexer_TypeDef *mux) {
 void mux_disable_operation (const Multiplexer_TypeDef *mux) {
     Pin_Set_State((Pin_TypeDef *)mux->Enable, true);
     delay_us(1);
+    if (mux == &MUX_POS) {
+        operation_enable_pos = false;
+    } else {
+        operation_enable_neg = false;
+    }
+    return;
+}
+
+void mux_forcedisable_operation (const Multiplexer_TypeDef *mux) {
+    Pin_Set_State((Pin_TypeDef *)mux->Enable, true);
     if (mux == &MUX_POS) {
         operation_enable_pos = false;
     } else {

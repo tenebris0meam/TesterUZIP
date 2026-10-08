@@ -2,6 +2,7 @@
 #define INPUT_EVENTS_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum {
     InputEvent_HelloScreenTimeout,
@@ -16,6 +17,7 @@ typedef enum {
 void inputevent_enable_init (void);
 void inputevent_allow_input (void);
 void inputevent_deny_input (void); 
+bool inputevent_get_input (void);
 void inputevent_testing_completed (void);
 
 InputEvent inputevent_get_state (void);

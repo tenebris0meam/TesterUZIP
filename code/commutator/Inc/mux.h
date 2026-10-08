@@ -28,5 +28,6 @@ void mux_set_active_line (const Multiplexer_TypeDef *mux,
                           MUX_ActiveLine new_activeline);
 void mux_enable_operation (const Multiplexer_TypeDef *mux);
 void mux_disable_operation (const Multiplexer_TypeDef *mux);
+void mux_forcedisable_operation (const Multiplexer_TypeDef *mux);
 
 #endif /* MUX_H */

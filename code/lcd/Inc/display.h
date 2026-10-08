@@ -18,5 +18,6 @@ void display_set_screen (ScreenID screen);
 void display_routine (void);
 void display_deny_render (void);
 void display_allow_render (void);
+bool display_get_render (void);
 
 #endif /* DISPLAY_H_ */

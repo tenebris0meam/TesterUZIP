@@ -21,7 +21,7 @@ void window_push (Window_TypeDef *hfilt, void *element) {
         hfilt->end += hfilt->element_size;
         hfilt->cnt++;
     } else {
-        memcpy(hfilt->buf, hfilt->buf + hfilt->element_size, (hfilt->num_elements - 1) * hfilt->element_size);
+        memmove(hfilt->buf, hfilt->buf + hfilt->element_size, (hfilt->num_elements - 1) * hfilt->element_size);
         memcpy(hfilt->buf + (hfilt->num_elements - 1) * hfilt->element_size, element, hfilt->element_size);
     }
     return;

@@ -1,20 +1,25 @@
 ﻿#include "screens.h"
-#include "LCDFont7x14.h"
 #include "fonts.h"
-#include "tachyon_logo.h"
 #include "framebuffer.h"
-#include "input_events.h"
 #include "cursor.h"
 #include "params.h"
 #include "model.h"
-#include "proccessor.h"
 #include "strings_def.h"
 #include "strbuf.h"
+#include "screens/screen_hello.h"
+#include "screens/screen_main.h"
+#include "screens/screen_testing.h"
+#include "screens/screen_runningtest.h"
+#include "screens/screen_result.h"
+#include "screens/screen_checkfailed.h"
+#include "screens/screen_settings.h"
+#include "screens/screen_settings_interface.h"
+#include "screens/screen_settings_series.h"
+#include "screens/screen_settings_groups.h"
+#include "screens/screen_settings_devices.h"
+#include "screens/screen_hardware_fail.h"
 
 #include <stdint.h>
-#include <string.h>
-
-
 
 const Screen_TypeDef screens[ScreenCount] = {
     [ScreenHello] = {
@@ -97,13 +102,6 @@ const Screen_TypeDef screens[ScreenCount] = {
 /*                          Вспомогательные средства                         */
 /* ------------------------------------------------------------------------ */
 
-/** @brief Какой список имён показывает экран настроек. */
-typedef enum {
-    NameList_Series,
-    NameList_Groups,
-    NameList_Devices
-} NameListKind;
-
 char *linebuffer = 0;
 uint8_t linebuffer_size = 0;
 
@@ -119,7 +117,7 @@ uint8_t workspace_height_in_chars = 0;
  * @details Возвращает указатель на литерал во Flash - копировать его в буфер
  *          на стеке не нужно.
  */
-static const char *screen_interface_name (Param_Connector interface_id) {
+const char *screen_interface_name (Param_Connector interface_id) {
     switch (interface_id) {
         case Probe: return PROBES_CYRILIC;
         case RJ45: return RJ45_CYRILIC;
@@ -133,7 +131,7 @@ static const char *screen_interface_name (Param_Connector interface_id) {
  * @details Имена во Flash не завершены нулём, поэтому копируем по длине.
  *          Отсутствующее имя (индекс за границей каталога) пропускаем
  */
-static void screen_append_mystring (StrBuf_TypeDef *sb, const MyString *name) {
+void screen_append_mystring (StrBuf_TypeDef *sb, const MyString *name) {
     if (name == 0) {
         return;
     }
@@ -142,7 +140,7 @@ static void screen_append_mystring (StrBuf_TypeDef *sb, const MyString *name) {
 }
 
 /** @brief Дописать имя выбранного прибора. */
-static void screen_append_device_name (StrBuf_TypeDef *sb) {
+void screen_append_device_name (StrBuf_TypeDef *sb) {
     const Params_Device_TypeDef *device = test_results.current_device;
     if (device == 0) {
         return;
@@ -152,7 +150,7 @@ static void screen_append_device_name (StrBuf_TypeDef *sb) {
 }
 
 /** @brief Вычислить координату x начала отцентрированной строки заданной длины */
-static void screen_get_center_from_string (uint8_t *center_x_px, 
+void screen_get_center_from_string (uint8_t *center_x_px, 
                                            uint8_t str_length) {
     if (str_length >= workspace_width_in_chars) {
         *center_x_px = workspace_start_x;
@@ -163,7 +161,7 @@ static void screen_get_center_from_string (uint8_t *center_x_px,
 }
 
 /** @brief Дописать "(вход,выход)" для тестовой последовательности. */
-static void screen_append_pins (StrBuf_TypeDef *sb, 
+void screen_append_pins (StrBuf_TypeDef *sb, 
                                 const Params_TestSequence_TypeDef *sequence) {
     strbuf_char(sb, '(');
     strbuf_u32(sb, (sequence != 0) ? sequence->input_pin : 0, 0);
@@ -174,7 +172,7 @@ static void screen_append_pins (StrBuf_TypeDef *sb,
 }
 
 /** @brief Заголовок вида "Выбор устройства". */
-static void screen_draw_title (StrBuf_TypeDef *sb, 
+void screen_draw_title (StrBuf_TypeDef *sb, 
                                const char *first_word, 
                                const char *second_word) {
     uint8_t cur_x;
@@ -189,7 +187,7 @@ static void screen_draw_title (StrBuf_TypeDef *sb,
     return;
 }
 
-static uint8_t screen_name_count (NameListKind kind) {
+uint8_t screen_name_count (NameListKind kind) {
     switch (kind) {
         case NameList_Series: return params_get_series_num(&params);
         case NameList_Groups: {
@@ -205,7 +203,7 @@ static uint8_t screen_name_count (NameListKind kind) {
     }
 }
 
-static const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
+const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
     switch (kind) {
         case NameList_Series: return params_get_seria_name(&params, idx);
         case NameList_Groups: {
@@ -226,7 +224,7 @@ static const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
  * @details Окно из CURSOR_VISIBLE_ROWS строк сдвигается за курсором, поэтому
  *          список любой длины показывается корректно. 
  */
-static void screen_render_name_list (const char *first_word, 
+void screen_render_name_list (const char *first_word, 
                                      const char *second_word, 
                                      NameListKind kind) {
     uint8_t cur_x;
@@ -253,587 +251,4 @@ static void screen_render_name_list (const char *first_word,
 
     cursor_draw_highlight_row((uint8_t)(cursor_get_current_selected_index() - first));
     return;
-}
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                                  on_enter                                 */
-/* ------------------------------------------------------------------------ */
-
-void screen_hello_on_enter (void) {
-    return;
-}
-
-void screen_main_on_enter (void) {
-    cursor_init(&options_strg[1], 2, 0);
-    return;
-}
-
-void screen_testing_on_enter (void) {
-    return;
-}
-
-void screen_runningtest_on_enter (void) {
-    /* Новый прогон по тому же прибору должен начинаться с чистых результатов */
-    // model_reset_results();
-    return;
-}
-
-void screen_result_on_enter (void) {
-    return;
-}
-
-void screen_checkfailed_on_enter (void) {
-    cursor_init(&options_strg[0], test_results.failed_cnt, 0);
-    return;
-}
-
-void screen_settings_on_enter (void) {
-    cursor_init(&options_strg[0], 2, 0);
-    return;
-}
-
-void screen_settingsinterface_on_enter (void) {
-    uint8_t selected = 0;
-    switch (test_config.interface_id) {
-        case RJ45: selected = 1; break;
-        case K1: selected = 2; break;
-        default: selected = 0; break;
-    }
-    cursor_init(&options_strg[0], 3, selected);
-    return; 
-}
-
-void screen_settingsseries_on_enter (void) {
-    cursor_init(&options_strg[0], 
-                params_get_series_num(&params), 
-                test_config.series_id);
-    return;
-}
-
-void screen_settingsgroups_on_enter (void) {
-    cursor_init(&options_strg[0], 
-                params_get_groups_in_seria(&params, test_config.series_id)->count,
-                test_config.group_id);
-    return;
-}
-
-void screen_settingsdevices_on_enter (void) {
-    cursor_init(&options_strg[0], 
-                params_get_devices_in_group(&params, test_config.group_id)->count,
-                test_config.device_id);
-    return;
-}
-
-void screen_hardwarefail_on_enter (void) {
-    return;
-}
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                                  on_exit                                  */
-/* ------------------------------------------------------------------------ */
-
-void screen_hello_on_exit (void) {
-    return;
-}
-
-void screen_main_on_exit (void) {
-    return;
-}
-
-void screen_testing_on_exit (void) {
-    return;
-}
-
-void screen_runningtest_on_exit (void) {
-    return;
-}
-
-void screen_result_on_exit (void) {
-    return;
-}
-
-void screen_checkfailed_on_exit (void) {
-    return;
-}
-
-void screen_settings_on_exit (void) {
-    return;
-}
-
-void screen_settingsinterface_on_exit (void) {
-    return;
-}
-
-void screen_settingsseries_on_exit (void) {
-    return;
-}
-
-void screen_settingsgroups_on_exit (void) {
-    return;
-}
-
-void screen_settingsdevices_on_exit (void) {
-    return;
-}
-
-void screen_hardwarefail_on_exit (void) {
-    return;
-}
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                                  render                                   */
-/* ------------------------------------------------------------------------ */
-
-void screen_hello_render (void) {
-    fb_draw_bitmap((FB_WIDTH - LOGO_WIDTH) / 2, 
-                   (FB_HEIGHT - LOGO_HEIGHT) / 2, 
-                   LOGO_WIDTH, 
-                   LOGO_HEIGHT, 
-                   logo);
-    return;
-}
-
-void screen_main_render (void) {
-    uint8_t cur_x = 0;
-    StrBuf_TypeDef sb;
-
-    strbuf_init(&sb, linebuffer, linebuffer_size);
-    screen_append_device_name(&sb);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, workspace_start_y, strbuf_cstr(&sb));
-
-    const char *str_interface = screen_interface_name(test_config.interface_id);
-    screen_get_center_from_string(&cur_x, strlen(str_interface));
-    fb_draw_string_xy(cur_x, 
-                      workspace_start_y + cgxyz.height_px, 
-                      str_interface);
-
-    screen_get_center_from_string(&cur_x, strlen(TO_TEST_CYRILIC));
-    fb_draw_string_xy(cur_x, options_strg[1].y, TO_TEST_CYRILIC);
-
-    screen_get_center_from_string(&cur_x, strlen(SETTINGS_CYRILIC));
-    fb_draw_string_xy(cur_x, options_strg[2].y, SETTINGS_CYRILIC);
-
-    cursor_draw_highlight();
-    return;
-}
-
-void screen_testing_render (void) {
-    StrBuf_TypeDef sb;
-    strbuf_init(&sb, linebuffer, linebuffer_size);
-
-    uint8_t cur_x;
-    uint8_t cur_y = workspace_start_y;
-
-    strbuf_str(&sb, TO_TEST_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += cgxyz.height_px;
-
-    strbuf_clear(&sb);
-    screen_append_device_name(&sb);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += 2 * cgxyz.height_px;
-    // пропускаем 2 строки для красоты
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, INTERFACE_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += cgxyz.height_px;
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, screen_interface_name(test_config.interface_id));
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += 2 * cgxyz.height_px;
-    // Пропускаем 2 строки для красоты
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, CONTINUE_CYRILIC);
-    strbuf_char(&sb, '?');
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    return;
-}
-
-void screen_runningtest_render (void) {
-    StrBuf_TypeDef sb;
-    strbuf_init(&sb, linebuffer, linebuffer_size);
-
-    uint8_t cur_x;
-    uint8_t cur_y = workspace_start_y;
-
-    strbuf_str(&sb, TO_TEST_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += cgxyz.height_px;
-
-    strbuf_clear(&sb);
-    screen_append_device_name(&sb);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += 2 * cgxyz.height_px;
-    // пропускаем 2 строки для красоты
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, INTERFACE_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += cgxyz.height_px;
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, screen_interface_name(test_config.interface_id));
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += 2 * cgxyz.height_px;
-    // Пропускаем 2 строки для красоты
-
-    strbuf_clear(&sb);
-    screen_append_pins(&sb, test_results.current_sequence);
-    strbuf_str(&sb, "      ");
-    strbuf_u32(&sb, test_results.passed_cnt, 3);
-    strbuf_char(&sb, '/');
-    strbuf_u32(&sb, model_get_total_tests(), 3);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    return;
-}
-
-void screen_result_render (void) {
-    uint8_t cur_x = workspace_start_x;
-    uint8_t cur_y = workspace_start_y;
-
-    // Пропускаем первую линию
-    cur_y += cgxyz.height_px;
-
-    StrBuf_TypeDef sb;
-    strbuf_init(&sb, linebuffer, linebuffer_size);
-    strbuf_str(&sb, test_results.fail_was ? FAILED_CYRILIC : SUCCESS_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-
-    // Пропускаем третью линию
-    cur_y += cgxyz.height_px;
-
-    strbuf_clear(&sb);
-    strbuf_u32(&sb, test_results.passed_cnt, 3);
-    strbuf_char(&sb, '/');
-    strbuf_u32(&sb, model_get_total_tests(), 3);
-    strbuf_char(&sb, ' ');
-    strbuf_str(&sb, PASSED_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    return;
-}
-
-void screen_checkfailed_render (void) {
-    uint8_t cur_x = workspace_start_x;
-    uint8_t cur_y = workspace_start_y;
-    StrBuf_TypeDef sb;
-    strbuf_init(&sb, linebuffer, linebuffer_size);
-
-    const char *str_check = CHECK_LINES_CYRILIC;
-    screen_get_center_from_string(&cur_x, strlen(str_check));
-    fb_draw_string_xy(cur_x, cur_y, str_check);
-
-    uint8_t total = model_get_total_tests();
-    uint8_t first = cursor_get_window_first();
-    uint8_t failed_seen = 0;
-    uint8_t row = 0;
-
-    for (uint8_t pos = 0; (pos < total) && (row < options_amount); pos++) {
-        if (!model_is_test_failed(pos)) {
-            continue;
-        }
-        if (failed_seen < first) {
-            failed_seen++;
-            continue;
-        }
-        strbuf_clear(&sb);
-        screen_append_pins(&sb, model_get_sequence_at(pos));
-        screen_get_center_from_string(&cur_x, sb.len);
-        fb_draw_string_xy(cur_x, 
-                          options_strg[row].y, 
-                          strbuf_cstr(&sb));
-        failed_seen++;
-        row++;
-    }
-
-    cursor_draw_highlight_row((uint8_t)(cursor_get_current_selected_index() - first));
-    return;
-}
-
-void screen_settings_render (void) {
-    uint8_t cur_x = workspace_start_x;
-    uint8_t cur_y = workspace_start_y;
-    StrBuf_TypeDef sb;
-    strbuf_init(&sb, linebuffer, linebuffer_size);
-
-    const char *str_settings = SETTINGS_CYRILIC;
-    screen_get_center_from_string(&cur_x, strlen(str_settings));
-    fb_draw_string_xy(cur_x, cur_y, str_settings);
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, CHOSING_CYRILIC);
-    strbuf_char(&sb, ' ');
-    strbuf_str(&sb, DEVICES_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, options_strg[0].y, strbuf_cstr(&sb));
-
-    strbuf_clear(&sb);
-    strbuf_str(&sb, CHOSING_CYRILIC);
-    strbuf_char(&sb, ' ');
-    strbuf_str(&sb, INTERFACE_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, options_strg[1].y, strbuf_cstr(&sb));
-
-    cursor_draw_highlight();
-    return;
-}
-
-void screen_settingsinterface_render (void) {
-    uint8_t cur_x;
-    char *str = INTERFACE_CYRILIC;
-    screen_get_center_from_string(&cur_x, strlen(str));
-    fb_draw_string_xy(cur_x, workspace_start_y, str);
-    
-    str = PROBES_CYRILIC;
-    screen_get_center_from_string(&cur_x, strlen(str));
-    fb_draw_string_xy(cur_x, options_strg[0].y, str);
-
-    str = RJ45_CYRILIC;
-    screen_get_center_from_string(&cur_x, strlen(str));
-    fb_draw_string_xy(cur_x, options_strg[1].y, RJ45_CYRILIC);
-
-    str = K1_CYRILIC;
-    screen_get_center_from_string(&cur_x, strlen(str));
-    fb_draw_string_xy(cur_x, options_strg[2].y, K1_CYRILIC);
-
-    cursor_draw_highlight();
-    return;
-}
-
-void screen_settingsseries_render (void) {
-    screen_render_name_list(CHOSING_CYRILIC, SERIES_CYRILIC, NameList_Series);
-    return;
-}
-
-void screen_settingsgroups_render (void) {
-    screen_render_name_list(CHOSING_CYRILIC, GROUPS_CYRILIC, NameList_Groups);
-    return;
-}
-
-void screen_settingsdevices_render (void) {
-    screen_render_name_list(CHOSING_CYRILIC, DEVICES_CYRILIC, NameList_Devices);
-    return;
-}
-
-void screen_hardwarefail_render (void) {
-    fb_set_font(JetBrains_Mono7x13_Latin, 
-                LCDFONT_WIDTH, 
-                LCDFONT_HEIGHT, 
-                LCDFONT_FIRST_CHAR, 
-                LCDFONT_LAST_CHAR);
-
-    uint8_t x = 1, y = 6;
-    if (typefail & UnderCurrent) {
-        fb_draw_string_xy(x, y, "Under Current");
-        y += 13;
-    }
-    if (typefail & UnderVoltage) {
-        fb_draw_string_xy(x, y, "Under Voltage");
-        y += 13;
-    }
-    if (typefail & OverCurrent) {
-        fb_draw_string_xy(x, y, "Over Current");
-        y += 13;
-    }
-    if (typefail & OverVoltage) {
-        fb_draw_string_xy(x, y, "Over Voltage");
-        y += 13;
-    }
-    if (typefail & MathOverflow) {
-        fb_draw_string_xy(x, y, "Math Overflow");
-        y += 13;
-    }
-    if (typefail == NoFail) {
-        fb_draw_string_xy(x, y, "No Fail");
-        y += 13;
-    }
-
-    fb_set_font(JetBrains_Mono7x13_Cyrilic, 
-                LCDFONT_WIDTH, 
-                LCDFONT_HEIGHT, 
-                LCDFONT_FIRST_CHAR, 
-                LCDFONT_LAST_CHAR);
-    return;
-}
-
-
-
-/* ------------------------------------------------------------------------ */
-/*                               handle_event                                */
-/* ------------------------------------------------------------------------ */
-
-ScreenID screen_hello_handle_event(InputEvent event) {
-    switch (event) {
-        case InputEvent_HelloScreenTimeout: return ScreenMain;
-        default: return ScreenHello;
-    }
-}
-
-ScreenID screen_main_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenMain;
-        case InputEvent_ButtonPressed_Cancel: return ScreenMain;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenMain;
-        case InputEvent_ButtonPressed_Enter: {
-            uint8_t cur_option = cursor_get_current_selected_index();
-            switch (cur_option) {
-                case 0: return ScreenTesting;
-                case 1: return ScreenSettings;
-                default: return ScreenMain;
-            }
-        }
-        default: return ScreenMain;
-    }
-}
-
-ScreenID screen_testing_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Cancel: return ScreenMain;
-        case InputEvent_ButtonPressed_Enter: 
-            proccessor_raise_event(EnterAccepted);
-            return ScreenRunningTest;
-        default: return ScreenTesting;
-    }
-}
-
-ScreenID screen_runningtest_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_TestSequenceComplete: return ScreenResult;
-        default: return ScreenRunningTest;
-    }
-}
-
-ScreenID screen_result_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Enter: 
-            if (test_results.fail_was) {
-                return ScreenCheckFailed;
-            } else {
-                return ScreenMain;
-            }
-        default: return ScreenResult;
-    }
-}
-
-ScreenID screen_checkfailed_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenCheckFailed;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenCheckFailed;
-        case InputEvent_ButtonPressed_Enter: return ScreenMain;
-        case InputEvent_ButtonPressed_Cancel: 
-        default: return ScreenCheckFailed;
-    }
-}
-
-ScreenID screen_settings_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenSettings;
-        case InputEvent_ButtonPressed_Cancel: return ScreenMain;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenSettings;
-        case InputEvent_ButtonPressed_Enter: {
-            uint8_t cur_option = cursor_get_current_selected_index();
-            switch (cur_option) {
-                case 0: return ScreenSettingsSeries;
-                case 1: return ScreenSettingsInterface;
-                default: return ScreenSettings;
-            }
-        }
-        default: return ScreenSettings;
-    }
-}
-
-ScreenID screen_settingsinterface_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: 
-            cursor_move(-1); 
-            return ScreenSettingsInterface;
-
-        case InputEvent_ButtonPressed_Cancel: return ScreenSettings;
-        case InputEvent_ButtonPressed_Next: 
-            cursor_move(+1); 
-            return ScreenSettingsInterface;
-
-        case InputEvent_ButtonPressed_Enter: 
-            switch (cursor_get_current_selected_index()) {
-                case 0: test_config.interface_id = Probe; break;
-                case 1: test_config.interface_id = RJ45; break;
-                case 2: test_config.interface_id = K1; break;
-                default: break;
-            }
-            return ScreenMain;
-        default: return ScreenSettingsInterface;
-    }
-}
-
-ScreenID screen_settingsseries_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenSettingsSeries;
-        case InputEvent_ButtonPressed_Cancel: return ScreenSettings;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenSettingsSeries;
-        case InputEvent_ButtonPressed_Enter: 
-            test_config.series_id = cursor_get_current_selected_index();
-            return ScreenSettingsGroups;
-        default: return ScreenSettingsSeries;
-    }
-}
-
-ScreenID screen_settingsgroups_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenSettingsGroups;
-        case InputEvent_ButtonPressed_Cancel: return ScreenSettingsSeries;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenSettingsGroups;
-        case InputEvent_ButtonPressed_Enter: {
-            const Params_Range_TypeDef *groups_in_seria = 
-                params_get_groups_in_seria(&params, test_config.series_id);
-            test_config.group_id = groups_in_seria->begin_idx + cursor_get_current_selected_index();
-            return ScreenSettingsDevices;
-        }
-        default: return ScreenSettingsGroups;
-    }
-}
-
-ScreenID screen_settingsdevices_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenSettingsDevices;
-        case InputEvent_ButtonPressed_Cancel: return ScreenSettingsGroups;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenSettingsDevices;
-        case InputEvent_ButtonPressed_Enter: {
-            const Params_Range_TypeDef *devices_in_group = 
-                params_get_devices_in_group(&params, test_config.group_id);
-            model_select_device(devices_in_group->begin_idx + cursor_get_current_selected_index());
-            return ScreenMain;
-        }
-        default: return ScreenSettingsDevices;
-    }
-}
-
-ScreenID screen_hardwarefail_handle_event (InputEvent event) {
-    switch (event) {
-        case InputEvent_ButtonPressed_Enter: 
-            /* Оператор подтвердил, что видел аварию - процессор вернётся в Idle */
-            proccessor_raise_event(EnterAccepted);
-            return ScreenMain;
-        default: return ScreenHardwareFail;
-    }
 }

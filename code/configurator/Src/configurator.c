@@ -18,7 +18,9 @@ bool configurator_read_config (void) {
         (params.groups_count == 0) || 
         (params.devices_count == 0) || 
         (params.sequences_count == 0) || 
-        (params.test_params_count == 0)) {
+        (params.test_params_count0 == 0) || 
+        (params.test_params_count1 == 0) || 
+        (params.test_params_count2 == 0)) {
         return false;
     }
 
@@ -26,7 +28,9 @@ bool configurator_read_config (void) {
         (params.groups_names == 0) || 
         (params.devices_names == 0) || 
         (params.devices == 0) || 
-        (params.test_params == 0) || 
+        (params.test_params_type0 == 0) || 
+        (params.test_params_type1 == 0) || 
+        (params.test_params_type2 == 0) ||
         (params.series_groups == 0) || 
         (params.group_devices == 0)) {
         return false;

@@ -1,7 +1,7 @@
 ﻿#include "stm32f103xb.h"
 #include "delay.h"
 
-#define DELAY_MAX_TASKS (32)
+#define DELAY_MAX_TASKS (8)
 
 typedef struct {
     uint32_t register_time;
@@ -9,11 +9,10 @@ typedef struct {
     bool is_expired;
 } DelayTask;
 
-static DelayTask tasks[DELAY_MAX_TASKS] = { 0 };
+static volatile DelayTask tasks[DELAY_MAX_TASKS] = { 0 };
 
 static uint32_t coeff_us2tick = 0;
 static uint32_t coeff_ms2tick = 0;
-static bool overflow_was = false;
 
 void delay_init (uint32_t SystemCoreClock_Hz) {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // разрешаем трассировку
@@ -41,8 +40,8 @@ bool delay_register_task (uint8_t *task_id, uint32_t delay, DelayTimeType type_d
             }
             break;
     }
-    uint8_t free_task = 0;
-    for (; free_task < DELAY_MAX_TASKS; free_task++) {
+    
+    for (uint8_t free_task = 0; free_task < DELAY_MAX_TASKS; free_task++) {
         if (tasks[free_task].is_expired) {
             tasks[free_task].is_expired = false;
             tasks[free_task].register_time = DWT->CYCCNT;
@@ -56,12 +55,17 @@ bool delay_register_task (uint8_t *task_id, uint32_t delay, DelayTimeType type_d
     return false;
 }
 
-bool delay_unregister_task (uint8_t task_id) {
+void delay_update_task (uint8_t task_id) {
+    tasks[task_id].register_time = DWT->CYCCNT;
+    return;
+}
+
+void delay_unregister_task (uint8_t task_id) {
     if (task_id >= DELAY_MAX_TASKS) {
-        return false;
+        return;
     }
     tasks[task_id].is_expired = true;
-    return true;
+    return;
 }
 
 bool delay_is_not_yet_expired (uint8_t task_id) {

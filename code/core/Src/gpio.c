@@ -33,7 +33,6 @@ bool GPIO_Init (void) {
 
     /*
         PushPull:
-        - PA2 (Buzzer)
         - PA10 (MUX1_C)
         - PB3 (MUX2_A)
         - PB4 (MUX2_B)
@@ -50,6 +49,7 @@ bool GPIO_Init (void) {
         - PB0 (nMUX1_En)
         - PB1 (nMUX2_En)
         - PB8 (nRESET_LCD)
+        - PB9 (Buzzer)
     */
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
@@ -71,8 +71,7 @@ bool GPIO_Init (void) {
         return false;
     }
 
-    GPIO_InitStruct.Pin = BUZZER.pin | 
-                          RJ_SHIELD_P.pin | 
+    GPIO_InitStruct.Pin = RJ_SHIELD_P.pin | 
                           PROBE_EN.pin | 
                           DSUB_EN.pin | 
                           RJ_SHIELD_N.pin;
@@ -80,7 +79,6 @@ bool GPIO_Init (void) {
     if (LL_GPIO_Init(PROBE_EN.port, &GPIO_InitStruct) != SUCCESS) {
         return false;
     }
-    LL_GPIO_SetOutputPin(BUZZER.port, BUZZER.pin);
     LL_GPIO_SetOutputPin(RJ_SHIELD_P.port, RJ_SHIELD_P.pin);
     LL_GPIO_SetOutputPin(RJ_SHIELD_N.port, RJ_SHIELD_N.pin);
     LL_GPIO_SetOutputPin(PROBE_EN.port, PROBE_EN.pin);
@@ -88,13 +86,15 @@ bool GPIO_Init (void) {
 
     GPIO_InitStruct.Pin = nMUX1_EN.pin | 
                           nMUX2_EN.pin | 
-                          nRESET_LCD.pin;
+                          nRESET_LCD.pin |
+                          BUZZER.pin;
     if (LL_GPIO_Init(nMUX1_EN.port, &GPIO_InitStruct) != SUCCESS) {
         return false;
     }
     LL_GPIO_SetOutputPin(nMUX1_EN.port, nMUX1_EN.pin);
     LL_GPIO_SetOutputPin(nMUX2_EN.port, nMUX2_EN.pin);
     LL_GPIO_SetOutputPin(nRESET_LCD.port, nRESET_LCD.pin);
+    LL_GPIO_SetOutputPin(BUZZER.port, BUZZER.pin);
 
     return true;
 }

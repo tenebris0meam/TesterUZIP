@@ -1,9 +1,11 @@
 ﻿#include "dma.h"
 #include "adc.h"
+#include "delay.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_spi.h"
+#include "stm32f1xx_ll_usart.h"
 
 
 
@@ -110,32 +112,79 @@ void DMA1_SPI2TX_DenyInterrupt (void) {
 
 void DMA1_SPI2RX_Start (void) {
     LL_SPI_EnableDMAReq_RX(SPI2);
-
-    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
-    while (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {}
-    return;
+    if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {
+        return;
+    } else {
+        LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
+        uint8_t dma_delay;
+        if (!delay_register_task(&dma_delay, 1000, Micros)) {
+            return;
+        }
+        while (delay_is_not_yet_expired(dma_delay)) {
+            if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {
+                delay_unregister_task(dma_delay);
+                return;
+            }
+        }
+    }
 }
 
 void DMA1_SPI2TX_Start (void) {
     LL_SPI_EnableDMAReq_TX(SPI2);
-
-    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
-    while (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {}
+    if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {
+        return;
+    } else {
+        LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
+        uint8_t dma_delay;
+        if (!delay_register_task(&dma_delay, 1000, Micros)) {
+            return;
+        }
+        while (delay_is_not_yet_expired(dma_delay)) {
+            if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {
+                delay_unregister_task(dma_delay);
+                return;
+            }
+        }
+    }
     return;
 }
 
 void DMA1_SPI2RX_Stop (void) {
 	LL_SPI_DisableDMAReq_RX(SPI2);
-
-	LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_4);
-    while (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {}
+    if (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {
+        return;
+    } else {
+        LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_4);
+        uint8_t dma_delay;
+        if (!delay_register_task(&dma_delay, 1000, Micros)) {
+            return;
+        }
+        while (delay_is_not_yet_expired(dma_delay)) {
+            if (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {
+                delay_unregister_task(dma_delay);
+                return;
+            }
+        }
+    }
     return;
 }
 
 void DMA1_SPI2TX_Stop (void) {
 	LL_SPI_DisableDMAReq_TX(SPI2);
-
-	LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
-    while (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {}
+    if (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {
+        return;
+    } else {
+        LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
+        uint8_t dma_delay;
+        if (!delay_register_task(&dma_delay, 1000, Micros)) {
+            return;
+        }
+        while (delay_is_not_yet_expired(dma_delay)) {
+            if (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {
+                delay_unregister_task(dma_delay);
+                return;
+            }
+        }
+    }
     return;
 }

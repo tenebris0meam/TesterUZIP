@@ -10,17 +10,19 @@ const Buzzer_TypeDef buzzer = {
     .beep_time_ms = 100,
 };
 
-static bool beep_in_operation = false;
-static uint8_t delay_task_id = 0;
-
-bool buzzer_is_beeping (void) {
-    return beep_in_operation;
-}
+static volatile bool beep_in_operation = false;
+static volatile uint8_t delay_task_id = 0;
 
 void buzzer_turn_on (void) {
-    Pin_Set_State((Pin_TypeDef *)buzzer.pin, false);
-    if (delay_register_task(&delay_task_id, buzzer.beep_time_ms, Millis)) {
-        beep_in_operation = true;
+    if (!beep_in_operation) {
+        if (delay_register_task((uint8_t *)&delay_task_id, 
+                                buzzer.beep_time_ms, 
+                                Millis)) {
+            beep_in_operation = true;
+            Pin_Set_State((Pin_TypeDef *)buzzer.pin, false);
+        }
+    } else {
+        delay_update_task(delay_task_id);
     }
     return;
 }

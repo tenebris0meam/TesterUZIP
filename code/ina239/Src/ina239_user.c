@@ -42,16 +42,16 @@ bool INA239_MainInit (void) {
      * время преобразования 50 мкс на канал, усреднения нет */
     if (INA239_ConfigureAdc(&ina239,
                             INA239_MODE_SHUTDOWN,
-                            INA239_CT_150US,
-                            INA239_CT_150US,
+                            INA239_CT_50US,
+                            INA239_CT_50US,
                             INA239_AVG_1) != INA239_OK) {
         return false;
     }
 
     /* Диапазон шунта: ±163.84 мВ (ADCRANGE = 0) */
-    if (INA239_SetAdcRange(&ina239, INA239_ADCRANGE_163_84_MV) != INA239_OK) {
-        return false;
-    }
+    // if (INA239_SetAdcRange(&ina239, INA239_ADCRANGE_163_84_MV) != INA239_OK) {
+    //     return false;
+    // }
 
     /* SHUNT_CAL — расчёт по Rshunt/Imax НЕ делается драйвером,
      * значение должно быть подготовлено заранее (см. datasheet 8.1.2). */
@@ -61,27 +61,27 @@ bool INA239_MainInit (void) {
     }
 
     /* Пороги защиты (сырые коды, тоже посчитаны заранее пользователем) */
-    if (INA239_WriteShuntOvervoltageLimit(&ina239, SOVL_RAW) != INA239_OK) {
-        return false;
-    }
-    if (INA239_WriteShuntUndervoltageLimit(&ina239, -SOVL_RAW) != INA239_OK) {
-        return false;
-    }
-    if (INA239_WriteBusOvervoltageLimit(&ina239, BOVL_RAW) != INA239_OK) {
-        return false;
-    }
-    if (INA239_WriteBusUndervoltageLimit(&ina239, 0) != INA239_OK) {
-        return false;
-    }
+    // if (INA239_WriteShuntOvervoltageLimit(&ina239, INT16_MAX) != INA239_OK) {
+    //     return false;
+    // }
+    // if (INA239_WriteShuntUndervoltageLimit(&ina239, INT16_MIN) != INA239_OK) {
+    //     return false;
+    // }
+    // if (INA239_WriteBusOvervoltageLimit(&ina239, BOVL_RAW) != INA239_OK) {
+    //     return false;
+    // }
+    // if (INA239_WriteBusUndervoltageLimit(&ina239, 0) != INA239_OK) {
+    //     return false;
+    // }
 
     uint16_t diag_cfg = 0U;
     if (INA239_ReadDiagAlert(&ina239, &diag_cfg) != INA239_OK) {
         return false;
     }
     diag_cfg |= INA239_DIAG_ALATCH_Msk; 
-    diag_cfg &= ~INA239_DIAG_CNVR_Msk; // Выключение CONV_RDY на пине alert
-    diag_cfg &= ~INA239_DIAG_SLOWALERT_Msk; // Для функции ALERT выбирать не усреднённые значения
-    diag_cfg &= ~INA239_DIAG_APOL_Msk; // Полярность выхода нормальная - active low, open drain
+    // diag_cfg &= ~INA239_DIAG_CNVR_Msk; // Выключение CONV_RDY на пине alert
+    // diag_cfg &= ~INA239_DIAG_SLOWALERT_Msk; // Для функции ALERT выбирать не усреднённые значения
+    // diag_cfg &= ~INA239_DIAG_APOL_Msk; // Полярность выхода нормальная - active low, open drain
     if (INA239_WriteDiagAlert(&ina239, diag_cfg) != INA239_OK) {
         return false;
     }

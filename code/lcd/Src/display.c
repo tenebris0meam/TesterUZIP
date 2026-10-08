@@ -68,12 +68,10 @@ void display_routine (void) {
      * знать не нужно. Очищать буфер отдельно не требуется - fb_begin_band()
      * делает это сам.
      */
-    if (is_render_allowed) {
-        for (uint8_t bank = 0; bank < FB_BANKS; bank++) {
-            fb_begin_band(bank);
-            screens[current_screen].render();
-            fb_flush_band();
-        }
+    for (uint8_t bank = 0; bank < FB_BANKS; bank++) {
+        fb_begin_band(bank);
+        screens[current_screen].render();
+        fb_flush_band();
     }
     return;
 }
@@ -100,4 +98,8 @@ void display_deny_render (void) {
 void display_allow_render (void) {
     is_render_allowed = true;
     return;
+}
+
+bool display_get_render (void) {
+    return is_render_allowed;
 }

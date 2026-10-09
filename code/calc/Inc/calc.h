@@ -20,8 +20,6 @@
  *          вердиктом - держит процессор (code/proccessor).
  */
 
-extern volatile bool have_new_data;
-
 /** @brief Номинальный ток испытания, нА. */
 #define CALC_NOMINAL_CURRENT_nA (1000000L)
 
@@ -38,16 +36,7 @@ extern volatile bool have_new_data;
 /** @brief Верхняя граница скважности, миллионные доли. */
 #define CALC_DUTY_MAX_PPM (970000L)
 
-typedef enum {
-    VOLTAGE,
-    CURRENT
-} RawValType;
-
-typedef struct {
-    uint32_t target_voltage_uV;
-    uint32_t start_time_integral;
-    int32_t integral;
-} IntegratorTypeDef;
+extern volatile bool have_new_data;
 
 bool calc_integrator_Init (void);
 void calc_integrator_set_target_voltage (uint32_t target_voltage_after_div_uV);

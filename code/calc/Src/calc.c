@@ -14,21 +14,32 @@
 
 #define CALC_WINDOW_LENGTH 32
 
-#define CALC_DERIVATIVE_VOLTAGE_MAX (200000L)
+#define CALC_DERIVATIVE_VOLTAGE_MAX (68737970LL) // 500 V/s с учётом делителя напряжения
 
 
+
+typedef enum {
+    VOLTAGE,
+    CURRENT
+} RawValType;
+
+typedef struct {
+    uint32_t target_voltage_uV;
+    uint32_t ramp_voltage_uV;
+    uint32_t start_time_integral;
+    int32_t integral;
+} IntegratorTypeDef;
 
 volatile bool have_new_data = false;
 
 static IntegratorTypeDef integrator = { 0 };
-static Window_TypeDef voltage_window = { 0 };
-static Window_TypeDef current_window = { 0 };
-static int32_t voltage_buf[CALC_WINDOW_LENGTH] = { 0 };
-static int32_t current_buf[CALC_WINDOW_LENGTH] = { 0 };
+// static Window_TypeDef voltage_window = { 0 };
+// static Window_TypeDef current_window = { 0 };
+// static int32_t voltage_buf[CALC_WINDOW_LENGTH] = { 0 };
+// static int32_t current_buf[CALC_WINDOW_LENGTH] = { 0 };
 
 /** @brief Актуальные данные о напряжении и токе теста */
 static int32_t voltage_test = 0;
-static int32_t previous_error_uV = 0;
 static int32_t current_test = 0;
 
 static bool is_voltage_achieved = false;
@@ -93,8 +104,8 @@ bool calc_integrator_Init (void) {
 
     TIM3_Change_Update_Time(delta_time_us);
 
-    window_init(&voltage_window, sizeof(int32_t), CALC_WINDOW_LENGTH, voltage_buf);
-    window_init(&current_window, sizeof(int32_t), CALC_WINDOW_LENGTH, current_buf);
+    // window_init(&voltage_window, sizeof(int32_t), CALC_WINDOW_LENGTH, voltage_buf);
+    // window_init(&current_window, sizeof(int32_t), CALC_WINDOW_LENGTH, current_buf);
 
     /*
      * Уставку здесь НЕ трогаем: её ставит процессор под конкретный прибор.
@@ -129,13 +140,13 @@ int32_t calc_integrator_get_integral_value (void) {
 void calc_reset_integrator (void) {
     memset(&integrator, 0, sizeof(IntegratorTypeDef));
     voltage_test = 0;
-    previous_error_uV = 0;
+    // previous_error_uV = 0;
     current_test = 0;
     is_voltage_achieved = false;
     voltage_lowth = 0;
     voltage_highth = 0;
-    window_reset(&voltage_window);
-    window_reset(&current_window);
+    // window_reset(&voltage_window);
+    // window_reset(&current_window);
     return;
 }
 
@@ -155,14 +166,18 @@ static void calc_integrator_step (int32_t measured_uV) {
     uint64_t delta_tick = (cur_CYCCNT > integrator.start_time_integral) ? 
                           (cur_CYCCNT - integrator.start_time_integral) : 
                           (UINT32_MAX - integrator.start_time_integral + cur_CYCCNT); 
-    int32_t error_uV = (int32_t)integrator.target_voltage_uV - measured_uV;
-    int32_t cur_error_derivative = (int64_t)(error_uV - previous_error_uV) * (int64_t)SystemCoreClock / (int64_t)delta_tick;
-    if ((cur_error_derivative > CALC_DERIVATIVE_VOLTAGE_MAX) || 
-        (cur_error_derivative < -CALC_DERIVATIVE_VOLTAGE_MAX)) {
-        error_uV = previous_error_uV + 
-            (int32_t)((int64_t)CALC_DERIVATIVE_VOLTAGE_MAX * (int64_t)delta_tick / (int64_t)SystemCoreClock);
+    
+    int64_t step = CALC_DERIVATIVE_VOLTAGE_MAX * (int64_t)delta_tick / (int64_t)SystemCoreClock;
+    int32_t ramp_diff = integrator.target_voltage_uV - integrator.ramp_voltage_uV;
+    if (ramp_diff > step) {
+        integrator.ramp_voltage_uV += step;
+    } else if (ramp_diff < -step) {
+        integrator.ramp_voltage_uV -= step;
+    } else {
+        integrator.ramp_voltage_uV = integrator.target_voltage_uV;
     }
-    previous_error_uV = error_uV;
+                          
+    int32_t error_uV = (int32_t)integrator.ramp_voltage_uV - measured_uV;
     int32_t delta_ppm = (int32_t)((int64_t)error_uV * (int64_t)delta_tick / (int64_t)SystemCoreClock);
     int32_t sum_ppm = integrator.integral + delta_ppm;
 
@@ -185,14 +200,16 @@ void calc_routine (void) {
     int16_t current_raw = calc_get_raw_val(frame, CURRENT);
 
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
-    int32_t u_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
-    int32_t n_amperage = hv_shunt_uV_to_nA(shunt_dropvoltage);
+    voltage_test = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    current_test = hv_shunt_uV_to_nA(shunt_dropvoltage);
+    // int32_t u_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    // int32_t n_amperage = hv_shunt_uV_to_nA(shunt_dropvoltage);
 
-    window_push(&voltage_window, &u_voltage);
-    window_push(&current_window, &n_amperage);
+    // window_push(&voltage_window, &u_voltage);
+    // window_push(&current_window, &n_amperage);
 
-    voltage_test = calc_get_average_from_window(&voltage_window);
-    current_test = calc_get_average_from_window(&current_window);
+    // voltage_test = calc_get_average_from_window(&voltage_window);
+    // current_test = calc_get_average_from_window(&current_window);
 
     calc_integrator_step(voltage_test);
     return;

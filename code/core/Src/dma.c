@@ -5,7 +5,6 @@
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_spi.h"
-#include "stm32f1xx_ll_usart.h"
 
 
 

@@ -14,6 +14,7 @@
 #include "states/hardware_fail.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define MAX_TESTS_FOR_ONE_GDT 5
 
@@ -57,7 +58,7 @@ static void resolve_generation_proccess_for_GDT (void) {
         if (voltage_uV >= voltage_highth_uV) {
             /* Напряжение генерации стало больше напряжения ионизации газа, поломка */
             proccessor_raise_event(DeviceVoltageOverVoltage);
-        } else if (voltage_uV < voltage_lowth_uV) {
+        } else {
             /* Напряжение генерации не достигло напряжения ионизации газа, ждём ещё */
             proccessor_raise_event(DeviceVoltageUnderVoltage);
         }
@@ -70,7 +71,14 @@ static State resolve_generation_event_for_GDT (Event event) {
         case DeviceVoltageUnderVoltage: 
             if (calc_is_voltage_achieved()) {
                 generation_step++;
-                if (!proccessor_apply_setpoint()) {
+                if (proccessor_apply_setpoint()) {
+                    return Generation;
+                } else if (test_id + 1 < num_tests_for_one_GDT) {
+                    voltage_max_buf[test_id] = 0;
+                    test_id++;
+                    return Commutation;
+                } else {
+                    test_id = 0;
                     return TestFailed;
                 }
             }
@@ -230,25 +238,16 @@ static void resolve_hardwarefail_proccess_for_GDT (void) {
         test_id = 0;
         return;
     } else {
-        Commutator_ActiveLine positive = (Commutator_ActiveLine)(test_results.current_sequence->input_pin + 1);
-        Commutator_ActiveLine negative = (Commutator_ActiveLine)(test_results.current_sequence->output_pin + 1);
-
-        commutator_set_active_interface(test_config.interface_id);
-        commutator_set_active_line(positive, LineType_Positive);
-        commutator_set_active_line(negative, LineType_Negative);
-
-        commutator_allow_commutation();
-
         proccessor_raise_event(DeviceCurrentWithinTheRange);
-        return;
     }
 }
 
 static State resolve_hardwarefail_event_for_GDT (Event event) {
     switch (event) {
         case TestSequenceFinished: return TestSequenceComplete;
+        case DeviceCurrentWithinTheRange: 
         case TestResultRecorded: return Commutation;
-        default: return Generation;
+        default: return HardwareFail;
     }
 }
 

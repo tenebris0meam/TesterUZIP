@@ -51,6 +51,8 @@ void calc_reset_integrator (void);
  *          уставку.
  */
 void calc_routine (void);
+/** @brief Обновить измеренные U/I без выполнения шага регулятора. */
+void calc_measurement_update (void);
 
 /** @brief Данные последнего вынесенного вердикта. */
 void calc_get_test_data (int32_t *voltage, int32_t *current);

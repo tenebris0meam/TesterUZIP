@@ -2,7 +2,7 @@
     {
         "SeriesAmount": 3,
         "GroupsAmount": 14,
-        "DevicesAmount": 44,
+        "DevicesAmount": 47,
         "SequencesAmount": 72,
         "TestParamsAmount": [ 12, 1, 4 ],
         "Series": [
@@ -11,26 +11,28 @@
             { "SeriaName": "REQR", "GroupBeginID": 13, "GroupCount": 1 }
         ],
         "Groups": [
-            { "GroupName": "SGK(-J)", "DeviceBeginID": 0, "DeviceCount": 2 }, 
-            { "GroupName": "SGK-H", "DeviceBeginID": 2, "DeviceCount": 6 }, 
-            { "GroupName": "SGK-H2", "DeviceBeginID": 8, "DeviceCount": 7 }, 
-            { "GroupName": "SGK-H2-5/5", "DeviceBeginID": 15, "DeviceCount": 6 }, 
-            { "GroupName": "SGK-R", "DeviceBeginID": 21, "DeviceCount": 2 }, 
-            { "GroupName": "SGK-R2", "DeviceBeginID": 23, "DeviceCount": 2 }, 
-            { "GroupName": "SGK-QD", "DeviceBeginID": 25, "DeviceCount": 2 }, 
-            { "GroupName": "SGK-QJ", "DeviceBeginID": 27, "DeviceCount": 2 }, 
-            { "GroupName": "SGK(O)-E(O)/(O,A)GK-EO", "DeviceBeginID": 29, "DeviceCount": 2 }, 
+            { "GroupName": "SGK(-J)", "DeviceBeginID": 0, "DeviceCount": 4 }, 
+            { "GroupName": "SGK-H", "DeviceBeginID": 4, "DeviceCount": 6 }, 
+            { "GroupName": "SGK-H2", "DeviceBeginID": 10, "DeviceCount": 7 }, 
+            { "GroupName": "SGK-H2-5/5", "DeviceBeginID": 17, "DeviceCount": 6 }, 
+            { "GroupName": "SGK-R", "DeviceBeginID": 23, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-R2", "DeviceBeginID": 25, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-QD", "DeviceBeginID": 27, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-QJ", "DeviceBeginID": 29, "DeviceCount": 2 }, 
+            { "GroupName": "SGK(O)-E(O)/(O,A)GK-EO", "DeviceBeginID": 31, "DeviceCount": 2 }, 
 
-            { "GroupName": "SGO-12/-24", "DeviceBeginID": 31, "DeviceCount": 3 }, 
-            { "GroupName": "SGO(T)-220", "DeviceBeginID": 34, "DeviceCount": 3 }, 
-            { "GroupName": "SGO-BW", "DeviceBeginID": 37, "DeviceCount": 2 }, 
-            { "GroupName": "SGO2", "DeviceBeginID": 39, "DeviceCount": 1 },
+            { "GroupName": "SGO-12/-24", "DeviceBeginID": 33, "DeviceCount": 3 }, 
+            { "GroupName": "SGO(T)-220", "DeviceBeginID": 36, "DeviceCount": 3 }, 
+            { "GroupName": "SGO-BW", "DeviceBeginID": 39, "DeviceCount": 2 }, 
+            { "GroupName": "SGO2", "DeviceBeginID": 41, "DeviceCount": 1 },
 
-            { "GroupName": "REQR", "DeviceBeginID": 40, "DeviceCount": 4 }
+            { "GroupName": "REQR", "DeviceBeginID": 42, "DeviceCount": 5 }
         ],
         "DevicesNames": [
-            "SGK(-J)-7,5/10j@-12B",
-            "SGK(-J)-7,5/10j@-24B",
+            "SGK(-J)-12B-DHT",
+            "SGK(-J)-12B-NAY",
+            "SGK(-J)-24B-DHT",
+            "SGK(-J)-24B-NAY",
 
             "SGK-H-12/5",
             "SGK-H-24/5",
@@ -90,7 +92,8 @@
             "REQR-P-90",
             "REQR-P-150",
             "REQR-P-350", 
-            "REQR-SGK-EO"
+            "REQR-SGK-EO",
+            "REQR-B@P"
         ],
         "Sequences": [
             { "InputPin": 0, "OutputPin": 1 },
@@ -215,18 +218,39 @@
             }, 
             { "TestSequenceAmount": 0, "TestSequence": null },
             { 
-                "TestSequenceAmount": 2, 
+                "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 4, "TestID": 0 }, 
-                    { "SequenceID": 19, "TestID": 0 }
+                    { "SequenceID": 4, "TestID": 0 } 
                 ]
             }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 0,
         "DeviceID": 1,
+        "TestSequences": [
+            { 
+                "TestSequenceAmount": 8,
+                "TestSequence": [
+                    { "SequenceID": 0, "TestID": 0 },
+                    { "SequenceID": 8, "TestID": 0 }, 
+                    { "SequenceID": 18, "TestID": 1 },
+                    { "SequenceID": 26, "TestID": 1 }, 
+                    { "SequenceID": 19, "TestID": 2 }, 
+                    { "SequenceID": 34, "TestID": 2 }, 
+                    { "SequenceID": 27, "TestID": 2 }, 
+                    { "SequenceID": 35, "TestID": 2 }
+                ]
+            }, 
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 0, "TestSequence": null }
+        ],
+        "ConnectorID": 2
+    }, {
+        "SeriaID": 0,
+        "GroupID": 0,
+        "DeviceID": 2,
         "TestSequences": [
             { 
                 "TestSequenceAmount": 8,
@@ -243,14 +267,35 @@
             }, 
             { "TestSequenceAmount": 0, "TestSequence": null },
             { 
-                "TestSequenceAmount": 2, 
+                "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 4, "TestID": 0 }, 
-                    { "SequenceID": 19, "TestID": 0 }
+                    { "SequenceID": 4, "TestID": 0 }
                 ]
             }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
+    }, {
+        "SeriaID": 0,
+        "GroupID": 0,
+        "DeviceID": 3,
+        "TestSequences": [
+            { 
+                "TestSequenceAmount": 8,
+                "TestSequence": [
+                    { "SequenceID": 0, "TestID": 0 },
+                    { "SequenceID": 8, "TestID": 0 }, 
+                    { "SequenceID": 18, "TestID": 2 },
+                    { "SequenceID": 26, "TestID": 2 }, 
+                    { "SequenceID": 19, "TestID": 2 }, 
+                    { "SequenceID": 34, "TestID": 2 }, 
+                    { "SequenceID": 27, "TestID": 2 }, 
+                    { "SequenceID": 35, "TestID": 2 }
+                ]
+            }, 
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 0, "TestSequence": null }
+        ],
+        "ConnectorID": 2
     },
 
 
@@ -258,7 +303,7 @@
     {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 2,
+        "DeviceID": 4,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -272,18 +317,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 3,
+        "DeviceID": 5,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -297,18 +337,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 4,
+        "DeviceID": 6,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -322,18 +357,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 5,
+        "DeviceID": 7,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -347,18 +377,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 6,
+        "DeviceID": 8,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -372,18 +397,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 1,
-        "DeviceID": 7,
+        "DeviceID": 9,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -397,14 +417,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 2 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     },
     
     
@@ -412,71 +427,59 @@
     {
         "SeriaID": 0,
         "GroupID": 2,
-        "DeviceID": 8,
-        "TestSequences": [
-            {
-                "TestSequenceAmount": 12,
-                "TestSequence": [
-                    { "SequenceID": 0, "TestID": 1 },
-                    { "SequenceID": 8, "TestID": 1 },
-                    { "SequenceID": 27, "TestID": 1 },
-                    { "SequenceID": 35, "TestID": 1 },
-                    { "SequenceID": 1, "TestID": 1 },
-                    { "SequenceID": 16, "TestID": 1 },
-                    { "SequenceID": 9, "TestID": 1 },
-                    { "SequenceID": 17, "TestID": 1 },
-                    { "SequenceID": 26, "TestID": 1 },
-                    { "SequenceID": 18, "TestID": 1 },
-                    { "SequenceID": 34, "TestID": 1 }, 
-                    { "SequenceID": 19, "TestID": 1 }
-                ]
-            },
-            { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
-        ],
-        "ConnectorMask": 5
-    }, {
-        "SeriaID": 0,
-        "GroupID": 2,
-        "DeviceID": 9,
-        "TestSequences": [
-            {
-                "TestSequenceAmount": 12,
-                "TestSequence": [
-                    { "SequenceID": 0, "TestID": 1 },
-                    { "SequenceID": 8, "TestID": 1 },
-                    { "SequenceID": 27, "TestID": 1 },
-                    { "SequenceID": 35, "TestID": 1 },
-                    { "SequenceID": 1, "TestID": 1 },
-                    { "SequenceID": 16, "TestID": 1 },
-                    { "SequenceID": 9, "TestID": 1 },
-                    { "SequenceID": 17, "TestID": 1 },
-                    { "SequenceID": 26, "TestID": 1 },
-                    { "SequenceID": 18, "TestID": 1 },
-                    { "SequenceID": 34, "TestID": 1 }, 
-                    { "SequenceID": 19, "TestID": 1 }
-                ]
-            },
-            { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
-        ],
-        "ConnectorMask": 5
-    }, {
-        "SeriaID": 0,
-        "GroupID": 2,
         "DeviceID": 10,
+        "TestSequences": [
+            {
+                "TestSequenceAmount": 12,
+                "TestSequence": [
+                    { "SequenceID": 0, "TestID": 1 },
+                    { "SequenceID": 8, "TestID": 1 },
+                    { "SequenceID": 27, "TestID": 1 },
+                    { "SequenceID": 35, "TestID": 1 },
+                    { "SequenceID": 1, "TestID": 1 },
+                    { "SequenceID": 16, "TestID": 1 },
+                    { "SequenceID": 9, "TestID": 1 },
+                    { "SequenceID": 17, "TestID": 1 },
+                    { "SequenceID": 26, "TestID": 1 },
+                    { "SequenceID": 18, "TestID": 1 },
+                    { "SequenceID": 34, "TestID": 1 }, 
+                    { "SequenceID": 19, "TestID": 1 }
+                ]
+            },
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 0, "TestSequence": null }
+        ],
+        "ConnectorID": 2
+    }, {
+        "SeriaID": 0,
+        "GroupID": 2,
+        "DeviceID": 11,
+        "TestSequences": [
+            {
+                "TestSequenceAmount": 12,
+                "TestSequence": [
+                    { "SequenceID": 0, "TestID": 1 },
+                    { "SequenceID": 8, "TestID": 1 },
+                    { "SequenceID": 27, "TestID": 1 },
+                    { "SequenceID": 35, "TestID": 1 },
+                    { "SequenceID": 1, "TestID": 1 },
+                    { "SequenceID": 16, "TestID": 1 },
+                    { "SequenceID": 9, "TestID": 1 },
+                    { "SequenceID": 17, "TestID": 1 },
+                    { "SequenceID": 26, "TestID": 1 },
+                    { "SequenceID": 18, "TestID": 1 },
+                    { "SequenceID": 34, "TestID": 1 }, 
+                    { "SequenceID": 19, "TestID": 1 }
+                ]
+            },
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 0, "TestSequence": null }
+        ],
+        "ConnectorID": 2
+    }, {
+        "SeriaID": 0,
+        "GroupID": 2,
+        "DeviceID": 12,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -496,19 +499,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 2,
-        "DeviceID": 11,
+        "DeviceID": 13,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -528,19 +525,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 2,
-        "DeviceID": 12,
+        "DeviceID": 14,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -560,19 +551,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 2,
-        "DeviceID": 13,
+        "DeviceID": 15,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -592,19 +577,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 2,
-        "DeviceID": 14,
+        "DeviceID": 16,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -624,15 +603,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 2 },
-                    { "SequenceID": 26, "TestID": 2 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     },
 
 
@@ -640,7 +613,7 @@
     {
         "SeriaID": 0,
         "GroupID": 3,
-        "DeviceID": 15,
+        "DeviceID": 17,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -660,19 +633,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence":null },
-            {
-                "TestSequenceAmount": 2,
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 3,
-        "DeviceID": 16,
+        "DeviceID": 18,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -692,19 +659,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence":null },
-            {
-                "TestSequenceAmount": 2,
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 3,
-        "DeviceID": 17,
+        "DeviceID": 19,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -724,19 +685,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence":null },
-            {
-                "TestSequenceAmount": 2,
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 3,
-        "DeviceID": 18,
+        "DeviceID": 20,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -756,19 +711,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence":null },
-            {
-                "TestSequenceAmount": 2,
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 3,
-        "DeviceID": 19,
+        "DeviceID": 21,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -788,19 +737,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence":null },
-            {
-                "TestSequenceAmount": 2,
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 3,
-        "DeviceID": 20,
+        "DeviceID": 22,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -820,15 +763,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence":null },
-            {
-                "TestSequenceAmount": 2,
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 2 },
-                    { "SequenceID": 26, "TestID": 2 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     },
 
 
@@ -836,7 +773,7 @@
     {
         "SeriaID": 0,
         "GroupID": 4,
-        "DeviceID": 21,
+        "DeviceID": 23,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -850,18 +787,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            { 
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 4,
-        "DeviceID": 22,
+        "DeviceID": 24,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -875,14 +807,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 2 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     },
 
 
@@ -890,7 +817,7 @@
     {
         "SeriaID": 0,
         "GroupID": 5,
-        "DeviceID": 23,
+        "DeviceID": 25,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -910,19 +837,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 5,
-        "DeviceID": 24,
+        "DeviceID": 26,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -942,15 +863,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 2 }, 
-                    { "SequenceID": 26, "TestID": 2 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     },
 
 
@@ -958,7 +873,7 @@
     {
         "SeriaID": 0,
         "GroupID": 6,
-        "DeviceID": 25,
+        "DeviceID": 27,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -978,19 +893,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 0,
         "GroupID": 6,
-        "DeviceID": 26,
+        "DeviceID": 28,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -1010,15 +919,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 },
-                    { "SequenceID": 26, "TestID": 0 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     },
 
 
@@ -1026,7 +929,7 @@
     {
         "SeriaID": 0,
         "GroupID": 7,
-        "DeviceID": 27,
+        "DeviceID": 29,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -1040,18 +943,13 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0  }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     }, {
         "SeriaID": 0,
         "GroupID": 7,
-        "DeviceID": 28,
+        "DeviceID": 30,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -1065,14 +963,9 @@
                 ]
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0  }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     }, 
     
     
@@ -1080,7 +973,7 @@
     {
         "SeriaID": 0,
         "GroupID": 8,
-        "DeviceID": 29,
+        "DeviceID": 31,
         "TestSequences": [
             {
                 "TestSequenceAmount": 4,
@@ -1100,11 +993,11 @@
                 ]
             }
         ],
-        "ConnectorMask": 7
+        "ConnectorID": 1
     }, { 
         "SeriaID": 0,
         "GroupID": 8,
-        "DeviceID": 30,
+        "DeviceID": 32,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -1135,7 +1028,7 @@
                 ]
             }
         ],
-        "ConnectorMask": 7
+        "ConnectorID": 1
     },
 
 
@@ -1147,7 +1040,7 @@
     {
         "SeriaID": 1,
         "GroupID": 9,
-        "DeviceID": 31,
+        "DeviceID": 33,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -1162,18 +1055,17 @@
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
-                "TestSequenceAmount": 2, 
+                "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }, 
                     { "SequenceID": 34, "TestID": 0 }
                 ]
             }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 1,
         "GroupID": 9,
-        "DeviceID": 32,
+        "DeviceID": 34,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -1188,18 +1080,17 @@
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
-                "TestSequenceAmount": 2, 
+                "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }, 
                     { "SequenceID": 34, "TestID": 0 }
                 ]
             }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, {
         "SeriaID": 1,
         "GroupID": 9,
-        "DeviceID": 33,
+        "DeviceID": 35,
         "TestSequences": [
             {
                 "TestSequenceAmount": 6,
@@ -1214,14 +1105,13 @@
             },
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
-                "TestSequenceAmount": 2, 
+                "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 1, "TestID": 0 }, 
                     { "SequenceID": 34, "TestID": 0 }
                 ]
             }
         ],
-        "ConnectorMask": 5
+        "ConnectorID": 2
     }, 
     
     
@@ -1229,7 +1119,7 @@
     {
         "SeriaID": 1,
         "GroupID": 10,
-        "DeviceID": 34,
+        "DeviceID": 36,
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
@@ -1245,11 +1135,11 @@
                 ]
             }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     }, {
         "SeriaID": 1,
         "GroupID": 10,
-        "DeviceID": 35,
+        "DeviceID": 37,
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
@@ -1265,11 +1155,11 @@
                 ]
             }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     }, {
         "SeriaID": 1,
         "GroupID": 10,
-        "DeviceID": 36,
+        "DeviceID": 38,
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
@@ -1286,7 +1176,7 @@
                 ]
             }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     },
 
 
@@ -1294,7 +1184,7 @@
     {
         "SeriaID": 1,
         "GroupID": 11,
-        "DeviceID": 37,
+        "DeviceID": 39,
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             { "TestSequenceAmount": 0, "TestSequence": null },
@@ -1305,11 +1195,11 @@
                 ]
             }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     }, {
         "SeriaID": 1,
         "GroupID": 11,
-        "DeviceID": 38,
+        "DeviceID": 40,
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             { "TestSequenceAmount": 0, "TestSequence": null },
@@ -1320,7 +1210,7 @@
                 ]
             }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     },
 
 
@@ -1328,7 +1218,7 @@
     {
         "SeriaID": 1,
         "GroupID": 12,
-        "DeviceID": 39,
+        "DeviceID": 41,
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             { 
@@ -1339,7 +1229,7 @@
             },
             { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     },
 
 
@@ -1348,28 +1238,6 @@
 
 
 
-    {
-        "SeriaID": 2,
-        "GroupID": 13,
-        "DeviceID": 40,
-        "TestSequences": [
-            { "TestSequenceAmount": 0, "TestSequence": null },
-            { "TestSequenceAmount": 0, "TestSequence": null },
-            { "TestSequenceAmount": 1, "TestSequence": [{ "SequenceID": 0, "TestID": 0 }] }
-        ],
-        "ConnectorMask": 1
-    },
-    {
-        "SeriaID": 2,
-        "GroupID": 13,
-        "DeviceID": 41,
-        "TestSequences": [
-            { "TestSequenceAmount": 0, "TestSequence": null },
-            { "TestSequenceAmount": 0, "TestSequence": null },
-            { "TestSequenceAmount": 1, "TestSequence": [{ "SequenceID": 0, "TestID": 1 }] }
-        ],
-        "ConnectorMask": 1
-    },
     {
         "SeriaID": 2,
         "GroupID": 13,
@@ -1377,14 +1245,36 @@
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 1, "TestSequence": [{ "SequenceID": 0, "TestID": 0 }] }
+        ],
+        "ConnectorID": 0
+    },
+    {
+        "SeriaID": 2,
+        "GroupID": 13,
+        "DeviceID": 43,
+        "TestSequences": [
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 1, "TestSequence": [{ "SequenceID": 0, "TestID": 1 }] }
+        ],
+        "ConnectorID": 0
+    },
+    {
+        "SeriaID": 2,
+        "GroupID": 13,
+        "DeviceID": 44,
+        "TestSequences": [
+            { "TestSequenceAmount": 0, "TestSequence": null },
+            { "TestSequenceAmount": 0, "TestSequence": null },
             { "TestSequenceAmount": 1, "TestSequence": [{ "SequenceID": 0, "TestID": 3 }] }
         ],
-        "ConnectorMask": 1
+        "ConnectorID": 0
     },
     { 
         "SeriaID": 2,
         "GroupID": 13,
-        "DeviceID": 43,
+        "DeviceID": 45,
         "TestSequences": [
             {
                 "TestSequenceAmount": 12,
@@ -1407,6 +1297,22 @@
             { "TestSequenceAmount": 0, "TestSequence": null },
             { "TestSequenceAmount": 0, "TestSequence": null }
         ],
-        "ConnectorMask": 7
+        "ConnectorID": 1
+    }, 
+    {
+        "SeriaID": 2, 
+        "GroupID": 13, 
+        "DeviceID": 46, 
+        "TestSequences": [
+            { "TestSequenceAmount": 0, "TestSequence": null }, 
+            { 
+                "TestSequenceAmount": 1, 
+                "TestSequence": [
+                    { "SequenceID": 0, "TestID": 0 }
+                ]
+            }, 
+            { "TestSequenceAmount": 0, "TestSequence": null }
+        ], 
+        "ConnectorID": 0
     }
 ]

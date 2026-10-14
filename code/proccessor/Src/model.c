@@ -195,9 +195,17 @@ void model_select_device (uint8_t device_idx) {
     return;
 }
 
+void model_change_mode (Modes_TypeDef new_mode) {
+    if (new_mode >= Modes_Count) {
+        return;
+    }
+    test_config.mode_id = new_mode;
+    return;
+}
+
 void model_init (void) {
     model_select_device(0);
-    test_config.interface_id = Probe;
+    model_change_mode(CheckDevice);
     return;
 }
 

@@ -16,11 +16,13 @@ typedef enum {
     ScreenResult,
     ScreenCheckFailed,
     ScreenSettings,
-    ScreenSettingsInterface,
+    ScreenSettingsModes,
     ScreenSettingsSeries,
     ScreenSettingsGroups,
     ScreenSettingsDevices,
     ScreenHardwareFail,
+    ScreenGeneratorSetup,
+    ScreenGenerator,
     ScreenCount 
 } ScreenID;
 

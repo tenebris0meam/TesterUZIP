@@ -1,7 +1,7 @@
 ﻿#include "stm32f103xb.h"
 #include "delay.h"
 
-#define DELAY_MAX_TASKS (8)
+#define DELAY_MAX_TASKS (32)
 
 typedef struct {
     uint32_t register_time;

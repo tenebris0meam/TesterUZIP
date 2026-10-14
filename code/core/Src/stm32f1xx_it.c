@@ -239,35 +239,43 @@ void TIM3_IRQHandler (void) {
 	}
 	spi2ctrl.set_signal(&have_new_data);
 
-	spi2ctrl.operate(request_vbus_and_current,
-					 request_size, 
-					 (uint8_t *)answer_vbus_and_current, 
-					 request_size, 
-					 1);
+	if (spi2ctrl.operate(request_vbus_and_current,
+						 request_size, 
+					 	 (uint8_t *)answer_vbus_and_current, 
+					 	 request_size, 
+					 	 1) != SPICtrlStatus_Allow) {
+		spi2ctrl.release();
+	}
 
 	return;
 }
 
 void DMA1_Channel4_IRQHandler (void) {
-	/* Сбрасываем флаг завершения приёма */
-	LL_DMA_ClearFlag_TC4(DMA1);
-	LL_DMA_ClearFlag_TE4(DMA1);
-	/* Сбрасываем флаг прерывания 4-го канала DMA */
-    LL_DMA_ClearFlag_GI4(DMA1);
-
-	spi2ctrl.complete();
-	return;
+	if (LL_DMA_IsActiveFlag_TE4(DMA1)) {
+		LL_DMA_ClearFlag_TE4(DMA1);
+		spi2ctrl.release();
+		return;
+	}
+	if (LL_DMA_IsActiveFlag_TC4(DMA1)) {
+		/* Сбрасываем флаг завершения приёма */
+		LL_DMA_ClearFlag_TC4(DMA1);
+		spi2ctrl.complete();
+		return;
+	}
 }
 
 void DMA1_Channel5_IRQHandler (void) {
-	/* Сбрасываем флаг завершения передачи */
-	LL_DMA_ClearFlag_TC5(DMA1);
-	LL_DMA_ClearFlag_TE5(DMA1);
-	/* Сбрасываем флаг прерывания 5-го канала DMA */
-    LL_DMA_ClearFlag_GI5(DMA1);
-
-	spi2ctrl.complete();
-	return;
+	if (LL_DMA_IsActiveFlag_TE5(DMA1)) {
+		LL_DMA_ClearFlag_TE5(DMA1);
+		spi2ctrl.release();
+		return;
+	}
+	if (LL_DMA_IsActiveFlag_TC5(DMA1)) {
+		/* Сбрасываем флаг завершения приёма */
+		LL_DMA_ClearFlag_TC5(DMA1);
+		spi2ctrl.complete();
+		return;
+	}
 }
 
 /* user code end 1 */

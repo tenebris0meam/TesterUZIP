@@ -1,20 +1,20 @@
 ﻿#include "calc.h"
+#include "critical_section.h"
 #include "hv_feedback.h"
 #include "ina239.h"
 #include "ina239_user.h"
 #include "system_stm32f1xx.h"
 #include "utils.h"
-#include "stm32f103xb.h"   /* __disable_irq / __get_PRIMASK */
 #include "tim.h"
-#include "window.h"
+// #include "window.h"
 
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CALC_WINDOW_LENGTH 32
+// #define CALC_WINDOW_LENGTH 8
 
-#define CALC_DERIVATIVE_VOLTAGE_MAX (68737970LL) // 500 V/s с учётом делителя напряжения
+#define CALC_DERIVATIVE_VOLTAGE_MAX (137470804LL) // 1000 V/s с учётом делителя напряжения
 
 
 
@@ -56,12 +56,11 @@ static int32_t voltage_highth = 0;
  *          напряжение из одного измерения, а ток из следующего.
  */
 static void calc_snapshot_frame (uint8_t *frame) {
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
+    enter_critsec();
     for (uint32_t i = 0; i < INA239_FRAME_SIZE; i++) {
         frame[i] = answer_vbus_and_current[i];
     }
-    __set_PRIMASK(primask);
+    exit_critsec();
     return;
 }
 
@@ -73,14 +72,14 @@ static int16_t calc_get_raw_val (const uint8_t *frame, RawValType type) {
     }
 }
 
-static int32_t calc_get_average_from_window (Window_TypeDef *window) {
-    int64_t acc = 0;
-    for (uint32_t i = 0; i < window->cnt; i++) {
-        acc += (int64_t)*(int32_t *)(window->buf + i * window->element_size);
-    }
-    acc /= (int64_t)window->cnt;
-    return (int32_t)acc;
-}
+// static int32_t calc_get_average_from_window (Window_TypeDef *window) {
+//     int64_t acc = 0;
+//     for (uint32_t i = 0; i < window->cnt; i++) {
+//         acc += (int64_t)*(int32_t *)(window->buf + i * window->element_size);
+//     }
+//     acc /= (int64_t)window->cnt;
+//     return (int32_t)acc;
+// }
 
 
 
@@ -192,7 +191,7 @@ static void calc_integrator_step (int32_t measured_uV) {
     return;
 }
 
-void calc_routine (void) {
+void calc_measurement_update (void) {
     uint8_t frame[INA239_FRAME_SIZE];
     calc_snapshot_frame(frame);
 
@@ -202,15 +201,20 @@ void calc_routine (void) {
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
     voltage_test = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
     current_test = hv_shunt_uV_to_nA(shunt_dropvoltage);
-    // int32_t u_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
-    // int32_t n_amperage = hv_shunt_uV_to_nA(shunt_dropvoltage);
 
-    // window_push(&voltage_window, &u_voltage);
-    // window_push(&current_window, &n_amperage);
+    // int32_t cur_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    // int32_t cur_current = hv_shunt_uV_to_nA(shunt_dropvoltage);
+
+    // window_push(&voltage_window, &cur_voltage);
+    // window_push(&current_window, &cur_current);
 
     // voltage_test = calc_get_average_from_window(&voltage_window);
     // current_test = calc_get_average_from_window(&current_window);
+    return;
+}
 
+void calc_routine (void) {
+    calc_measurement_update();
     calc_integrator_step(voltage_test);
     return;
 }

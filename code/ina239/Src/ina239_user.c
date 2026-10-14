@@ -42,8 +42,8 @@ bool INA239_MainInit (void) {
      * время преобразования 50 мкс на канал, усреднения нет */
     if (INA239_ConfigureAdc(&ina239,
                             INA239_MODE_SHUTDOWN,
-                            INA239_CT_50US,
-                            INA239_CT_50US,
+                            INA239_CT_150US,
+                            INA239_CT_150US,
                             INA239_AVG_1) != INA239_OK) {
         return false;
     }

@@ -8,7 +8,7 @@
 // ------------------------------------------------ //
 
 #define TO_TEST_CYRILIC ("Reqr") // "Тестировать"
-#define INTERFACE_CYRILIC ("hmrepteiq") // "интерфейс"
+#define INTERFACE_CYRILIC ("Hmrepteiq") // "Интерфейс"
 #define SETTINGS_CYRILIC ("M`qrpnijh") // "Настройки"
 #define CONTINUE_CYRILIC ("Opndnkfhr|") // "Продолжить"
 #define PASSED_CYRILIC ("g`wremn") // "зачтено"
@@ -21,6 +21,13 @@
 #define SERIES_CYRILIC ("qephh") // "серии"
 #define GROUPS_CYRILIC ("cpsoo{") // "группы"
 #define DEVICES_CYRILIC ("sqrpniqrb`") // "устройства"
+#define MODE_CYRILIC ("pefhl") // "режим"
+#define MODES_CYRILIC ("Pefhl{") // "Режимы"
+#define VOLTMETER_CYRILIC ("Bnk|rlerp") // "Вольтметр"
+#define OMMETER_CYRILIC ("Nllerp") // "Омметр"
+#define GENERATOR_CYRILIC ("Cemep`rnp") // "Генератор"
+#define GENERATORA_CYRILIC ("cemep`rnp`") // "генератора"
+#define GENERATION_CYRILIC ("Cemep`vh") // "Генерация"
 
 #define PROBES_CYRILIC ("Yso{") // "Щупы"
 #define RJ45_CYRILIC ("P`gzel") // "Разъем"

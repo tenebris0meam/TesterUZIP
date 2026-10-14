@@ -1,5 +1,6 @@
 ﻿#include "screens/screen_checkfailed.h"
 #include "cursor.h"
+#include "resolver.h"
 #include "strings_def.h"
 #include "framebuffer.h"
 #include "model.h"
@@ -39,11 +40,22 @@ void screen_checkfailed_render (void) {
             failed_seen++;
             continue;
         }
+        ResolveType pos_type;
+        if (pos < test_results.current_device->num_seqs_type0) {
+            pos_type = TransientVoltageSupressor;
+        } else if (pos < test_results.current_device->num_seqs_type0 + 
+                        test_results.current_device->num_seqs_type1) {
+            pos_type = Varistor;
+        } else if (pos < test_results.current_device->num_seqs_type0 + 
+                        test_results.current_device->num_seqs_type1 + 
+                        test_results.current_device->num_seqs_type2) {
+            pos_type = GasDischargeTube;
+        }
         strbuf_clear(&sb);
-        screen_append_pins(&sb, model_get_sequence_at(pos, test_results.current_type));
+        screen_append_pins(&sb, model_get_sequence_at(pos, pos_type));
         strbuf_char(&sb, ' ');
         char char_type;
-        switch (test_results.current_type) {
+        switch (pos_type) {
             case TransientVoltageSupressor: char_type = 'D'; break;
             case Varistor: char_type = 'B'; break;
             case GasDischargeTube: char_type = 'P'; break;

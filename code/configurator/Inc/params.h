@@ -23,9 +23,9 @@
 #define CONFIG_VERSION (1UL)
 
 typedef enum {
-    Probe = (1UL << 0), 
-    RJ45 = (1UL << 1), 
-    K1 = (1UL << 2)
+    Probe, 
+    RJ45, 
+    K1 
 } Param_Connector;
 
 /**
@@ -77,7 +77,7 @@ typedef struct {
     uint8_t num_seqs_type1;
     const Params_TestSeq_TypeDef *test_seqs_type2;
     uint8_t num_seqs_type2;
-    uint8_t connector_types;        /**< битовая маска Param_Connector */
+    uint8_t connector_id;
 } Params_Device_TypeDef;
 
 /**

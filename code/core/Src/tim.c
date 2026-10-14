@@ -104,6 +104,7 @@ bool TIM1_Init (void) {
 }
 
 void TIM1_Start_PWM (void) {
+    NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
     NVIC_EnableIRQ(TIM1_BRK_IRQn);
     LL_TIM_EnableAllOutputs(TIM1);
     return;
@@ -189,6 +190,7 @@ bool TIM3_Init (void) {
 }
 
 void TIM3_Start_Count (void) {
+    NVIC_ClearPendingIRQ(TIM3_IRQn);
     NVIC_EnableIRQ(TIM3_IRQn);
     LL_TIM_EnableCounter(TIM3);
     return;
@@ -196,7 +198,6 @@ void TIM3_Start_Count (void) {
 
 void TIM3_Stop_Count (void) {
     NVIC_DisableIRQ(TIM3_IRQn);
-    NVIC_ClearPendingIRQ(TIM3_IRQn);
     LL_TIM_DisableCounter(TIM3);
     return;
 }

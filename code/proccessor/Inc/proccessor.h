@@ -1,8 +1,8 @@
 ﻿#ifndef PROCCESSOR_H_
 #define PROCCESSOR_H_
 
-#include "stm32f103xb.h"   /* __get_PRIMASK / __disable_irq / __set_PRIMASK */
 #include "commutator.h"
+#include "critical_section.h"
 
 #include <stdbool.h>
 
@@ -44,6 +44,8 @@ typedef enum {
     TestResultRecorded,
     TestSequenceFinished,
     ReturnToIdle,
+    OutputData,
+    DataOutputed,
     AlertActive,
     Event_Count
 } Event;
@@ -83,6 +85,8 @@ bool proccessor_apply_setpoint (void);
 void proccessor_record_result (bool pass);
 void proccessor_raise_after_result (void);
 void proccessor_shutdown_generation (void);
+void proccessor_force_shutdown_generation (void);
+void proccessor_wait_cap_discharge (void);
 
 /**
  * @brief Поднять событие, если ни одно ещё не ждёт разбора.
@@ -95,23 +99,32 @@ void proccessor_shutdown_generation (void);
  *          нельзя. Запрет прерываний здесь - это порядка десятка тактов.
  */
 static inline bool proccessor_raise_event (Event event) {
-    bool accepted = false;
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
+    enter_critsec();
     if (current_event == Event_Count) {
         current_event = event;
-        accepted = true;
+        exit_critsec();
+        return true;
+    } else {
+        exit_critsec();
+        return false;
     }
-    __set_PRIMASK(primask);
-    return accepted;
 }
 
 /** @brief Поднять событие, вытеснив то, что ждало разбора. Для аварии. */
 static inline void proccessor_force_raise_event (Event event) {
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
+    enter_critsec();
     current_event = event;
-    __set_PRIMASK(primask);
+    exit_critsec();
+    return;
+}
+
+/** @brief Запрос выхода из ручного режима, не вытесняя аппаратную аварию. */
+static inline void proccessor_request_mode_exit (void) {
+    enter_critsec();
+    if (current_event != AlertActive) {
+        current_event = ReturnToIdle;
+    }
+    exit_critsec();
     return;
 }
 
@@ -125,11 +138,10 @@ static inline void proccessor_force_raise_event (Event event) {
  *          при отложенном гашении была бы стёрта не глядя.
  */
 static inline Event proccessor_take_event (void) {
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
+    enter_critsec();
     Event event = current_event;
     current_event = Event_Count;
-    __set_PRIMASK(primask);
+    exit_critsec();
     return event;
 }
 

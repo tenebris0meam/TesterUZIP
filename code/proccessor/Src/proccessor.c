@@ -7,8 +7,6 @@
 #include "tim.h"
 
 #include "states/idle_setting.h"
-#include "states/commutation.h"
-#include "states/generation.h"
 #include "states/testpassed.h"
 #include "states/testfailed.h"
 #include "states/testsequence_complete.h"
@@ -58,14 +56,6 @@
 /** @brief Шаг подъёма уставки, процентов от ширины диапазона из конфига. */
 #define GENERATION_STEP_PERCENT (10U)
 
-/**
- * @brief Сколько ждать выхода на уставку, мс.
- * @details Худший случай генерации - GENERATION_MAX_STEPS + 1 шагов подряд,
- *          то есть 11 * 2 с = 22 с под напряжением. Дальше автомат уйдёт
- *          в TestFailed при любом исходе.
- */
-#define GENERATION_STEP_TIMEOUT_MS (200U)
-
 /** @brief Номера выводов в конфигурации: 0..8, что соответствует ActiveLine_1..9. */
 #define PROCCESSOR_PINS_NUM (9U)
 
@@ -79,16 +69,16 @@ FiniteStateMachine proccessor[State_Count] = {
         .handle_event = proccessor_idle_handle_event
     }, 
     [Commutation] = {
-        .on_enter = proccessor_commutation_on_enter,
-        .on_exit = proccessor_commutation_on_exit,
-        .proccess = proccessor_commutation_proccess,
-        .handle_event = proccessor_commutation_handle_event
+        .on_enter = 0,
+        .on_exit = 0,
+        .proccess = 0,
+        .handle_event = 0
     },
     [Generation] = {
-        .on_enter = proccessor_generation_on_enter, 
-        .on_exit = proccessor_generation_on_exit, 
-        .proccess = proccessor_generation_proccess, 
-        .handle_event = proccessor_generation_handle_event
+        .on_enter = 0, 
+        .on_exit = 0, 
+        .proccess = 0, 
+        .handle_event = 0
     }, 
     [TestPassed] = {
         .on_enter = proccessor_testpassed_on_enter, 
@@ -109,10 +99,10 @@ FiniteStateMachine proccessor[State_Count] = {
         .handle_event = proccessor_testsequencecomplete_handle_event
     }, 
     [HardwareFail] = {
-        .on_enter = proccessor_hardwarefail_on_enter, 
-        .on_exit = proccessor_hardwarefail_on_exit, 
-        .proccess = proccessor_hardwarefail_proccess,
-        .handle_event = proccessor_hardwarefail_handle_event
+        .on_enter = proccessor_hardwarefail_on_enter_default, 
+        .on_exit = proccessor_hardwarefail_on_exit_default, 
+        .proccess = proccessor_hardwarefail_proccess_default,
+        .handle_event = proccessor_hardwarefail_handle_event_default
     }
 };
 
@@ -164,11 +154,6 @@ bool proccessor_setup_lines (void) {
         return false;
     }
 
-    /* Прибор должен поддерживать выбранный оператором разъём */
-    if ((device->connector_types & (uint8_t)test_config.interface_id) == 0U) {
-        return false;
-    }
-
     /* Диапазон напряжений теста должен быть осмысленным и достижимым */
     if ((testparams->min_voltage == 0U) || 
         (testparams->max_voltage < testparams->min_voltage) || 
@@ -187,7 +172,7 @@ bool proccessor_setup_lines (void) {
         return false;
     }
 
-    commutator_set_active_interface(test_config.interface_id);
+    commutator_set_active_interface(device->connector_id);
     commutator_set_active_line(positive, LineType_Positive);
     commutator_set_active_line(negative, LineType_Negative);
 
@@ -261,11 +246,31 @@ void proccessor_raise_after_result (void) {
     return;
 }
 
+/** @brief Дождаться разрядки конденсатора генератора */
+void proccessor_wait_cap_discharge (void) {
+    int32_t voltage_uV = INT32_MAX, current_nA = INT32_MAX;
+    do {
+        if (!have_new_data) {
+            continue;
+        }
+        have_new_data = false;
+        calc_measurement_update();
+        calc_get_test_data(&voltage_uV, &current_nA);
+    } while ((voltage_uV >= 500000) && (current_nA >= 20000));
+}
+
 /** @brief Обесточить генерацию. Порядок: сначала возбуждение, потом цепь. */
 void proccessor_shutdown_generation (void) {
     TIM1_Stop_PWM();
     TIM1_set_CCR_value(0);
+    proccessor_wait_cap_discharge();
     TIM3_Stop_Count();
+    return;
+}
+
+void proccessor_force_shutdown_generation (void) {
+    TIM1_Stop_PWM();
+    TIM1_set_CCR_value(0);
     return;
 }
 

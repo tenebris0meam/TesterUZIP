@@ -15,12 +15,14 @@
 /** @brief Разрядность масок результатов: столько позиций проверки помещается. */
 #define MODEL_MAX_TESTS (32)
 
+#define MAX_TESTS_FOR_ONE_GDT 3
+
 /** @brief Что выбрано пользователем на экранах настроек. */
 typedef struct {
-    Param_Connector interface_id;
     uint8_t series_id;
     uint8_t group_id;
     uint8_t device_id;
+    Modes_TypeDef mode_id;
 } TestConfig_TypeDef;
 
 /** @brief Результат одной проверки, передаётся в model_handle_test_result(). */
@@ -29,6 +31,7 @@ typedef struct {
     uint32_t device_voltage;
     uint32_t standard_deviation_voltage;
     uint32_t device_current;
+    uint32_t standard_deviation_current;
     bool pass;
 } TestResult_TypeDef;
 
@@ -53,6 +56,9 @@ void model_init (void);
 
 /** @brief Сменить проверяемый прибор и начать проверку заново. */
 void model_select_device (uint8_t device_idx);
+
+/** @brief Сменить режим работы устройства */
+void model_change_mode (Modes_TypeDef new_mode);
 
 /** @brief Сбросить результаты, оставив выбранный прибор. */
 void model_reset_results (void);

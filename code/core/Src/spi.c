@@ -7,6 +7,7 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 #include "stm32f1xx_ll_bus.h"
+#include "critical_section.h"
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -195,6 +196,7 @@ static SPIController_Status spi2_operate (const uint8_t *data,
                                           const uint32_t timeout);
 static void spi2_complete (void);
 static void spi2_signalize (void);
+static uint32_t spi2_get_last_signalize_time (void);
 static bool spi2_is_busy (void);
 static void spi2_set_signal (volatile bool *user_signal);
 static SPIController_Status spi2_wait_done (uint32_t timeout_ms);
@@ -205,6 +207,7 @@ const SPIController_TypeDef spi2ctrl = {
     .operate = spi2_operate,
     .complete = spi2_complete,
     .signalize = spi2_signalize,
+    .get_last_signalize_time = spi2_get_last_signalize_time,
     .set_signal = spi2_set_signal,
     .is_busy = spi2_is_busy,
     .wait_done = spi2_wait_done
@@ -220,16 +223,16 @@ static SPIController_Status spi2_capture (SPIDevices requested_device) {
      * PRIMASK сохраняем и восстанавливаем, чтобы вызов был безопасен и
      * изнутри обработчика.
      */
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
+    enter_critsec();
 
     bool taken = captured;
+    SPIDevices released_device = holded_device;
     if (!taken) {
         captured = true;
         holded_device = requested_device;
     }
 
-    __set_PRIMASK(primask);
+    exit_critsec();
 
     if (taken) {
         return SPICtrlStatus_Deny;
@@ -262,13 +265,16 @@ static void spi2_release (void) {
             LL_GPIO_SetOutputPin(nCS_MON.port, nCS_MON.pin);
             DMA1_SPI2RX_Stop();
             DMA1_SPI2RX_DenyInterrupt();
+            DMA1_SPI2RX_DeInit();
             DMA1_SPI2TX_Stop();
+            DMA1_SPI2TX_DeInit();
             break;
 
         case LCD: 
             LL_GPIO_SetOutputPin(nCS_LCD.port, nCS_LCD.pin);
             DMA1_SPI2TX_Stop();
             DMA1_SPI2TX_DenyInterrupt();
+            DMA1_SPI2TX_DeInit();
             break;
 
         default: break;
@@ -311,12 +317,28 @@ static SPIController_Status spi2_operate (const uint8_t *data,
             release_policy = SPI2_ReleaseInIsr;
             LL_GPIO_ResetOutputPin(nCS_MON.port, nCS_MON.pin);
 
-            DMA1_SPI2RX_Init((uint32_t)ans, anssize);
+            if (!DMA1_SPI2RX_Init((uint32_t)ans, anssize)) {
+                return SPICtrlStatus_Deny;
+            } 
             DMA1_SPI2RX_AllowInterrupt();
-            DMA1_SPI2RX_Start();
+            if (!DMA1_SPI2RX_Start()) {
+                DMA1_SPI2RX_DeInit();
+                return SPICtrlStatus_Deny;
+            }
 
-            DMA1_SPI2TX_Init((uint32_t)data, datasize);
-            DMA1_SPI2TX_Start();
+            if (!DMA1_SPI2TX_Init((uint32_t)data, datasize)) {
+                DMA1_SPI2RX_Stop();
+                DMA1_SPI2RX_DenyInterrupt();
+                DMA1_SPI2RX_DeInit();
+                return SPICtrlStatus_Deny;
+            }
+            if (!DMA1_SPI2TX_Start()) {
+                DMA1_SPI2RX_Stop();
+                DMA1_SPI2RX_DenyInterrupt();
+                DMA1_SPI2RX_DeInit();
+                DMA1_SPI2TX_DeInit();
+                return SPICtrlStatus_Deny;
+            }
             return SPICtrlStatus_Allow;
         }
 
@@ -329,9 +351,14 @@ static SPIController_Status spi2_operate (const uint8_t *data,
             release_policy = SPI2_ReleaseByOwner;
             LL_GPIO_ResetOutputPin(nCS_LCD.port, nCS_LCD.pin);
 
-            DMA1_SPI2TX_Init((uint32_t)data, datasize);
+            if (!DMA1_SPI2TX_Init((uint32_t)data, datasize)) {
+                return SPICtrlStatus_Deny;
+            }
             DMA1_SPI2TX_AllowInterrupt();
-            DMA1_SPI2TX_Start();
+            if (!DMA1_SPI2TX_Start()) {
+                DMA1_SPI2TX_DeInit();
+                return SPICtrlStatus_Deny;
+            }
             return SPICtrlStatus_Allow;
         }
 
@@ -339,11 +366,18 @@ static SPIController_Status spi2_operate (const uint8_t *data,
     }
 }
 
+static volatile uint32_t last_signalize_time = 0;
+
 static void spi2_signalize (void) {
     if (signal) {
         *signal = true;
+        last_signalize_time = DWT->CYCCNT;
     }
     return;
+}
+
+static uint32_t spi2_get_last_signalize_time (void) {
+    return last_signalize_time;
 }
 
 static void spi2_complete (void) {

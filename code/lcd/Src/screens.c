@@ -4,6 +4,7 @@
 #include "cursor.h"
 #include "params.h"
 #include "model.h"
+#include "screen_settings_modes.h"
 #include "strings_def.h"
 #include "strbuf.h"
 #include "screens/screen_hello.h"
@@ -13,11 +14,12 @@
 #include "screens/screen_result.h"
 #include "screens/screen_checkfailed.h"
 #include "screens/screen_settings.h"
-#include "screens/screen_settings_interface.h"
 #include "screens/screen_settings_series.h"
 #include "screens/screen_settings_groups.h"
 #include "screens/screen_settings_devices.h"
 #include "screens/screen_hardware_fail.h"
+#include "screens/screen_generator_setup.h"
+#include "screens/screen_generator.h"
 
 #include <stdint.h>
 
@@ -64,12 +66,12 @@ const Screen_TypeDef screens[ScreenCount] = {
         .render = screen_settings_render,
         .handle_event = screen_settings_handle_event
     },
-    [ScreenSettingsInterface] = {
-        .on_enter = screen_settingsinterface_on_enter,
-        .on_exit = screen_settingsinterface_on_exit,
-        .render = screen_settingsinterface_render,
-        .handle_event = screen_settingsinterface_handle_event
-    }, 
+    [ScreenSettingsModes] = {
+        .on_enter = screen_settingsmodes_on_enter,
+        .on_exit = screen_settingsmodes_on_exit,
+        .render = screen_settingsmodes_render,
+        .handle_event = screen_settingsmodes_handle_event
+    },
     [ScreenSettingsSeries] = {
         .on_enter = screen_settingsseries_on_enter,
         .on_exit = screen_settingsseries_on_exit,
@@ -89,10 +91,22 @@ const Screen_TypeDef screens[ScreenCount] = {
         .handle_event = screen_settingsdevices_handle_event
     }, 
     [ScreenHardwareFail] = {
-        .on_enter = screen_hardwarefail_on_enter, 
-        .on_exit = screen_hardwarefail_on_exit, 
-        .render = screen_hardwarefail_render, 
+        .on_enter = screen_hardwarefail_on_enter,
+        .on_exit = screen_hardwarefail_on_exit,
+        .render = screen_hardwarefail_render,
         .handle_event = screen_hardwarefail_handle_event
+    },
+    [ScreenGeneratorSetup] = {
+        .on_enter = screen_generatorsetup_on_enter,
+        .on_exit = screen_generatorsetup_on_exit,
+        .render = screen_generatorsetup_render,
+        .handle_event = screen_generatorsetup_handle_event
+    },
+    [ScreenGenerator] = {
+        .on_enter = screen_generator_on_enter,
+        .on_exit = screen_generator_on_exit,
+        .render = screen_generator_render,
+        .handle_event = screen_generator_handle_event
     }
 };
 

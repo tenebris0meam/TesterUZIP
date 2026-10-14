@@ -46,7 +46,7 @@ MAX_NAME_SIZE = 31          # params.h: MAX_NAME_SIZE
 MAX_VOLTAGE = 550           # config_testerUZIP_schema.json
 MAX_CURRENT_MA = 2          # code/Inc/hv_feedback.h: HV_SHUNT_MAX_CURRENT_nA = 2 000 000 нА = 2 мА
 MAX_PIN = 8                 # ActiveLine_1..ActiveLine_9 в commutator.h
-MAX_CONNECTOR_MASK = 0x07   # Probe | RJ45 | K1
+MAX_CONNECTOR_MASK = 2      # K1 = 2
 CONFIG_REGION_SIZE = 8 * 1024   # секция CONFIG в STM32F103XB_FLASH.ld
 MAX_SEQUENCES_PER_DEVICE = 32   # model.h: разрядность маски результатов
 TEST_PARAM_TYPES_COUNT = 3      # params.h: TEST_PARAM_TYPES_COUNT - число типов параметров теста (зафиксировано)
@@ -87,7 +87,7 @@ DEVICES_TEST_SEQUENCE_ITEM_AMOUNT = "TestSequenceAmount"
 DEVICES_TEST_SEQUENCE_LIST = "TestSequence"          # список {SequenceID, TestID} внутри ведра, либо null
 DEVICES_TEST_SEQUENCES_SEQ_ID = "SequenceID"
 DEVICES_TEST_SEQUENCES_TEST_ID = "TestID"
-DEVICES_CONNECTOR_MASK = "ConnectorMask"
+DEVICES_CONNECTOR_ID = "ConnectorID"
 
 class ConfigError(Exception):
     """Ошибка, из-за которой сборку нужно остановить."""
@@ -327,7 +327,7 @@ def parse_config(raw):
                 f"{where}: суммарно {total_seqs} последовательностей по всем типам, а маска "
                 f"результатов в model.h рассчитана на {MAX_SEQUENCES_PER_DEVICE}")
 
-        connector = _get_int(dev, DEVICES_CONNECTOR_MASK, where, 1, MAX_CONNECTOR_MASK)
+        connector = _get_int(dev, DEVICES_CONNECTOR_ID, where, 0, MAX_CONNECTOR_MASK)
 
         devices.append({
             "seria_idx": seria_idx,
@@ -603,7 +603,7 @@ def generate_c(cfg, source_name):
         for type_idx, (off, count) in enumerate(per_type):
             add(f"        .test_seqs_type{type_idx} = cfg_test_sequences_type{type_idx} + {off},")
             add(f"        .num_seqs_type{type_idx} = {count},")
-        add(f"        .connector_types = {dev['connector']}")
+        add(f"        .connector_id = {dev['connector']}")
         add("    },")
     add("};")
     add("")

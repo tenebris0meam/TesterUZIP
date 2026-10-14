@@ -39,7 +39,7 @@ void screen_testing_render (void) {
     cur_y += cgxyz.height_px;
 
     strbuf_clear(&sb);
-    strbuf_str(&sb, screen_interface_name(test_config.interface_id));
+    strbuf_str(&sb, screen_interface_name(test_results.current_device->connector_id));
     screen_get_center_from_string(&cur_x, sb.len);
     fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     cur_y += 2 * cgxyz.height_px;

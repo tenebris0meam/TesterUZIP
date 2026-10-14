@@ -111,6 +111,9 @@ typedef struct {
     /** @brief Взвести флаг, переданный владельцем. */
     void (*signalize) (void);
 
+    /** @brief Отдать время последнего взведения флага */
+    uint32_t (*get_last_signalize_time) (void);
+
     /** @brief Занята ли шина прямо сейчас. */
     bool (*is_busy) (void);
 

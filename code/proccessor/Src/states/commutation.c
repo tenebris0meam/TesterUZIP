@@ -1,18 +1,13 @@
 ﻿#include "states/commutation.h"
+#include "commutator.h"
 #include "display.h"
 #include "proccessor.h"
 #include "model.h"
 
-void proccessor_commutation_on_enter (void) {
-    return;
-}
-
-void proccessor_commutation_on_exit (void) {
-    display_deny_render();
-    return;
-}
-
-void proccessor_commutation_proccess (void) {
+void proccessor_commutation_on_enter_checkdevice (void) {
+    // Выключаем ввод
+    inputevent_deny_input();
+    
     if (test_results.current_sequence == NULL) {
         proccessor_raise_event(TestSequenceFinished);
         return;
@@ -42,14 +37,32 @@ void proccessor_commutation_proccess (void) {
     }
 
     commutator_allow_commutation();
+    return;
+}
+
+void proccessor_commutation_on_enter_probe (void) {
+    commutator_set_active_interface(Probe);
+    commutator_allow_commutation();
+    return;
+}
+
+void proccessor_commutation_on_exit (void) {
+    display_deny_render();
+    return;
+}
+
+void proccessor_commutation_proccess_default (void) {
     proccessor_raise_event(CommutationComplete);
     return;
 }
 
-State proccessor_commutation_handle_event (Event event) {
+State proccessor_commutation_handle_event_default (Event event) {
     switch (event) {
         case CommutationComplete: return Generation;
         case TestSequenceFinished: return TestSequenceComplete;
+        case ReturnToIdle:
+            commutator_deny_commutation();
+            return Idle_Setting;
         case AlertActive: return HardwareFail;
         default: return Commutation;
     }

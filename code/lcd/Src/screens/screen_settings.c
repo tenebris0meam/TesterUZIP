@@ -60,7 +60,7 @@ void screen_settings_render (void) {
     strbuf_clear(&sb);
     strbuf_str(&sb, CHOSING_CYRILIC);
     strbuf_char(&sb, ' ');
-    strbuf_str(&sb, MODE_CYRILIC);
+    strbuf_str(&sb, MODEA_CYRILIC);
     screen_get_center_from_string(&cur_x, sb.len);
     fb_draw_string_xy(cur_x, options_strg[1].y, strbuf_cstr(&sb));
 

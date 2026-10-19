@@ -1,5 +1,6 @@
 ﻿#include "input_events.h"
 #include "delay.h"
+#include "exti.h"
 #include "keyboard.h"
 
 #include <stdint.h>
@@ -27,11 +28,13 @@ void inputevent_enable_init (void) {
 
 void inputevent_allow_input (void) {
     is_input_allowed = true;
+    EXTI_enable_interrupt();
     return;
 }
 
 void inputevent_deny_input (void) {
     is_input_allowed = false;
+    EXTI_disable_interrupt();
     return;
 }
 

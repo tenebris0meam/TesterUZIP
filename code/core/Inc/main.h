@@ -20,8 +20,14 @@
      * @addtogroup KEYBOARD_PIN_DESCRIPTION 
      * @{
      */
-    #define KEYBOARD_GPIO_Port GPIOA
-    #define KEYBOARD_GPIO_Pin LL_GPIO_PIN_4
+    #define BUTTON_UP_GPIO_Port GPIOA
+    #define BUTTON_UP_GPIO_Pin LL_GPIO_PIN_0
+    #define BUTTON_REJECT_GPIO_Port GPIOA
+    #define BUTTON_REJECT_GPIO_Pin LL_GPIO_PIN_1
+    #define BUTTON_DOWN_GPIO_Port GPIOA
+    #define BUTTON_DOWN_GPIO_Pin LL_GPIO_PIN_2
+    #define BUTTON_ACCEPT_GPIO_Port GPIOA
+    #define BUTTON_ACCEPT_GPIO_Pin LL_GPIO_PIN_3
     /** @} */
 
     /**

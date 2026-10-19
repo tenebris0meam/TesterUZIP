@@ -21,11 +21,14 @@
 #include "stm32f1xx_it.h"
 #include "calc.h"
 #include "commutator.h"
+#include "keyboard.h"
+#include "exti.h"
 #include "ina239_user.h"
 #include "proccessor.h"
 #include "spi.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_exti.h"
 #include "stm32f1xx_ll_tim.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -276,6 +279,38 @@ void DMA1_Channel5_IRQHandler (void) {
 		spi2ctrl.complete();
 		return;
 	}
+}
+
+void EXTI0_IRQHandler (void) {
+	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_0)) {
+		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_0);
+		buttons_flag |= UP;
+	}
+	return;
+}
+
+void EXTI1_IRQHandler (void) {
+	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_1)) {
+		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
+		buttons_flag |= REJECT;
+	}
+	return;
+}
+
+void EXTI2_IRQHandler (void) {
+	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_2)) {
+		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_2);
+		buttons_flag |= DOWN;
+	}
+	return;
+}
+
+void EXTI3_IRQHandler (void) {
+	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_3)) {
+		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_3);
+		buttons_flag |= ACCEPT;
+	}
+	return;
 }
 
 /* user code end 1 */

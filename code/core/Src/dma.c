@@ -1,5 +1,4 @@
 ﻿#include "dma.h"
-#include "adc.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_bus.h"
@@ -7,7 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "critical_section.h"
-#include "system_stm32f1xx.h"
 
 uint32_t start_tick_dma;
 uint32_t dma_delay_tick;
@@ -29,34 +27,6 @@ static inline bool dma_is_expired_watchdog (void) {
 bool DMA1_SPI2_Init (void) {
     /* Включаем тактирование DMA1 */
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
-
-    LL_DMA_InitTypeDef DMA_InitStruct = { 0 };
-    /* Настраиваем трансфер из ADC1 в память */
-    DMA_InitStruct.PeriphOrM2MSrcAddress = (uint32_t)&ADC1->DR;
-    DMA_InitStruct.MemoryOrM2MDstAddress = (uint32_t)&adc_buf;
-    DMA_InitStruct.Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
-    DMA_InitStruct.Mode = LL_DMA_MODE_CIRCULAR;
-    DMA_InitStruct.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
-    DMA_InitStruct.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_NOINCREMENT;
-    DMA_InitStruct.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_HALFWORD;
-    DMA_InitStruct.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_HALFWORD;
-    DMA_InitStruct.NbData = 1;
-    DMA_InitStruct.Priority = LL_DMA_PRIORITY_MEDIUM;
-    if (LL_DMA_Init(DMA1, LL_DMA_CHANNEL_1, &DMA_InitStruct) != SUCCESS) {
-        return false;
-    }
-
-    dma_delay_tick = 500UL * SystemCoreClock / 1000000UL;
-    enter_critsec();
-    dma_update_watchdog();
-    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
-    while (!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_1)) {
-        if (dma_is_expired_watchdog()) {
-            exit_critsec();
-            return false;
-        }
-    }
-    exit_critsec();
     return true;
 }
 

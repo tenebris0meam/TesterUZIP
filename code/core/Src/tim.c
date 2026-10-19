@@ -181,10 +181,9 @@ bool TIM3_Init (void) {
     LL_TIM_ClearFlag_UPDATE(TIM3);
     LL_TIM_SetAutoReload(TIM3, 0);
     LL_TIM_EnableIT_UPDATE(TIM3);
-    // Низший приоритет
     // Обрабатываем только тогда, когда нет других активных прерываний
     // потому что таймер генерирует запросы к INA239
-    NVIC_SetPriority(TIM3_IRQn, 15);
+    NVIC_SetPriority(TIM3_IRQn, 2);
     /* Не разрешаем счёт таймера, пока не будет сконфигурирован INA239 */
     return true;
 }

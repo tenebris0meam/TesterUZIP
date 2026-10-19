@@ -1,13 +1,13 @@
 ﻿#include "main.h"
 #include <stdbool.h>
 
+#include "exti.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_system.h"
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_utils.h"
 
-#include "adc.h"
 #include "dma.h"
 #include "gpio.h"
 #include "spi.h"
@@ -80,11 +80,11 @@ static bool Hardware_Init (void) {
         return false;
     }
 
-    if (!ADC1_Init()) {
+    if (!DMA1_SPI2_Init()) {
         return false;
     }
 
-    if (!DMA1_SPI2_Init()) {
+    if (!EXTI_Init()) {
         return false;
     }
 

@@ -24,7 +24,7 @@
 #define CALC_NOMINAL_CURRENT_nA (1000000L)
 
 #define CALC_CURRENT_LOW_nA 900000L
-#define CALC_CURRENT_HIGH_nA 1100000L
+#define CALC_CURRENT_HIGH_nA 2000000L
 
 /**
  * @brief Допуск, при котором считаем, что регулятор вышел на уставку, мкВ.

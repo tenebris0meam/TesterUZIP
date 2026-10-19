@@ -7,9 +7,9 @@ project(tester-uzip C CXX ASM)
 # ===========================
 # Пути к проекту и библиотеке
 # ===========================
-set(WORKSPACE_PATH     "C:/Users/A.Nitkin/MyWorkspace/tester-uzip1")
+set(WORKSPACE_PATH     "C:/Users/A.Nitkin/MyWorkspace")
 set(PROJ_ROOT          "${WORKSPACE_PATH}/tester-uzip")
-set(STM32CUBE_DRIVERS  "C:/Users/A.Nitkin/MyWorkspace/STM32CubeF1")
+set(STM32CUBE_DRIVERS  "${WORKSPACE_PATH}/STM32CubeF1")
 
 # ===========================
 # ОБЩИЕ НАСТРОЙКИ ДЛЯ ВСЕХ ЦЕЛЕЙ

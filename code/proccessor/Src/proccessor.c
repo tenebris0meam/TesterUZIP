@@ -4,6 +4,7 @@
 #include "calc.h"
 #include "hv_feedback.h"
 #include "params.h"
+#include "system_stm32f1xx.h"
 #include "tim.h"
 
 #include "states/idle_setting.h"
@@ -248,8 +249,13 @@ void proccessor_raise_after_result (void) {
 
 /** @brief Дождаться разрядки конденсатора генератора */
 void proccessor_wait_cap_discharge (void) {
+    uint32_t cur_CYCCNT = DWT->CYCCNT;
+    uint32_t timeout_tick = cur_CYCCNT + SystemCoreClock / 1000;
     int32_t voltage_uV = INT32_MAX, current_nA = INT32_MAX;
     do {
+        if (DWT->CYCCNT > timeout_tick) {
+            break;
+        }
         if (!have_new_data) {
             continue;
         }
@@ -257,6 +263,7 @@ void proccessor_wait_cap_discharge (void) {
         calc_measurement_update();
         calc_get_test_data(&voltage_uV, &current_nA);
     } while ((voltage_uV >= 500000) && (current_nA >= 20000));
+    return;
 }
 
 /** @brief Обесточить генерацию. Порядок: сначала возбуждение, потом цепь. */

@@ -19,11 +19,9 @@ typedef enum {
     EnterActive
 } Keyboard_ActiveButton;
 
-extern volatile uint8_t buttons_flag;
-
 bool keyboard_init (void);
-void keyboard_routine (void);
 Keyboard_ActiveButton keyboard_get_active_button (void);
 bool keyboard_is_button_pressed (void);
+void keyboard_set_active_button (Keyboard_ButtonNames button_flag);
 
 #endif /* KEYBOARD_H_ */

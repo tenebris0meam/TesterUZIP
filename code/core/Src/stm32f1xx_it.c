@@ -24,12 +24,16 @@
 #include "keyboard.h"
 #include "exti.h"
 #include "ina239_user.h"
+#include "main.h"
 #include "proccessor.h"
 #include "spi.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_exti.h"
+#include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_tim.h"
+#include "tim.h"
+#include <stdint.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -281,10 +285,70 @@ void DMA1_Channel5_IRQHandler (void) {
 	}
 }
 
+static volatile Keyboard_ButtonNames button_flag;
+
+static inline void enable_debounce (void) {
+	TIM4_Start();
+	EXTI_disable_interrupt();
+	return;
+}
+
+static inline void disable_debounce (void) {
+	TIM4_Stop();
+	EXTI_enable_interrupt();
+	return;
+}
+
+void TIM4_IRQHandler (void) {
+	/* сбрасываем флаг обновления таймера */
+	LL_TIM_ClearFlag_UPDATE(TIM4);
+
+	static bool is_cooling = false;
+	if (is_cooling) {
+		is_cooling = false;
+		// передаём невалидное значение для сброса состояния активной кнопки
+		keyboard_set_active_button(UINT8_MAX);
+		disable_debounce();
+		return;
+	} else { 
+		GPIO_TypeDef *port;
+		uint32_t pin;
+		switch (button_flag) {
+			case Previous: 
+				port = BUTTON_UP_GPIO_Port;
+				pin = BUTTON_UP_GPIO_Pin;
+				break;
+			case Cancel: 
+				port = BUTTON_REJECT_GPIO_Port;
+				pin = BUTTON_REJECT_GPIO_Pin;
+				break;
+			case Next: 
+				port = BUTTON_DOWN_GPIO_Port;
+				pin = BUTTON_DOWN_GPIO_Pin;
+				break;
+			case Enter: 
+				port = BUTTON_ACCEPT_GPIO_Port;
+				pin = BUTTON_ACCEPT_GPIO_Pin;
+				break;
+			default: 
+				disable_debounce();
+				return;
+		}
+		if (!LL_GPIO_IsInputPinSet(port, pin)) {
+			keyboard_set_active_button(button_flag);
+			is_cooling = true;
+		} else {
+			disable_debounce();
+			return;
+		}
+	}
+}
+
 void EXTI0_IRQHandler (void) {
 	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_0)) {
 		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_0);
-		buttons_flag |= UP;
+		button_flag = Previous;
+		enable_debounce();
 	}
 	return;
 }
@@ -292,7 +356,8 @@ void EXTI0_IRQHandler (void) {
 void EXTI1_IRQHandler (void) {
 	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_1)) {
 		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
-		buttons_flag |= REJECT;
+		button_flag = Cancel;
+		enable_debounce();
 	}
 	return;
 }
@@ -300,7 +365,8 @@ void EXTI1_IRQHandler (void) {
 void EXTI2_IRQHandler (void) {
 	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_2)) {
 		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_2);
-		buttons_flag |= DOWN;
+		button_flag = Next;
+		enable_debounce();
 	}
 	return;
 }
@@ -308,7 +374,8 @@ void EXTI2_IRQHandler (void) {
 void EXTI3_IRQHandler (void) {
 	if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_3)) {
 		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_3);
-		buttons_flag |= ACCEPT;
+		button_flag = Enter;
+		enable_debounce();
 	}
 	return;
 }

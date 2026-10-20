@@ -205,3 +205,33 @@ void TIM3_Change_Update_Time (uint32_t new_update_time_us) {
     LL_TIM_SetAutoReload(TIM3, new_update_time_us - 1);
     return;
 }
+
+bool TIM4_Init (void) {
+    /* Включаем тактирование TIM6 */
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM4);
+
+    LL_TIM_InitTypeDef TIM_InitStruct = { 0 };
+    TIM_InitStruct.Prescaler = 29; // частота таймера 1 МГц, период 1 мкс
+    TIM_InitStruct.Autoreload = 24999; // 25 мс
+    TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+    TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+    TIM_InitStruct.RepetitionCounter = 0;
+    if (LL_TIM_Init(TIM4, &TIM_InitStruct) != SUCCESS) {
+        return false;
+    }
+    LL_TIM_ClearFlag_UPDATE(TIM4);
+    LL_TIM_EnableIT_UPDATE(TIM4);
+    NVIC_SetPriority(TIM4_IRQn, 15);
+    return true;
+}
+
+void TIM4_Start (void) {
+    NVIC_ClearPendingIRQ(TIM4_IRQn);
+    NVIC_EnableIRQ(TIM4_IRQn);
+    LL_TIM_EnableCounter(TIM4);
+}
+
+void TIM4_Stop (void) {
+    NVIC_DisableIRQ(TIM4_IRQn);
+    LL_TIM_DisableCounter(TIM4);
+}

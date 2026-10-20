@@ -76,6 +76,10 @@ static bool Hardware_Init (void) {
         return false;
     }
 
+    if (!TIM4_Init()) {
+        return false;
+    }
+
     if (!SPI2_Init()) {
         return false;
     }
@@ -145,7 +149,6 @@ __attribute__((noreturn)) void main (void) {
         }
         proccessor[tester_state].proccess();
 
-        keyboard_routine();
         buzzer_routine();
         if (display_get_render()) {
             display_routine();

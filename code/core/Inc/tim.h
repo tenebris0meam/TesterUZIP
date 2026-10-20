@@ -17,4 +17,8 @@ void TIM3_Start_Count (void);
 void TIM3_Stop_Count (void);
 void TIM3_Change_Update_Time (uint32_t new_update_time_us);
 
+bool TIM4_Init (void);
+void TIM4_Start (void);
+void TIM4_Stop (void);
+
 #endif /* TIM_H */

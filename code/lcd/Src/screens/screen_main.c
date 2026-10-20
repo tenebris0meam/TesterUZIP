@@ -5,7 +5,6 @@
 #include "resolver.h"
 #include "calc.h"
 #include "screens.h"
-#include "spi.h"
 #include "strbuf.h"
 #include "framebuffer.h"
 #include "strings_def.h"

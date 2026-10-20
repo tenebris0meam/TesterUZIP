@@ -12,6 +12,19 @@
 static ScreenID current_screen = ScreenHello;
 static bool is_render_allowed = true;
 
+static inline void display_draw_buffer (void) {
+    static uint8_t bank_id = 0;
+    fb_begin_band(bank_id);
+    screens[current_screen].render();
+    fb_flush_band();
+    if (bank_id == FB_BANKS - 1) {
+        bank_id = 0;
+    } else {
+        bank_id++;
+    }
+    return;
+}
+
 bool display_init (void) {
     lcd_init();
     fb_set_font(cgxyz.font_cyr, 
@@ -42,6 +55,9 @@ bool display_init (void) {
     current_screen = ScreenHello;
     screens[current_screen].on_enter();
     screens[current_screen].render();
+    for (uint8_t i = 0; i < FB_BANKS; i++) {
+        display_draw_buffer();
+    }
     return true;
 }
 
@@ -49,30 +65,13 @@ void display_routine (void) {
     inputevent_routine();
 
     InputEvent cur_state = inputevent_get_state();
-
     if (cur_state != InputEvent_Count) {
         ScreenID next_screen = screens[current_screen].handle_event(cur_state);
         if (next_screen != current_screen) {
-            if (screens[current_screen].on_exit) {
-                screens[current_screen].on_exit();
-            }
-            current_screen = next_screen;
-            screens[current_screen].on_enter();
+            display_set_screen(next_screen);
         }
     }
-
-    /*
-     * Кадр собирается полосами по 8 пикселей: в ОЗУ живёт только одна полоса,
-     * поэтому render() вызывается FB_BANKS раз за кадр. Функции рисования сами
-     * отбрасывают то, что не попало в текущую полосу, так что экранам об этом
-     * знать не нужно. Очищать буфер отдельно не требуется - fb_begin_band()
-     * делает это сам.
-     */
-    for (uint8_t bank = 0; bank < FB_BANKS; bank++) {
-        fb_begin_band(bank);
-        screens[current_screen].render();
-        fb_flush_band();
-    }
+    display_draw_buffer();
     return;
 }
 
@@ -84,7 +83,9 @@ void display_set_screen (ScreenID screen) {
     if ((screen >= ScreenCount) || (screen == current_screen)) {
         return;
     }
-    screens[current_screen].on_exit();
+    if (screens[current_screen].on_exit) {
+        screens[current_screen].on_exit();
+    }
     current_screen = screen;
     screens[current_screen].on_enter();
     return;

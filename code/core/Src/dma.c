@@ -8,7 +8,7 @@
 #include "critical_section.h"
 
 uint32_t start_tick_dma;
-uint32_t dma_delay_tick;
+const uint32_t dma_delay_tick = 30000; // 500 мкс
 
 static inline void dma_update_watchdog (void) {
     start_tick_dma = DWT->CYCCNT;
@@ -112,7 +112,6 @@ void DMA1_SPI2TX_DenyInterrupt (void) {
 
 bool DMA1_SPI2RX_Start (void) {
     enter_critsec();
-    dma_update_watchdog();
     if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {
         /* DMA был включен два раза подряд, ошибка */
         exit_critsec();
@@ -120,6 +119,7 @@ bool DMA1_SPI2RX_Start (void) {
     } else {
         LL_SPI_EnableDMAReq_RX(SPI2);
         LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
+        dma_update_watchdog();
         while (!dma_is_expired_watchdog()) {
             if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4)) {
                 /* DMA канал включился */
@@ -135,7 +135,6 @@ bool DMA1_SPI2RX_Start (void) {
 
 bool DMA1_SPI2TX_Start (void) {
     enter_critsec();
-    dma_update_watchdog();
     if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {
         /* DMA был включен два раза подряд, ошибка */
         exit_critsec();
@@ -143,6 +142,7 @@ bool DMA1_SPI2TX_Start (void) {
     } else {
         LL_SPI_EnableDMAReq_TX(SPI2);
         LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
+        dma_update_watchdog();
         while (!dma_is_expired_watchdog()) {
             if (LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_5)) {
                 /* DMA канал включился */

@@ -18,12 +18,12 @@ void screen_main_on_enter (void) {
     switch (test_config.mode_id) {
         case CheckDevice: 
         case VoltageGenerator:
-            cursor_init(&options_strg[1], 2, 0);
+            cursor_init(&options_strg[1], 3, 0);
             break;
 
         case Voltmeter: 
         case Ommeter: 
-            cursor_init(&options_strg[2], 1, 0);
+            cursor_init(&options_strg[2], 2, 0);
             break;
 
         default: return;
@@ -181,10 +181,9 @@ ScreenID screen_main_handle_event (InputEvent event) {
                 case InputEvent_ButtonPressed_Enter: {
                     uint8_t cur_option = cursor_get_current_selected_index();
                     switch (cur_option) {
-                        case 0: return ((test_config.mode_id == CheckDevice) ? 
-                                        (ScreenTesting) : 
-                                        (ScreenGenerator));
-                        case 1: return ScreenSettings;
+                        case 0: return ScreenTestConfirm;
+                        case 1: return ScreenCheckdeviceSeries;
+                        case 2: return ScreenModes;
                         default: return ScreenMain;
                     }
                 }
@@ -194,7 +193,7 @@ ScreenID screen_main_handle_event (InputEvent event) {
         case Voltmeter: 
         case Ommeter: 
             switch (event) {
-                case InputEvent_ButtonPressed_Enter: return ScreenSettings;
+                case InputEvent_ButtonPressed_Enter: return ScreenModes;
                 case InputEvent_ButtonPressed_Cancel:
                 default: 
                     return ScreenMain;

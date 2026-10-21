@@ -1,12 +1,12 @@
-﻿#ifndef SCREEN_RESULT_H_
-#define SCREEN_RESULT_H_
+﻿#ifndef SCREEN_TESTRESULT_H_
+#define SCREEN_TESTRESULT_H_
 
 #include "input_events.h"
 #include "screens.h"
 
-void screen_result_on_enter (void);
-void screen_result_on_exit (void);
-void screen_result_render (void);
-ScreenID screen_result_handle_event (InputEvent);
+void screen_testresult_on_enter (void);
+void screen_testresult_on_exit (void);
+void screen_testresult_render (void);
+ScreenID screen_testresult_handle_event (InputEvent);
 
-#endif /* SCREEN_RESULT_H_ */
+#endif /* SCREEN_TESTRESULT_H_ */

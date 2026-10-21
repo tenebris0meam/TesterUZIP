@@ -1,19 +1,20 @@
-﻿#include "screens/screen_testing.h"
+﻿#include "screens/screen_testconfirm.h"
+#include "screens.h"
 #include "strings_def.h"
 #include "fonts.h"
 #include "framebuffer.h"
 #include "proccessor.h"
 #include "model.h"
 
-void screen_testing_on_enter (void) {
+void screen_testconfirm_on_enter (void) {
     return;
 }
 
-void screen_testing_on_exit (void) {
+void screen_testconfirm_on_exit (void) {
     return;
 }
 
-void screen_testing_render (void) {
+void screen_testconfirm_render (void) {
     StrBuf_TypeDef sb;
     strbuf_init(&sb, linebuffer, linebuffer_size);
 
@@ -53,12 +54,12 @@ void screen_testing_render (void) {
     return;
 }
 
-ScreenID screen_testing_handle_event (InputEvent event) {
+ScreenID screen_testconfirm_handle_event (InputEvent event) {
     switch (event) {
         case InputEvent_ButtonPressed_Cancel: return ScreenMain;
         case InputEvent_ButtonPressed_Enter: 
             proccessor_raise_event(EnterAccepted);
-            return ScreenRunningTest;
-        default: return ScreenTesting;
+            return ScreenTestRunning;
+        default: return ScreenTestConfirm;
     }
 }

@@ -4,22 +4,22 @@
 #include "cursor.h"
 #include "params.h"
 #include "model.h"
-#include "screen_settings_modes.h"
 #include "strings_def.h"
 #include "strbuf.h"
 #include "screens/screen_hello.h"
 #include "screens/screen_main.h"
-#include "screens/screen_testing.h"
-#include "screens/screen_runningtest.h"
-#include "screens/screen_result.h"
-#include "screens/screen_checkfailed.h"
-#include "screens/screen_settings.h"
-#include "screens/screen_settings_series.h"
-#include "screens/screen_settings_groups.h"
-#include "screens/screen_settings_devices.h"
+#include "screens/screen_modes.h"
+#include "screens/screen_testconfirm.h"
+#include "screens/screen_testrunning.h"
+#include "screens/screen_testdenied.h"
+#include "screens/screen_testresult.h"
+#include "screens/screen_testdata.h"
+#include "screens/screen_checkdevice_series.h"
+#include "screens/screen_checkdevice_groups.h"
+#include "screens/screen_checkdevice_devices.h"
 #include "screens/screen_hardware_fail.h"
-#include "screens/screen_generator_setup.h"
-#include "screens/screen_generator.h"
+#include "screens/screen_generator_settings.h"
+#include "screens/screen_generator_generation.h"
 
 #include <stdint.h>
 
@@ -36,59 +36,59 @@ const Screen_TypeDef screens[ScreenCount] = {
         .render = screen_main_render,
         .handle_event = screen_main_handle_event
     },
-    [ScreenTesting] = {
-        .on_enter = screen_testing_on_enter,
-        .on_exit = screen_testing_on_exit,
-        .render = screen_testing_render,
-        .handle_event = screen_testing_handle_event
+    [ScreenTestConfirm] = {
+        .on_enter = screen_testconfirm_on_enter,
+        .on_exit = screen_testconfirm_on_exit,
+        .render = screen_testconfirm_render,
+        .handle_event = screen_testconfirm_handle_event
     },
-    [ScreenRunningTest] = {
-        .on_enter = screen_runningtest_on_enter,
-        .on_exit = screen_runningtest_on_exit,
-        .render = screen_runningtest_render,
-        .handle_event = screen_runningtest_handle_event
+    [ScreenTestRunning] = {
+        .on_enter = screen_testrunning_on_enter,
+        .on_exit = screen_testrunning_on_exit,
+        .render = screen_testrunning_render,
+        .handle_event = screen_testrunning_handle_event
     }, 
-    [ScreenResult] = {
-        .on_enter = screen_result_on_enter,
-        .on_exit = screen_result_on_exit,
-        .render = screen_result_render, 
-        .handle_event = screen_result_handle_event
+    [ScreenTestDenied] = {
+        .on_enter = screen_testdenied_on_enter,
+        .on_exit = screen_testdenied_on_exit,
+        .render = screen_testdenied_render,
+        .handle_event = screen_testdenied_handle_event
     },
-    [ScreenCheckFailed] = {
-        .on_enter = screen_checkfailed_on_enter,
-        .on_exit = screen_checkfailed_on_exit,
-        .render = screen_checkfailed_render,
-        .handle_event = screen_checkfailed_handle_event
+    [ScreenTestResult] = {
+        .on_enter = screen_testresult_on_enter,
+        .on_exit = screen_testresult_on_exit,
+        .render = screen_testresult_render, 
+        .handle_event = screen_testresult_handle_event
     },
-    [ScreenSettings] = {
-        .on_enter = screen_settings_on_enter,
-        .on_exit = screen_settings_on_exit,
-        .render = screen_settings_render,
-        .handle_event = screen_settings_handle_event
+    [ScreenTestData] = {
+        .on_enter = screen_testdata_on_enter,
+        .on_exit = screen_testdata_on_exit,
+        .render = screen_testdata_render,
+        .handle_event = screen_testdata_handle_event
     },
-    [ScreenSettingsModes] = {
-        .on_enter = screen_settingsmodes_on_enter,
-        .on_exit = screen_settingsmodes_on_exit,
-        .render = screen_settingsmodes_render,
-        .handle_event = screen_settingsmodes_handle_event
+    [ScreenModes] = {
+        .on_enter = screen_modes_on_enter,
+        .on_exit = screen_modes_on_exit,
+        .render = screen_modes_render,
+        .handle_event = screen_modes_handle_event
     },
-    [ScreenSettingsSeries] = {
-        .on_enter = screen_settingsseries_on_enter,
-        .on_exit = screen_settingsseries_on_exit,
-        .render = screen_settingsseries_render,
-        .handle_event = screen_settingsseries_handle_event
+    [ScreenCheckdeviceSeries] = {
+        .on_enter = screen_checkdevice_series_on_enter,
+        .on_exit = screen_checkdevice_series_on_exit,
+        .render = screen_checkdevice_series_render,
+        .handle_event = screen_checkdevice_series_handle_event
     },
-    [ScreenSettingsGroups] = {
-        .on_enter = screen_settingsgroups_on_enter,
-        .on_exit = screen_settingsgroups_on_exit,
-        .render = screen_settingsgroups_render,
-        .handle_event = screen_settingsgroups_handle_event
+    [ScreenCheckdeviceGroups] = {
+        .on_enter = screen_checkdevice_groups_on_enter,
+        .on_exit = screen_checkdevice_groups_on_exit,
+        .render = screen_checkdevice_groups_render,
+        .handle_event = screen_checkdevice_groups_handle_event
     },
-    [ScreenSettingsDevices] = {
-        .on_enter = screen_settingsdevices_on_enter,
-        .on_exit = screen_settingsdevices_on_exit,
-        .render = screen_settingsdevices_render,
-        .handle_event = screen_settingsdevices_handle_event
+    [ScreenCheckdeviceDevices] = {
+        .on_enter = screen_checkdevice_devices_on_enter,
+        .on_exit = screen_checkdevice_devices_on_exit,
+        .render = screen_checkdevice_devices_render,
+        .handle_event = screen_checkdevice_devices_handle_event
     }, 
     [ScreenHardwareFail] = {
         .on_enter = screen_hardwarefail_on_enter,
@@ -96,17 +96,17 @@ const Screen_TypeDef screens[ScreenCount] = {
         .render = screen_hardwarefail_render,
         .handle_event = screen_hardwarefail_handle_event
     },
-    [ScreenGeneratorSetup] = {
-        .on_enter = screen_generatorsetup_on_enter,
-        .on_exit = screen_generatorsetup_on_exit,
-        .render = screen_generatorsetup_render,
-        .handle_event = screen_generatorsetup_handle_event
+    [ScreenGeneratorSettings] = {
+        .on_enter = screen_generator_settings_on_enter,
+        .on_exit = screen_generator_settings_on_exit,
+        .render = screen_generator_settings_render,
+        .handle_event = screen_generator_settings_handle_event
     },
-    [ScreenGenerator] = {
-        .on_enter = screen_generator_on_enter,
-        .on_exit = screen_generator_on_exit,
-        .render = screen_generator_render,
-        .handle_event = screen_generator_handle_event
+    [ScreenGeneratorGeneration] = {
+        .on_enter = screen_generator_generation_on_enter,
+        .on_exit = screen_generator_generation_on_exit,
+        .render = screen_generator_generation_render,
+        .handle_event = screen_generator_generation_handle_event
     }
 };
 

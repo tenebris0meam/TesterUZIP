@@ -1,18 +1,18 @@
-﻿#include "screens/screen_result.h"
+﻿#include "screens/screen_testresult.h"
 #include "strings_def.h"
 #include "fonts.h"
 #include "framebuffer.h"
 #include "model.h"
 
-void screen_result_on_enter (void) {
+void screen_testresult_on_enter (void) {
     return;
 }
 
-void screen_result_on_exit (void) {
+void screen_testresult_on_exit (void) {
     return;
 }
 
-void screen_result_render (void) {
+void screen_testresult_render (void) {
     uint8_t cur_x = workspace_start_x;
     uint8_t cur_y = workspace_start_y;
 
@@ -39,14 +39,14 @@ void screen_result_render (void) {
     return;
 }
 
-ScreenID screen_result_handle_event (InputEvent event) {
+ScreenID screen_testresult_handle_event (InputEvent event) {
     switch (event) {
         case InputEvent_ButtonPressed_Enter: 
             if (test_results.fail_was) {
-                return ScreenCheckFailed;
+                return ScreenTestData;
             } else {
                 return ScreenMain;
             }
-        default: return ScreenResult;
+        default: return ScreenTestResult;
     }
 }

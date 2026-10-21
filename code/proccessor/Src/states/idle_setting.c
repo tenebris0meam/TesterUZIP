@@ -44,8 +44,8 @@ State proccessor_idle_handle_event (Event event) {
     switch (event) {
         case EnterAccepted:
             switch (display_get_current_screen()) {
-                case ScreenRunningTest:
-                case ScreenGenerator:
+                case ScreenTestRunning:
+                case ScreenGeneratorGeneration:
                     return Commutation;
                 default:
                     return Idle_Setting;

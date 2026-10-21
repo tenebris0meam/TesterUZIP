@@ -1,6 +1,7 @@
-﻿#include "screens/screen_checkfailed.h"
+﻿#include "screens/screen_testdata.h"
 #include "cursor.h"
 #include "resolver.h"
+#include "screens.h"
 #include "strings_def.h"
 #include "framebuffer.h"
 #include "model.h"
@@ -8,16 +9,16 @@
 #include <string.h>
 
 
-void screen_checkfailed_on_enter (void) {
+void screen_testdata_on_enter (void) {
     cursor_init(&options_strg[0], test_results.failed_cnt, 0);
     return;
 }
 
-void screen_checkfailed_on_exit (void) {
+void screen_testdata_on_exit (void) {
     return;
 }
 
-void screen_checkfailed_render (void) {
+void screen_testdata_render (void) {
     uint8_t cur_x = workspace_start_x;
     uint8_t cur_y = workspace_start_y;
     StrBuf_TypeDef sb;
@@ -74,12 +75,12 @@ void screen_checkfailed_render (void) {
     return;
 }
 
-ScreenID screen_checkfailed_handle_event (InputEvent event) {
+ScreenID screen_testdata_handle_event (InputEvent event) {
     switch (event) {
-        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenCheckFailed;
-        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenCheckFailed;
+        case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenTestData;
+        case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenTestData;
         case InputEvent_ButtonPressed_Enter: return ScreenMain;
         case InputEvent_ButtonPressed_Cancel: 
-        default: return ScreenCheckFailed;
+        default: return ScreenTestData;
     }
 }

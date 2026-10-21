@@ -1,4 +1,4 @@
-﻿#include "screens/screen_generator_setup.h"
+﻿#include "screens/screen_generator_settings.h"
 #include "framebuffer.h"
 #include "fonts.h"
 #include "hv_feedback.h"
@@ -17,15 +17,15 @@ static void draw_centered_setup(const char *text, uint8_t y) {
     fb_draw_string_xy(x, y, text);
 }
 
-void screen_generatorsetup_on_enter(void) {
+void screen_generator_settings_on_enter(void) {
     target_voltage_v = proccessor_get_manual_target_voltage();
     if (target_voltage_v < 1U) target_voltage_v = 1U;
     if (target_voltage_v > HV_FEEDBACK_MAX_TEST_V) target_voltage_v = HV_FEEDBACK_MAX_TEST_V;
     selected_digit = 0U;
 }
-void screen_generatorsetup_on_exit(void) { }
+void screen_generator_settings_on_exit(void) { }
 
-void screen_generatorsetup_render(void) {
+void screen_generator_settings_render(void) {
     fb_set_font(cgxyz.font_lat, cgxyz.width_px, cgxyz.height_px,
                 FONT_FIRST_CHAR, FONT_LAST_CHAR);
     char value[6] = { 'U', '=', '0', '0', '0', '\0' };
@@ -52,28 +52,28 @@ void screen_generatorsetup_render(void) {
     return;
 }
 
-ScreenID screen_generatorsetup_handle_event(InputEvent event) {
+ScreenID screen_generator_settings_handle_event(InputEvent event) {
     uint16_t step = (selected_digit == 0U) ? 100U : ((selected_digit == 1U) ? 10U : 1U);
     switch (event) {
         case InputEvent_ButtonPressed_Previous:
             target_voltage_v = (target_voltage_v > step) ? (uint16_t)(target_voltage_v - step) : 1U;
-            return ScreenGeneratorSetup;
+            return ScreenGeneratorSettings;
         case InputEvent_ButtonPressed_Next:
             if (target_voltage_v < HV_FEEDBACK_MAX_TEST_V) {
                 uint32_t candidate = (uint32_t)target_voltage_v + step;
                 target_voltage_v = (uint16_t)((candidate > HV_FEEDBACK_MAX_TEST_V) ? HV_FEEDBACK_MAX_TEST_V : candidate);
             }
-            return ScreenGeneratorSetup;
+            return ScreenGeneratorSettings;
         case InputEvent_ButtonPressed_Enter:
             if (selected_digit < 2U) {
                 selected_digit++;
-                return ScreenGeneratorSetup;
+                return ScreenGeneratorSettings;
             }
             proccessor_set_manual_target_voltage(target_voltage_v);
             proccessor_raise_event(EnterAccepted);
             return ScreenMain;
         case InputEvent_ButtonPressed_Cancel:
             return ScreenMain;
-        default: return ScreenGeneratorSetup;
+        default: return ScreenGeneratorSettings;
     }
 }

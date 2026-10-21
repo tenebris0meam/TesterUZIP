@@ -5,6 +5,7 @@
 
 typedef enum {
     CheckDevice,
+    CheckComponent,
     Voltmeter, 
     Ommeter, 
     VoltageGenerator, 

@@ -1,12 +1,12 @@
-﻿#ifndef SCREEN_SETTINGS_DEVICES_H_
-#define SCREEN_SETTINGS_DEVICES_H_
+﻿#ifndef SCREEN_CHECKDEVICE_DEVICES_H_
+#define SCREEN_CHECKDEVICE_DEVICES_H_
 
 #include "input_events.h"
 #include "screens.h"
 
-void screen_settingsdevices_on_enter (void);
-void screen_settingsdevices_on_exit (void);
-void screen_settingsdevices_render (void);
-ScreenID screen_settingsdevices_handle_event (InputEvent);
+void screen_checkdevice_devices_on_enter (void);
+void screen_checkdevice_devices_on_exit (void);
+void screen_checkdevice_devices_render (void);
+ScreenID screen_checkdevice_devices_handle_event (InputEvent);
 
-#endif /* SCREEN_SETTINGS_DEVICES_H_ */
+#endif /* SCREEN_CHECKDEVICE_DEVICES_H_ */

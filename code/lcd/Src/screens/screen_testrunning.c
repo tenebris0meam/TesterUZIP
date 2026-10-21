@@ -1,20 +1,20 @@
-﻿#include "screens/screen_runningtest.h"
+﻿#include "screens/screen_testrunning.h"
 #include "strings_def.h"
 #include "model.h"
 #include "framebuffer.h"
 #include "fonts.h"
 
-void screen_runningtest_on_enter (void) {
+void screen_testrunning_on_enter (void) {
     /* Новый прогон по тому же прибору должен начинаться с чистых результатов */
     // model_reset_results();
     return;
 }
 
-void screen_runningtest_on_exit (void) {
+void screen_testrunning_on_exit (void) {
     return;
 }
 
-void screen_runningtest_render (void) {
+void screen_testrunning_render (void) {
     StrBuf_TypeDef sb;
     strbuf_init(&sb, linebuffer, linebuffer_size);
 
@@ -57,9 +57,9 @@ void screen_runningtest_render (void) {
     return;
 }
 
-ScreenID screen_runningtest_handle_event (InputEvent event) {
+ScreenID screen_testrunning_handle_event (InputEvent event) {
     switch (event) {
-        case InputEvent_TestSequenceComplete: return ScreenResult;
-        default: return ScreenRunningTest;
+        case InputEvent_TestSequenceComplete: return ScreenTestResult;
+        default: return ScreenTestRunning;
     }
 }

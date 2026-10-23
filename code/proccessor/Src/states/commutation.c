@@ -6,9 +6,9 @@
 
 void proccessor_commutation_on_enter_checkdevice (void) {
     // Выключаем ввод
-    inputevent_deny_input();
+    // inputevent_deny_input();
     
-    if (test_results.current_sequence == NULL) {
+    if (test_runtime.current_sequence == NULL) {
         proccessor_raise_event(TestSequenceFinished);
         return;
     }
@@ -32,7 +32,8 @@ void proccessor_commutation_on_enter_checkdevice (void) {
          * следующий проход возьмёт следующую позицию, а когда они кончатся -
          * поднимет TestSequenceFinished ветвью выше.
          */
-        proccessor_record_result(false);
+        // proccessor_record_result(false);
+        model_handle_test_result();
         return;
     }
 
@@ -59,11 +60,15 @@ void proccessor_commutation_proccess_default (void) {
 State proccessor_commutation_handle_event_default (Event event) {
     switch (event) {
         case CommutationComplete: return Generation;
+
         case TestSequenceFinished: return TestSequenceComplete;
+
         case ReturnToIdle:
             commutator_deny_commutation();
             return Idle_Setting;
+
         case AlertActive: return HardwareFail;
+
         default: return Commutation;
     }
 }

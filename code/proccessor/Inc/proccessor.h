@@ -82,7 +82,7 @@ Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin);
 bool proccessor_more_tests_left (void);
 bool proccessor_setup_lines (void);
 bool proccessor_apply_setpoint (void);
-void proccessor_record_result (bool pass);
+// void proccessor_record_result (bool pass);
 void proccessor_raise_after_result (void);
 void proccessor_shutdown_generation (void);
 void proccessor_force_shutdown_generation (void);

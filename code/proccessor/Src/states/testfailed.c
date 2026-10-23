@@ -1,7 +1,8 @@
 ﻿#include "states/testfailed.h"
+#include "model.h"
 
 void proccessor_testfailed_on_enter (void) {
-    proccessor_record_result(false);
+    model_handle_test_result();
     return;
 }
 

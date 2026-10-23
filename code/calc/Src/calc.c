@@ -6,13 +6,14 @@
 #include "system_stm32f1xx.h"
 #include "utils.h"
 #include "tim.h"
-// #include "window.h"
+#include "window.h"
 
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-// #define CALC_WINDOW_LENGTH 8
+#define CALC_WINDOW_LENGTH (4)
+#define CALC_WINDOW_LENGTH_POWER2 (2)
 
 #define CALC_DERIVATIVE_VOLTAGE_MAX (137470804LL) // 1000 V/s с учётом делителя напряжения
 
@@ -33,14 +34,12 @@ typedef struct {
 volatile bool have_new_data = false;
 
 static IntegratorTypeDef integrator = { 0 };
-// static Window_TypeDef voltage_window = { 0 };
-// static Window_TypeDef current_window = { 0 };
-// static int32_t voltage_buf[CALC_WINDOW_LENGTH] = { 0 };
-// static int32_t current_buf[CALC_WINDOW_LENGTH] = { 0 };
+static Window_TypeDef voltage_window = { 0 };
+static Window_TypeDef current_window = { 0 };
+static int32_t voltage_buf[CALC_WINDOW_LENGTH] = { 0 };
+static int32_t current_buf[CALC_WINDOW_LENGTH] = { 0 };
 
-/** @brief Актуальные данные о напряжении и токе теста */
-static int32_t voltage_test = 0;
-static int32_t current_test = 0;
+static CalcMetrics_TypeDef metrics = { 0 };
 
 static bool is_voltage_achieved = false;
 static int32_t voltage_lowth = 0;
@@ -51,7 +50,7 @@ static int32_t voltage_highth = 0;
 /**
  * @brief Снимок кадра ответа INA239.
  * @details Читать answer_vbus_and_current напрямую нельзя: DMA переписывает
- *          его каждые 100 мкс по прерыванию TIM3, и между чтением напряжения
+ *          его каждые 2*T_conv по прерыванию TIM3, и между чтением напряжения
  *          и чтением тока может прийти новый кадр. Тогда регулятор получит
  *          напряжение из одного измерения, а ток из следующего.
  */
@@ -72,14 +71,40 @@ static int16_t calc_get_raw_val (const uint8_t *frame, RawValType type) {
     }
 }
 
-// static int32_t calc_get_average_from_window (Window_TypeDef *window) {
-//     int64_t acc = 0;
-//     for (uint32_t i = 0; i < window->cnt; i++) {
-//         acc += (int64_t)*(int32_t *)(window->buf + i * window->element_size);
-//     }
-//     acc /= (int64_t)window->cnt;
-//     return (int32_t)acc;
-// }
+static int32_t calc_get_average_from_window (Window_TypeDef *window) {
+    int64_t acc = 0;
+    for (uint32_t i = 0; i < window->num_elements; i++) {
+        acc += (int64_t)*((int32_t *)window->buf + i);
+    }
+    // arm-none-eabi-gcc гарантирует арифметический сдвиг
+    acc >>= CALC_WINDOW_LENGTH_POWER2;
+    return (int32_t)acc;
+}
+
+static int32_t calc_get_standard_deviation_from_window (Window_TypeDef *window, int32_t mean_val) {
+    int64_t acc = 0;
+    for (uint32_t i = 0; i < window->num_elements; i++) {
+        int64_t cur_delta = (int64_t)*((int32_t *)window->buf + i) - (int64_t)mean_val;
+        acc += cur_delta * cur_delta;
+    }
+    if (window->cnt && (window->cnt - 1)) {
+        acc /= (int64_t)(window->cnt - 1);
+        return (int32_t)uint64_sqrt(acc);
+    } else {
+        return 0L;
+    }
+}
+
+static inline void calc_update_metrics (void) {
+    metrics.voltage_uV.mean_value = calc_get_average_from_window(&voltage_window);
+    metrics.current_nA.mean_value = calc_get_average_from_window(&current_window);
+
+    metrics.voltage_uV.standard_deviation = 
+        calc_get_standard_deviation_from_window(&voltage_window, metrics.voltage_uV.mean_value);
+    metrics.current_nA.standard_deviation = 
+        calc_get_standard_deviation_from_window(&current_window, metrics.current_nA.mean_value);
+    return;
+}
 
 
 
@@ -103,12 +128,11 @@ bool calc_integrator_Init (void) {
 
     TIM3_Change_Update_Time(delta_time_us);
 
-    // window_init(&voltage_window, sizeof(int32_t), CALC_WINDOW_LENGTH, voltage_buf);
-    // window_init(&current_window, sizeof(int32_t), CALC_WINDOW_LENGTH, current_buf);
+    window_init(&voltage_window, sizeof(int32_t), CALC_WINDOW_LENGTH, voltage_buf);
+    window_init(&current_window, sizeof(int32_t), CALC_WINDOW_LENGTH, current_buf);
 
     /*
      * Уставку здесь НЕ трогаем: её ставит процессор под конкретный прибор.
-     * Ноль означает "не разгонять" - безопасное состояние по умолчанию.
      */
     return true;
 }
@@ -138,14 +162,11 @@ int32_t calc_integrator_get_integral_value (void) {
 
 void calc_reset_integrator (void) {
     memset(&integrator, 0, sizeof(IntegratorTypeDef));
-    voltage_test = 0;
-    // previous_error_uV = 0;
-    current_test = 0;
     is_voltage_achieved = false;
     voltage_lowth = 0;
     voltage_highth = 0;
-    // window_reset(&voltage_window);
-    // window_reset(&current_window);
+    window_reset(&voltage_window);
+    window_reset(&current_window);
     return;
 }
 
@@ -199,32 +220,28 @@ void calc_measurement_update (void) {
     int16_t current_raw = calc_get_raw_val(frame, CURRENT);
 
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
-    voltage_test = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
-    current_test = hv_shunt_uV_to_nA(shunt_dropvoltage);
+    int32_t cur_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    int32_t cur_current = hv_shunt_uV_to_nA(shunt_dropvoltage);
 
-    // int32_t cur_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
-    // int32_t cur_current = hv_shunt_uV_to_nA(shunt_dropvoltage);
+    window_push(&voltage_window, &cur_voltage);
+    window_push(&current_window, &cur_current);
 
-    // window_push(&voltage_window, &cur_voltage);
-    // window_push(&current_window, &cur_current);
-
-    // voltage_test = calc_get_average_from_window(&voltage_window);
-    // current_test = calc_get_average_from_window(&current_window);
+    calc_update_metrics();
     return;
 }
 
 void calc_routine (void) {
     calc_measurement_update();
-    calc_integrator_step(voltage_test);
+    calc_integrator_step(metrics.voltage_uV.mean_value);
     return;
 }
 
 void calc_get_test_data (int32_t *voltage, int32_t *current) {
     if (voltage) {
-        *voltage = voltage_test;
+        *voltage = metrics.voltage_uV.mean_value;
     }
     if (current) {
-        *current = current_test;
+        *current = metrics.current_nA.mean_value;
     }
     return;
 }
@@ -233,4 +250,8 @@ bool calc_is_voltage_achieved (void) {
     bool voltage_achieved = is_voltage_achieved;
     is_voltage_achieved = false;
     return voltage_achieved;
+}
+
+const CalcMetrics_TypeDef *calc_get_current_metrics (void) {
+    return (const CalcMetrics_TypeDef *)&metrics;
 }

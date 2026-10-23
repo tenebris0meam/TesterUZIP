@@ -56,3 +56,24 @@ Commutator_ActiveLine convert_activeline_mux2commutator (MUX_ActiveLine act) {
         case ActiveLine8: return ActiveLine_8;
     }
 }
+
+uint64_t uint64_sqrt (uint64_t n) {
+    uint64_t res = 0;
+    uint64_t bit = 1ULL << 62; // Начинаем со старшей четной степени 2 для 32-битного числа (2^30)
+
+    // Сдвигаем бит до тех пор, пока он больше n
+    while (bit > n) {
+        bit >>= 2;
+    }
+
+    while (bit != 0) {
+        if (n >= res + bit) {
+            n -= res + bit;
+            res = (res >> 1) + bit;
+        } else {
+            res >>= 1;
+        }
+        bit >>= 2;
+    }
+    return res;
+} 

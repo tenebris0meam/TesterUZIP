@@ -12,6 +12,8 @@
 #include "states/generation.h"
 #include "hv_feedback.h"
 #include "tim.h"
+#include "utils.h"
+#include <string.h>
 
 void proccessor_hardwarefail_on_enter_default (void) {
     /*
@@ -204,49 +206,28 @@ void proccessor_hardwarefail_on_exit_for_GDT (void) {
     return;
 }
 
-static uint64_t uint64_sqrt (uint64_t n) {
-    uint64_t res = 0;
-    uint64_t bit = 1ULL << 62; // Начинаем со старшей четной степени 2 для 32-битного числа (2^30)
-
-    // Сдвигаем бит до тех пор, пока он больше n
-    while (bit > n) {
-        bit >>= 2;
-    }
-
-    while (bit != 0) {
-        if (n >= res + bit) {
-            n -= res + bit;
-            res = (res >> 1) + bit;
-        } else {
-            res >>= 1;
-        }
-        bit >>= 2;
-    }
-    return res;
-} 
-
 void proccessor_hardwarefail_proccess_for_GDT (void) {
     if (test_id >= MAX_TESTS_FOR_ONE_GDT) {
         TestResult_TypeDef result = { 0 };
-        result.sequence_pos = test_results.failed_cnt + test_results.passed_cnt;
+        result.sequence_pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
         for (uint8_t i = 0; i < MAX_TESTS_FOR_ONE_GDT; i++) {
-            result.device_voltage += voltage_max_buf[i];
+            result.res.voltage_uV.mean_value += voltage_max_buf[i];
         }
-        result.device_voltage /= MAX_TESTS_FOR_ONE_GDT;
+        result.res.voltage_uV.mean_value /= MAX_TESTS_FOR_ONE_GDT;
 
         int64_t dispersion_voltage_uV = 0;
         for (uint8_t i = 0; i < MAX_TESTS_FOR_ONE_GDT; i++) {
-            int32_t delta_voltage_uV = voltage_max_buf[i] - result.device_voltage;
+            int32_t delta_voltage_uV = voltage_max_buf[i] - result.res.voltage_uV.mean_value;
             int64_t delta_voltage_uV_sqr = (int64_t)delta_voltage_uV * (int64_t)delta_voltage_uV;
             dispersion_voltage_uV += delta_voltage_uV_sqr;
         }
         dispersion_voltage_uV /= MAX_TESTS_FOR_ONE_GDT - 1;
 
-        result.standard_deviation_voltage = (uint32_t)uint64_sqrt(dispersion_voltage_uV);
-        int32_t ionization_voltage_GDT_lowth = result.device_voltage - 3 * result.standard_deviation_voltage;
-        int32_t ionization_voltage_GDT_highth = result.device_voltage + 3 * result.standard_deviation_voltage;
-        int32_t ionization_voltage_GDT_lowth_pasp = hv_feedback_volts_to_target_uV(test_results.current_test_params->min_voltage);
-        int32_t ionization_voltage_GDT_highth_pasp = hv_feedback_volts_to_target_uV(test_results.current_test_params->max_voltage);
+        result.res.voltage_uV.standard_deviation = (uint32_t)uint64_sqrt(dispersion_voltage_uV);
+        int32_t ionization_voltage_GDT_lowth = result.res.voltage_uV.mean_value - 3 * result.res.voltage_uV.standard_deviation;
+        int32_t ionization_voltage_GDT_highth = result.res.voltage_uV.mean_value + 3 * result.res.voltage_uV.standard_deviation;
+        int32_t ionization_voltage_GDT_lowth_pasp = hv_feedback_volts_to_target_uV(test_runtime.current_test_params->min_voltage);
+        int32_t ionization_voltage_GDT_highth_pasp = hv_feedback_volts_to_target_uV(test_runtime.current_test_params->max_voltage);
         if ((ionization_voltage_GDT_lowth_pasp < ionization_voltage_GDT_lowth) && 
             (ionization_voltage_GDT_highth_pasp >= ionization_voltage_GDT_highth)) {
             // Если стандартное отклонение напряжения ионизации
@@ -258,8 +239,9 @@ void proccessor_hardwarefail_proccess_for_GDT (void) {
             // считаем разрядник павшим смерью храбрых
             result.pass = false;
         }
-        model_handle_test_result(&result);
-        if (model_get_total_tests() == (test_results.failed_cnt + test_results.passed_cnt)) {
+        memcpy(&test_results[test_runtime.passed_cnt + test_runtime.failed_cnt], &result, sizeof(TestResult_TypeDef));
+        model_handle_test_result();
+        if (model_get_total_tests() == (test_runtime.failed_cnt + test_runtime.passed_cnt)) {
             proccessor_raise_event(TestSequenceFinished);
         } else {
             proccessor_raise_event(TestResultRecorded);

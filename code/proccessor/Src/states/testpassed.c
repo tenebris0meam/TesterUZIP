@@ -1,7 +1,8 @@
 ﻿#include "states/testpassed.h"
+#include "model.h"
 
 void proccessor_testpassed_on_enter (void) {
-    proccessor_record_result(true);
+    model_handle_test_result();
     return;
 }
 

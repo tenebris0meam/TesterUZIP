@@ -23,7 +23,7 @@ void screen_main_on_enter (void) {
 
         case Voltmeter: 
         case Ommeter: 
-            cursor_init(&options_strg[2], 2, 0);
+            cursor_init(&options_strg[3], 1, 0);
             break;
 
         default: return;
@@ -45,12 +45,27 @@ void screen_main_render (void) {
             cur_y += cgxyz.height_px;
             strbuf_clear(&sb);
 
-            const char *str_interface = screen_interface_name(test_results.current_device->connector_id);
+            const char *str_interface = screen_interface_name(test_runtime.current_device->connector_id);
             screen_get_center_from_string(&cur_x, strlen(str_interface));
             fb_draw_string_xy(cur_x, cur_y, str_interface);
 
             screen_get_center_from_string(&cur_x, strlen(TO_TEST_CYRILIC));
             fb_draw_string_xy(cur_x, options_strg[1].y, TO_TEST_CYRILIC);
+
+            strbuf_str(&sb, CHOSING_CYRILIC);
+            strbuf_char(&sb, ' ');
+            strbuf_str(&sb, DEVICES_CYRILIC);
+            screen_get_center_from_string(&cur_x, sb.len);
+            fb_draw_string_xy(cur_x, options_strg[2].y, strbuf_cstr(&sb));
+            strbuf_clear(&sb);
+
+            strbuf_str(&sb, CHOSING_CYRILIC);
+            strbuf_char(&sb, ' ');
+            strbuf_str(&sb, MODEA_CYRILIC);
+            screen_get_center_from_string(&cur_x, sb.len);
+            fb_draw_string_xy(cur_x, options_strg[3].y, strbuf_cstr(&sb));
+            strbuf_clear(&sb);
+
             break;
         }
 
@@ -67,9 +82,24 @@ void screen_main_render (void) {
             fb_draw_string_xy(cur_x, 
                             workspace_start_y + cgxyz.height_px, 
                             strbuf_cstr(&sb));
+            strbuf_clear(&sb);
 
             screen_get_center_from_string(&cur_x, strlen(GENERATION_CYRILIC));
             fb_draw_string_xy(cur_x, options_strg[1].y, GENERATION_CYRILIC);
+
+            strbuf_str(&sb, SETTINGS_CYRILIC);
+            strbuf_char(&sb, ' ');
+            strbuf_str(&sb, GENERATORA_CYRILIC);
+            screen_get_center_from_string(&cur_x, sb.len);
+            fb_draw_string_xy(cur_x, options_strg[2].y, strbuf_cstr(&sb));
+            strbuf_clear(&sb);
+
+            strbuf_str(&sb, CHOSING_CYRILIC);
+            strbuf_char(&sb, ' ');
+            strbuf_str(&sb, MODEA_CYRILIC);
+            screen_get_center_from_string(&cur_x, sb.len);
+            fb_draw_string_xy(cur_x, options_strg[3].y, strbuf_cstr(&sb));
+            strbuf_clear(&sb);
             break;
         }
 
@@ -162,9 +192,6 @@ void screen_main_render (void) {
         }
         default: break;
     }
-
-    screen_get_center_from_string(&cur_x, strlen(SETTINGS_CYRILIC));
-    fb_draw_string_xy(cur_x, options_strg[2].y, SETTINGS_CYRILIC);
 
     cursor_draw_highlight();
     return;

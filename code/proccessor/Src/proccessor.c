@@ -16,6 +16,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 /**
  * @file proccessor.c
@@ -35,7 +36,7 @@
  *                |         ток в норме -> проверка пройдена;
  *                |         ток велик   -> проверка провалена
  *                |
- *          TestPassed / TestFailed    результат лёг в test_results
+ *          TestPassed / TestFailed    результат лёг в test_runtime
  *                |
  *                +-- проверки ещё остались -> Commutation
  *                +-- проверок больше нет   -> TestSequenceComplete -> Idle
@@ -131,7 +132,7 @@ Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin) {
 
 /** @brief Есть ли ещё невыполненные проверки у выбранного прибора. */
 bool proccessor_more_tests_left (void) {
-    uint8_t done = (uint8_t)(test_results.passed_cnt + test_results.failed_cnt);
+    uint8_t done = (uint8_t)(test_runtime.passed_cnt + test_runtime.failed_cnt);
     return (done < model_get_total_tests());
 }
 
@@ -145,9 +146,9 @@ bool proccessor_more_tests_left (void) {
  *          сразу засчитывается как проваленная. 
  */
 bool proccessor_setup_lines (void) {
-    const Params_TestSequence_TypeDef *sequence = test_results.current_sequence;
-    const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_TestSequence_TypeDef *sequence = test_runtime.current_sequence;
+    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
+    const Params_Device_TypeDef *device = test_runtime.current_device;
 
     if ((sequence == NULL) || 
         (device == NULL) || 
@@ -196,7 +197,7 @@ bool proccessor_setup_lines (void) {
  *          делением, и последний шаг не попадал бы точно в MaV.
  */
 bool proccessor_apply_setpoint (void) {
-    const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
+    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
 
     if (testparams == NULL) {
         return false;
@@ -224,20 +225,17 @@ bool proccessor_apply_setpoint (void) {
 }
 
 /** @brief Записать результат очередной проверки в модель. */
-void proccessor_record_result (bool pass) {
-    int32_t voltage_uV = 0;
-    int32_t current_nA = 0;
-    calc_get_test_data(&voltage_uV, &current_nA);
+// void proccessor_record_result (bool pass) {
+//     const CalcMetrics_TypeDef *cur_metrics = calc_get_current_metrics();
 
-    TestResult_TypeDef result;
-    result.sequence_pos = (uint8_t)(test_results.passed_cnt + test_results.failed_cnt);
-    result.device_voltage = voltage_uV;
-    result.device_current = ((current_nA > 0) ? (uint32_t)current_nA : 0U);
-    result.pass = pass;
+//     TestResult_TypeDef result;
+//     result.sequence_pos = (uint8_t)(test_runtime.passed_cnt + test_runtime.failed_cnt);
+//     result.pass = pass;
+//     memcpy(&result.res, cur_metrics, sizeof(CalcMetrics_TypeDef));
 
-    model_handle_test_result(&result);
-    return;
-}
+//     model_handle_test_result(&result);
+//     return;
+// }
 
 /** @brief Что делать после записи результата: следующая проверка или итог. */
 void proccessor_raise_after_result (void) {

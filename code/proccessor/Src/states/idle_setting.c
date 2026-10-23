@@ -22,9 +22,9 @@ void proccessor_idle_on_exit (void) {
     generation_step = 0;
     resolver_set_new_mode(test_config.mode_id);
     if (test_config.mode_id == CheckDevice) {
-        uint8_t TVS_num = test_results.current_device->num_seqs_type0;
-        uint8_t VAR_num = test_results.current_device->num_seqs_type1;
-        uint8_t GDT_num = test_results.current_device->num_seqs_type2;
+        uint8_t TVS_num = test_runtime.current_device->num_seqs_type0;
+        uint8_t VAR_num = test_runtime.current_device->num_seqs_type1;
+        uint8_t GDT_num = test_runtime.current_device->num_seqs_type2;
         if (TVS_num) {
             resolver_set_TVS_VAR();
         } else if (GDT_num) {
@@ -32,6 +32,7 @@ void proccessor_idle_on_exit (void) {
         } else if (VAR_num) {
             resolver_set_TVS_VAR();
         }
+        (void)model_alloc_test_results(TVS_num + VAR_num + GDT_num);
     }
     return;
 }

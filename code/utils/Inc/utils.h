@@ -13,4 +13,6 @@ uint32_t get_val_from_avg (INA239_Avg_t avg_enum);
 MUX_ActiveLine convert_activeline_commutator2mux (Commutator_ActiveLine);
 Commutator_ActiveLine convert_activeline_mux2commutator (MUX_ActiveLine);
 
+uint64_t uint64_sqrt (uint64_t n);
+
 #endif /* UTILS_H */

@@ -38,6 +38,16 @@
 
 extern volatile bool have_new_data;
 
+struct Metric {
+    int32_t mean_value;
+    int32_t standard_deviation;
+};
+
+typedef struct {
+    struct Metric voltage_uV;
+    struct Metric current_nA;
+} CalcMetrics_TypeDef;
+
 bool calc_integrator_Init (void);
 void calc_integrator_set_target_voltage (uint32_t target_voltage_after_div_uV);
 void calc_integrator_set_start_time (void);
@@ -57,5 +67,8 @@ void calc_measurement_update (void);
 /** @brief Данные последнего вынесенного вердикта. */
 void calc_get_test_data (int32_t *voltage, int32_t *current);
 bool calc_is_voltage_achieved (void);
+
+
+const CalcMetrics_TypeDef *calc_get_current_metrics (void);
 
 #endif /* CALC_H */

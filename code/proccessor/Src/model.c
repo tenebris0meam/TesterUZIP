@@ -1,21 +1,25 @@
 ﻿#include "model.h"
+#include "calc.h"
 #include "params.h"
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 TestConfig_TypeDef test_config = { 0 };
-TestRuntime_TypeDef test_results = { 0 };
+TestRuntime_TypeDef test_runtime = { 0 };
+TestResult_TypeDef *test_results;
 
 
 
 /** @brief Позиция очередной невыполненной проверки. */
 static uint8_t model_next_position (void) {
-    return (uint8_t)(test_results.passed_cnt + test_results.failed_cnt);
+    return (uint8_t)(test_runtime.passed_cnt + test_runtime.failed_cnt);
 }
 
 static uint8_t model_get_TVS_tests_num (void) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return UINT8_MAX;
     }
@@ -23,7 +27,7 @@ static uint8_t model_get_TVS_tests_num (void) {
 }
 
 static uint8_t model_get_VAR_tests_num (void) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return UINT8_MAX;
     }
@@ -31,15 +35,34 @@ static uint8_t model_get_VAR_tests_num (void) {
 }
 
 static uint8_t model_get_GDT_tests_num (void) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return UINT8_MAX;
     }
     return device->num_seqs_type2;
 }
 
-void model_point_to (uint8_t pos) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+bool model_alloc_test_results (const uint8_t num_tests) {
+    if (num_tests >= MODEL_MAX_TESTS) {
+        return false;
+    }
+
+    test_results = (TestResult_TypeDef *)malloc(num_tests * sizeof(TestResult_TypeDef));
+    if (test_results) {
+        memset(test_results, 0, num_tests * sizeof(TestResult_TypeDef));
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void model_dealloc_test_results (void) {
+    free(test_results);
+    return;
+}
+
+void model_point_to (const uint8_t pos) {
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return;
     }
@@ -48,23 +71,23 @@ void model_point_to (uint8_t pos) {
     uint8_t VAR_num = device->num_seqs_type1;
     uint8_t GDT_num = device->num_seqs_type2;
     if (TVS_num && (pos < TVS_num)) {
-        test_results.current_type = TransientVoltageSupressor;
+        test_runtime.current_type = (uint8_t)TransientVoltageSupressor;
         resolver_set_TVS_VAR();
     } else if (VAR_num && (pos < TVS_num + VAR_num)) {
-        test_results.current_type = Varistor;
+        test_runtime.current_type = (uint8_t)Varistor;
         resolver_set_TVS_VAR();
     } else if (GDT_num && (pos < TVS_num + VAR_num + GDT_num)) {
-        test_results.current_type = GasDischargeTube;
+        test_runtime.current_type = (uint8_t)GasDischargeTube;
         resolver_set_GDT();
     }
 
-    test_results.current_sequence = model_get_sequence_at(pos, test_results.current_type);
-    test_results.current_test_params = model_get_testparams_at(pos, test_results.current_type);
+    test_runtime.current_sequence = model_get_sequence_at(pos, (const ResolveType)test_runtime.current_type);
+    test_runtime.current_test_params = model_get_testparams_at(pos, (const ResolveType)test_runtime.current_type);
     return;
 }
 
-const Params_TestSequence_TypeDef *model_get_sequence_at (uint8_t pos, ResolveType type) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+const Params_TestSequence_TypeDef *model_get_sequence_at (const uint8_t pos, const ResolveType type) {
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return 0;
     }
@@ -107,8 +130,8 @@ const Params_TestSequence_TypeDef *model_get_sequence_at (uint8_t pos, ResolveTy
     return params_get_sequence(&params, seq_idx);
 }
 
-const Params_TestParam_TypeDef *model_get_testparams_at (uint8_t pos, ResolveType type) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+const Params_TestParam_TypeDef *model_get_testparams_at (const uint8_t pos, const ResolveType type) {
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return 0;
     }
@@ -164,7 +187,7 @@ const Params_TestParam_TypeDef *model_get_testparams_at (uint8_t pos, ResolveTyp
 }
 
 uint8_t model_get_total_tests (void) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return 0;
     }
@@ -175,27 +198,35 @@ uint8_t model_get_total_tests (void) {
 }
 
 void model_reset_results (void) {
-    test_results.done_mask = 0;
-    test_results.pass_mask = 0;
-    test_results.passed_cnt = 0;
-    test_results.failed_cnt = 0;
-    test_results.fail_was = false;
+    test_runtime.done_mask = 0;
+    test_runtime.pass_mask = 0;
+    test_runtime.passed_cnt = 0;
+    test_runtime.failed_cnt = 0;
+    test_runtime.fail_was = false;
     model_point_to(0);
+    model_dealloc_test_results();
     return;
 }
 
-void model_select_device (uint8_t device_idx) {
-    test_results.current_device = params_get_device(&params, device_idx);
+void model_select_device (const uint8_t device_idx) {
+    test_runtime.current_device = params_get_device(&params, device_idx);
     test_config.device_id = device_idx;
-    if (test_results.current_device != 0) {
-        test_config.series_id = test_results.current_device->seria_idx;
-        test_config.group_id = test_results.current_device->group_idx;
+    if (test_runtime.current_device != 0) {
+        test_config.series_id = test_runtime.current_device->seria_idx;
+        test_config.group_id = test_runtime.current_device->group_idx;
     }
     model_reset_results();
     return;
 }
 
-void model_change_mode (Modes_TypeDef new_mode) {
+void model_remember_result (void) {
+    uint8_t cur_idx = test_runtime.passed_cnt + test_runtime.failed_cnt;
+    const CalcMetrics_TypeDef *cur_metrics = calc_get_current_metrics();
+    memcpy(&test_results[cur_idx].res, cur_metrics, sizeof(CalcMetrics_TypeDef));
+    return;
+}
+
+void model_change_mode (const Modes_TypeDef new_mode) {
     if (new_mode >= Modes_Count) {
         return;
     }
@@ -209,12 +240,8 @@ void model_init (void) {
     return;
 }
 
-void model_handle_test_result (const TestResult_TypeDef *result) {
-    if (result == 0) {
-        return;
-    }
-
-    uint8_t pos = result->sequence_pos;
+void model_handle_test_result (void) {
+    uint8_t pos = test_runtime.passed_cnt + test_runtime.failed_cnt;
     if (pos >= MODEL_MAX_TESTS) {
         return;
     }
@@ -223,18 +250,18 @@ void model_handle_test_result (const TestResult_TypeDef *result) {
     }
 
     uint32_t bit = (uint32_t)1UL << pos;
-    if (test_results.done_mask & bit) {
+    if (test_runtime.done_mask & bit) {
         /* Повторный результат по той же позиции не засчитываем дважды */
         return;
     }
-    test_results.done_mask |= bit;
+    test_runtime.done_mask |= bit;
 
-    if (result->pass) {
-        test_results.pass_mask |= bit;
-        test_results.passed_cnt++;
+    if (test_results[pos].pass) {
+        test_runtime.pass_mask |= bit;
+        test_runtime.passed_cnt++;
     } else {
-        test_results.fail_was = true;
-        test_results.failed_cnt++;
+        test_runtime.fail_was = true;
+        test_runtime.failed_cnt++;
     }
 
     /* Переходим к следующей проверке; если она была последней - сбрасываем */
@@ -242,20 +269,20 @@ void model_handle_test_result (const TestResult_TypeDef *result) {
     return;
 }
 
-bool model_is_test_done (uint8_t pos) {
+bool model_is_test_done (const uint8_t pos) {
     if (pos >= MODEL_MAX_TESTS) {
         return false;
     }
-    return (bool)((test_results.done_mask >> pos) & 1UL);
+    return (bool)((test_runtime.done_mask >> pos) & 1UL);
 }
 
-bool model_is_test_passed (uint8_t pos) {
+bool model_is_test_passed (const uint8_t pos) {
     if (pos >= MODEL_MAX_TESTS) {
         return false;
     }
-    return (bool)((test_results.pass_mask >> pos) & 1UL);
+    return (bool)((test_runtime.pass_mask >> pos) & 1UL);
 }
 
-bool model_is_test_failed (uint8_t pos) {
+bool model_is_test_failed (const uint8_t pos) {
     return (model_is_test_done(pos) && !model_is_test_passed(pos));
 }

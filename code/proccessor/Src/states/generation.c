@@ -3,7 +3,9 @@
 #include "delay.h"
 #include "display.h"
 #include "ina239.h"
+#include "keyboard.h"
 #include "proccessor.h"
+#include "screens.h"
 #include "spi.h"
 #include "system_stm32f1xx.h"
 #include "tim.h"
@@ -22,6 +24,8 @@
 
 uint8_t delay_step = 0;
 bool data_was = false;
+static uint8_t num_pressed_cancel = 0;
+static const uint8_t need_num_pressed_cancel = 3;
 
 /** @brief Переменные для хранения порогов напряжения устройства */
 int32_t voltage_lowth_uV = 0;
@@ -53,10 +57,22 @@ static bool is_data_old (void) {
     }
 }
 
+static void proccess_user_test_deny (void) {
+    static Keyboard_ActiveButton prev_active = NoActive;
+    Keyboard_ActiveButton cur_active = keyboard_get_active_button();
+    if (cur_active != prev_active) {
+        if (cur_active == CancelActive) {
+            num_pressed_cancel++;
+        }
+        prev_active = cur_active;
+    }
+    return;
+}
+
 
 
 void proccessor_generation_on_enter_checkdevice (void) {
-    calc_reset_integrator();
+    // calc_reset_integrator();
     if (!calc_integrator_Init()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
@@ -71,7 +87,7 @@ void proccessor_generation_on_enter_checkdevice (void) {
     */
     TIM1_set_CCR_value(0);
 
-    const Params_TestParam_TypeDef *testparams = test_results.current_test_params;
+    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
     calc_integrator_set_target_voltage(
         hv_feedback_volts_to_target_uV(testparams->min_voltage));
 
@@ -100,14 +116,7 @@ void proccessor_generation_on_exit_checkdevice_default (void) {
     INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
     delay_unregister_task(delay_step);
-    /*
-     * Интегратор здесь НЕ сбрасываем, хотя напрашивается. Главный цикл
-     * вызывает on_exit прежнего состояния до on_enter нового, а нового -
-     * TestPassed или TestFailed - первым делом читает calc_get_test_data().
-     * Сброс на этом месте обнулял бы напряжение и ток ровно перед тем, как
-     * их запишут, и в протокол ложились бы нули. Сбрасывает тот, кто
-     * начинает следующую генерацию, - proccessor_generation_on_enter().
-     */
+    calc_reset_integrator();
     return;
 }
 
@@ -142,13 +151,16 @@ void proccessor_generation_proccess_checkdevice_default (void) {
                  * когда ток был в диапазоне
                  */
                 proccessor_raise_event(DeviceCurrentWithinTheRange);
+                model_remember_result();
             } else {
                 /* Ток превысил верхний порог и напряжение не в диапазоне. Поломка */
                 proccessor_raise_event(DeviceCurrentOverCurrent);
+                model_remember_result();
             }
         } else if (voltage_uV >= voltage_highth_uV) {
             /* Напряжение превысило максимальное значение, точно поломка */
             proccessor_raise_event(DeviceVoltageOverVoltage);
+            model_remember_result();
         } else if (voltage_uV < voltage_lowth_uV) {
             /* Напряжение не достигло минимального значения, ждём ещё */
             proccessor_raise_event(DeviceVoltageUnderVoltage);
@@ -160,21 +172,31 @@ void proccessor_generation_proccess_checkdevice_default (void) {
             } else {
                 /* Ток устройства в диапазоне тока теста */
                 proccessor_raise_event(DeviceCurrentWithinTheRange);
+                model_remember_result();
             }
         }
     } else if (is_data_old()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
     }
+    proccess_user_test_deny();
     return;
 }
 
 State proccessor_generation_handle_event_checkdevice_default (Event event) {
+    if (num_pressed_cancel == need_num_pressed_cancel) { 
+        proccessor_force_raise_event(ReturnToIdle); 
+    }
+
     switch (event) {
-        case DeviceCurrentWithinTheRange: return TestPassed;
+        case DeviceCurrentWithinTheRange: 
+            num_pressed_cancel = 0;
+            return TestPassed;
 
         case DeviceVoltageOverVoltage:
-        case DeviceCurrentOverCurrent: return TestFailed;
+        case DeviceCurrentOverCurrent: 
+            num_pressed_cancel = 0;
+            return TestFailed;
 
         case DeviceCurrentUnderCurrent: 
         case DeviceVoltageUnderVoltage: 
@@ -182,6 +204,7 @@ State proccessor_generation_handle_event_checkdevice_default (Event event) {
                 if (calc_is_voltage_achieved()) {
                     generation_step++;
                     if (!proccessor_apply_setpoint()) {
+                        num_pressed_cancel = 0;
                         return TestFailed;
                     } else {
                         delay_update_task(delay_step);
@@ -191,12 +214,23 @@ State proccessor_generation_handle_event_checkdevice_default (Event event) {
                     return Generation;
                 }
             } else {
+                num_pressed_cancel = 0;
                 return TestFailed;
             }
 
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            num_pressed_cancel = 0;
+            return HardwareFail;
 
-        case ReturnToIdle: return TestSequenceComplete;
+        case ReturnToIdle:
+            if (num_pressed_cancel == need_num_pressed_cancel) {
+                num_pressed_cancel = 0;
+                display_set_screen(ScreenTestDenied);
+                display_allow_render();
+                return Idle_Setting;
+            }
+            num_pressed_cancel = 0;
+            return TestSequenceComplete;
 
         default: return Generation;
     }
@@ -242,6 +276,7 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
             /* Напряжение генерации не достигло напряжения ионизации газа, ждём ещё */
             proccessor_raise_event(DeviceVoltageUnderVoltage);
         }
+    proccess_user_test_deny();
     // } else if (is_data_old()) {
     //     proccessor_shutdown_generation();
     //     proccessor_raise_event(ReturnToIdle);
@@ -262,23 +297,38 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
                     } else if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
                         voltage_max_buf[test_id] = 0;
                         test_id++;
+                        num_pressed_cancel = 0;
                         return Commutation;
                     } else {
                         test_id = 0;
+                        num_pressed_cancel = 0;
                         return TestFailed;
                     }
                 } else {
                     return Generation;
                 }
             } else {
+                num_pressed_cancel = 0;
                 return TestFailed;
             }
 
-        case DeviceVoltageOverVoltage: return TestFailed;
+        case DeviceVoltageOverVoltage: 
+            num_pressed_cancel = 0;
+            return TestFailed;
 
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            num_pressed_cancel = 0;
+            return HardwareFail;
 
-        case ReturnToIdle: return TestSequenceComplete;
+        case ReturnToIdle:
+            if (num_pressed_cancel == need_num_pressed_cancel) {
+                display_set_screen(ScreenTestDenied);
+                display_allow_render();
+                num_pressed_cancel = 0;
+                return Idle_Setting;
+            }
+            num_pressed_cancel = 0;
+            return TestSequenceComplete;
 
         default: return Generation;
     }
@@ -291,14 +341,7 @@ void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
     commutator_deny_commutation();
     data_was = false;
     delay_unregister_task(delay_step);
-    /*
-     * Интегратор здесь НЕ сбрасываем, хотя напрашивается. Главный цикл
-     * вызывает on_exit прежнего состояния до on_enter нового, а нового -
-     * TestPassed или TestFailed - первым делом читает calc_get_test_data().
-     * Сброс на этом месте обнулял бы напряжение и ток ровно перед тем, как
-     * их запишут, и в протокол ложились бы нули. Сбрасывает тот, кто
-     * начинает следующую генерацию, - proccessor_generation_on_enter().
-     */
+    calc_reset_integrator();
     return;
 }
 
@@ -365,7 +408,7 @@ static void ommeter_set_status (OmmeterStatus status) {
 void proccessor_generation_on_enter_voltmeter (void) {
     proccessor_shutdown_generation();
     have_new_data = false;
-    calc_reset_integrator();
+    // calc_reset_integrator();
     if (INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(),
                                           (int16_t)SOVL_RAW) != INA239_OK ||
         INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS) != INA239_OK) {
@@ -381,6 +424,7 @@ void proccessor_generation_on_exit_voltmeter (void) {
     (void)INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
     data_was = false;
+    calc_reset_integrator();
     return;
 }
 
@@ -427,7 +471,7 @@ State proccessor_generation_handle_event_voltmeter (Event event) {
 
 
 void proccessor_generation_on_enter_ommeter (void) {
-    calc_reset_integrator();
+    // calc_reset_integrator();
     have_new_data = false;
     window_init(&ommeter_current_window, 
                 sizeof(int32_t), 
@@ -471,6 +515,7 @@ void proccessor_generation_on_exit_ommeter (void) {
     commutator_deny_commutation();
     have_new_data = false;
     window_reset(&ommeter_current_window);
+    calc_reset_integrator();
     return;
 }
 
@@ -573,7 +618,7 @@ int32_t proccessor_ommeter_get_resistance_ohm (void) {
 
 
 void proccessor_generation_on_enter_generator (void) {
-    calc_reset_integrator();
+    // calc_reset_integrator();
     have_new_data = false;
     generation_step = 0U;
     TIM1_set_CCR_value(0U);
@@ -613,6 +658,7 @@ void proccessor_generation_on_exit_generator (void) {
     (void)INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
     /* Keep the 1 mA threshold until HardwareFail has read the latched alert. */
+    calc_reset_integrator();
     return;
 }
 

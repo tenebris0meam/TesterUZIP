@@ -155,7 +155,7 @@ void screen_append_mystring (StrBuf_TypeDef *sb, const MyString *name) {
 
 /** @brief Дописать имя выбранного прибора. */
 void screen_append_device_name (StrBuf_TypeDef *sb) {
-    const Params_Device_TypeDef *device = test_results.current_device;
+    const Params_Device_TypeDef *device = test_runtime.current_device;
     if (device == 0) {
         return;
     }
@@ -178,17 +178,17 @@ void screen_get_center_from_string (uint8_t *center_x_px,
 void screen_append_pins (StrBuf_TypeDef *sb, 
                                 const Params_TestSequence_TypeDef *sequence) {
     strbuf_char(sb, '(');
-    strbuf_u32(sb, (sequence != 0) ? sequence->input_pin : 0, 0);
+    strbuf_u32(sb, (sequence != 0) ? sequence->input_pin + 1 : 0, 0);
     strbuf_char(sb, ',');
-    strbuf_u32(sb, (sequence != 0) ? sequence->output_pin : 0, 0);
+    strbuf_u32(sb, (sequence != 0) ? sequence->output_pin + 1 : 0, 0);
     strbuf_char(sb, ')');
     return;
 }
 
 /** @brief Заголовок вида "Выбор устройства". */
 void screen_draw_title (StrBuf_TypeDef *sb, 
-                               const char *first_word, 
-                               const char *second_word) {
+                        const char *first_word, 
+                        const char *second_word) {
     uint8_t cur_x;
     strbuf_clear(sb);
     strbuf_str(sb, first_word);

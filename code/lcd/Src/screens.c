@@ -8,7 +8,6 @@
 #include "strbuf.h"
 #include "screens/screen_hello.h"
 #include "screens/screen_main.h"
-#include "screens/screen_modes.h"
 #include "screens/screen_testconfirm.h"
 #include "screens/screen_testrunning.h"
 #include "screens/screen_testdenied.h"
@@ -18,8 +17,12 @@
 #include "screens/screen_checkdevice_groups.h"
 #include "screens/screen_checkdevice_devices.h"
 #include "screens/screen_hardware_fail.h"
+
+#ifdef TESTER_MODES
+#include "screens/screen_modes.h"
 #include "screens/screen_generator_settings.h"
 #include "screens/screen_generator_generation.h"
+#endif
 
 #include <stdint.h>
 
@@ -66,12 +69,14 @@ const Screen_TypeDef screens[ScreenCount] = {
         .render = screen_testdata_render,
         .handle_event = screen_testdata_handle_event
     },
+#ifdef TESTER_MODES
     [ScreenModes] = {
         .on_enter = screen_modes_on_enter,
         .on_exit = screen_modes_on_exit,
         .render = screen_modes_render,
         .handle_event = screen_modes_handle_event
     },
+#endif
     [ScreenCheckdeviceSeries] = {
         .on_enter = screen_checkdevice_series_on_enter,
         .on_exit = screen_checkdevice_series_on_exit,
@@ -96,6 +101,7 @@ const Screen_TypeDef screens[ScreenCount] = {
         .render = screen_hardwarefail_render,
         .handle_event = screen_hardwarefail_handle_event
     },
+#ifdef TESTER_MODES
     [ScreenGeneratorSettings] = {
         .on_enter = screen_generator_settings_on_enter,
         .on_exit = screen_generator_settings_on_exit,
@@ -108,6 +114,7 @@ const Screen_TypeDef screens[ScreenCount] = {
         .render = screen_generator_generation_render,
         .handle_event = screen_generator_generation_handle_event
     }
+#endif
 };
 
 

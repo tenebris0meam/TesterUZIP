@@ -31,6 +31,7 @@ typedef struct {
     CalcMetrics_TypeDef res;
     uint8_t sequence_pos;       /**< позиция проверки, 0..MODEL_MAX_TESTS-1 */
     bool pass;
+    uint8_t type;
 } TestResult_TypeDef;
 
 /** @brief Ход текущей проверки прибора. */
@@ -92,6 +93,6 @@ bool model_alloc_test_results (const uint8_t num_tests);
 
 void model_dealloc_test_results (void);
 
-void model_remember_result (void);
+void model_remember_result (const ResolveType type);
 
 #endif /* MODEL_H_ */

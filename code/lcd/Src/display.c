@@ -13,14 +13,10 @@ static ScreenID current_screen = ScreenHello;
 static bool is_render_allowed = true;
 
 static inline void display_draw_buffer (void) {
-    static uint8_t bank_id = 0;
-    fb_begin_band(bank_id);
-    screens[current_screen].render();
-    fb_flush_band();
-    if (bank_id == FB_BANKS - 1) {
-        bank_id = 0;
-    } else {
-        bank_id++;
+    for (uint8_t bank_id = 0; bank_id < FB_BANKS; bank_id++) {
+        fb_begin_band(bank_id);
+        screens[current_screen].render();
+        fb_flush_band();
     }
     return;
 }

@@ -1,14 +1,10 @@
 ﻿#include "resolver.h"
-#include "commutation.h"
 #include "hv_feedback.h"
 #include "model.h"
 #include "params.h"
 #include "proccessor.h"
 #include "states/generation.h"
 #include "states/hardware_fail.h"
-#include "testfailed.h"
-#include "testpassed.h"
-#include "testsequence_complete.h"
 
 /* -------------------------------------------------------------------- */
 /* ----------------------- Public Functions --------------------------- */
@@ -44,6 +40,13 @@ void resolver_fill_thresholds_with_current_testparams (void) {
 
     return;
 }
+
+#ifdef TESTER_MODES
+
+#include "commutation.h"
+#include "testfailed.h"
+#include "testpassed.h"
+#include "testsequence_complete.h"
 
 void resolver_set_new_mode (Modes_TypeDef new_mode) {
     switch (new_mode) {
@@ -120,3 +123,4 @@ void resolver_set_new_mode (Modes_TypeDef new_mode) {
         default: return;
     }
 }
+#endif

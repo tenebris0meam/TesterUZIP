@@ -15,7 +15,8 @@
 #define CALC_WINDOW_LENGTH (4)
 #define CALC_WINDOW_LENGTH_POWER2 (2)
 
-#define CALC_DERIVATIVE_VOLTAGE_MAX (137470804LL) // 1000 V/s с учётом делителя напряжения
+// #define CALC_DERIVATIVE_VOLTAGE_MAX (137470804LL) // 1000 V/s с учётом делителя напряжения
+#define CALC_DERIVATIVE_VOLTAGE_MAX (68807339LL) // 500 V/s с учётом делителя напряжения
 
 
 
@@ -87,12 +88,8 @@ static int32_t calc_get_standard_deviation_from_window (Window_TypeDef *window, 
         int64_t cur_delta = (int64_t)*((int32_t *)window->buf + i) - (int64_t)mean_val;
         acc += cur_delta * cur_delta;
     }
-    if (window->cnt && (window->cnt - 1)) {
-        acc /= (int64_t)(window->cnt - 1);
-        return (int32_t)uint64_sqrt(acc);
-    } else {
-        return 0L;
-    }
+    acc /= window->num_elements - 1;
+    return (int32_t)uint64_sqrt(acc);
 }
 
 static inline void calc_update_metrics (void) {
@@ -244,6 +241,15 @@ void calc_get_test_data (int32_t *voltage, int32_t *current) {
         *current = metrics.current_nA.mean_value;
     }
     return;
+}
+
+void calc_get_last_raw_data (int32_t *voltage_raw, int32_t *current_raw) {
+    if (voltage_raw) {
+        *voltage_raw = *((int32_t *)voltage_window.buf + (CALC_WINDOW_LENGTH - 1));
+    }
+    if (current_raw) {
+        *current_raw = *((int32_t *)current_window.buf + (CALC_WINDOW_LENGTH - 1));
+    }
 }
 
 bool calc_is_voltage_achieved (void) {

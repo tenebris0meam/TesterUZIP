@@ -14,7 +14,6 @@
 #include "ina239_user.h"
 #include "hv_feedback.h"
 #include "stm32f1xx_ll_tim.h"
-#include "window.h"
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -72,7 +71,6 @@ static void proccess_user_test_deny (void) {
 
 
 void proccessor_generation_on_enter_checkdevice (void) {
-    // calc_reset_integrator();
     if (!calc_integrator_Init()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
@@ -112,6 +110,7 @@ void proccessor_generation_on_enter_checkdevice (void) {
 }
 
 void proccessor_generation_on_exit_checkdevice_default (void) {
+    model_remember_result((ResolveType)test_runtime.current_type);
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
@@ -151,16 +150,13 @@ void proccessor_generation_proccess_checkdevice_default (void) {
                  * когда ток был в диапазоне
                  */
                 proccessor_raise_event(DeviceCurrentWithinTheRange);
-                model_remember_result();
             } else {
                 /* Ток превысил верхний порог и напряжение не в диапазоне. Поломка */
                 proccessor_raise_event(DeviceCurrentOverCurrent);
-                model_remember_result();
             }
         } else if (voltage_uV >= voltage_highth_uV) {
             /* Напряжение превысило максимальное значение, точно поломка */
             proccessor_raise_event(DeviceVoltageOverVoltage);
-            model_remember_result();
         } else if (voltage_uV < voltage_lowth_uV) {
             /* Напряжение не достигло минимального значения, ждём ещё */
             proccessor_raise_event(DeviceVoltageUnderVoltage);
@@ -172,7 +168,6 @@ void proccessor_generation_proccess_checkdevice_default (void) {
             } else {
                 /* Ток устройства в диапазоне тока теста */
                 proccessor_raise_event(DeviceCurrentWithinTheRange);
-                model_remember_result();
             }
         }
     } else if (is_data_old()) {
@@ -264,7 +259,7 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
         }
 
         int32_t current_nA, voltage_uV;
-        calc_get_test_data(&voltage_uV, &current_nA);
+        calc_get_last_raw_data(&voltage_uV, &current_nA);
         if (voltage_max_uV < voltage_uV) {
             voltage_max_uV = voltage_uV;
         }
@@ -276,12 +271,11 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
             /* Напряжение генерации не достигло напряжения ионизации газа, ждём ещё */
             proccessor_raise_event(DeviceVoltageUnderVoltage);
         }
-    proccess_user_test_deny();
-    // } else if (is_data_old()) {
-    //     proccessor_shutdown_generation();
-    //     proccessor_raise_event(ReturnToIdle);
-    //     return;
+    } else if (is_data_old()) {
+        proccessor_shutdown_generation();
+        proccessor_raise_event(ReturnToIdle);
     }
+    proccess_user_test_deny();
     return;
 }
 
@@ -335,6 +329,7 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
 }
 
 void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
+    model_remember_result(GasDischargeTube);
     proccessor_force_shutdown_generation();
     TIM3_Stop_Count();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
@@ -349,10 +344,12 @@ void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
 
 
 
-
+#ifdef TESTER_MODES
 /* -------------------------------------------------------------------------- */
 /* Standalone operating modes                                                 */
 /* -------------------------------------------------------------------------- */
+
+#include "window.h"
 
 #define OMMETER_WINDOW_LENGTH          (32U)
 #define MANUAL_MEASUREMENT_TIMEOUT_MS  (20U)
@@ -709,3 +706,4 @@ State proccessor_generation_handle_event_generator (Event event) {
         default: return Generation;
     }
 }
+#endif

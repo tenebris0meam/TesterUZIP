@@ -2,16 +2,7 @@
 #include "framebuffer.h"
 #include <stdlib.h>
 
-
-
 Cursor_TypeDef cursor = { 0 };
-
-// const OptionRect_TypeDef options_in_list[CURSOR_VISIBLE_ROWS] = {
-//     { .x = 1, .y = 19, .w = 126, .h = 13 }, 
-//     { .x = 1, .y = 32, .w = 126, .h = 13 }, 
-//     { .x = 1, .y = 45, .w = 126, .h = 13 } 
-// };
-
 
 OptionRect_TypeDef *options_strg = 0;
 uint32_t options_amount = 0;

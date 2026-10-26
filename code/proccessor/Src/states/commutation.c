@@ -40,12 +40,13 @@ void proccessor_commutation_on_enter_checkdevice (void) {
     commutator_allow_commutation();
     return;
 }
-
+#ifdef TESTER_MODES
 void proccessor_commutation_on_enter_probe (void) {
     commutator_set_active_interface(Probe);
     commutator_allow_commutation();
     return;
 }
+#endif
 
 void proccessor_commutation_on_exit (void) {
     display_deny_render();

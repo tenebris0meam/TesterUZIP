@@ -34,7 +34,8 @@ extern "C" {
 // формула 819,2e6 * SHUNT_CURRENT_LSB * SHUNT_RESISTANCE_Ohm
 #if defined DEBUG
 #define SHUNT_CAL_RAW   0x0339L
-#define SOVL_RAW        0x7530L // 150 mV limit, 160mV/5uV = 32000
+// #define SOVL_RAW        0x7530L // 150 mV limit, 160mV/5uV = 32000
+#define SOVL_RAW        0x2260L // 44 mV limit, 44mV/5uV = 8800
 #else 
 #define SHUNT_CAL_RAW   0x0F5CUL // CURRENT_LSB = 32 nA/LSB, SHUNT_CAL = 3932
 #define SOVL_RAW        0x7D00L // 150 mV limit, 160mV/5uV = 32000

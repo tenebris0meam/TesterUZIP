@@ -7,13 +7,13 @@
 #include "delay.h"
 #include "main.h"
 #include "proccessor.h"
+#include "resolver.h"
 #include "stm32f1xx_ll_tim.h"
 #include "model.h"
 #include "states/generation.h"
-#include "hv_feedback.h"
 #include "tim.h"
 #include "utils.h"
-#include <string.h>
+#include <stdint.h>
 
 void proccessor_hardwarefail_on_enter_default (void) {
     /*
@@ -182,7 +182,12 @@ void proccessor_hardwarefail_on_enter_for_GDT (void) {
         // Если была ошибка переполнения, то засчитываем успешный тест
         // АЦП INA239 зашкалило от броска тока 
         // и в регистр VSHNT попало переполненное значение
-        voltage_max_buf[test_id] = voltage_max_uV;
+        
+        // в среднем измерения опаздывают от фактического значения на 10-20 мс
+        // т.е. при ограниченном нарастании напряжения, мы не можем ошибиться более чем на 10-20 В в минус
+        // компенсируем с помощью оффсета
+        int32_t voltage_offset_uV = 1000000L;
+        voltage_max_buf[test_id] = voltage_max_uV + voltage_offset_uV;
         test_id++;
     }
     // не забыть сбросить значение максимального напряжения
@@ -206,50 +211,47 @@ void proccessor_hardwarefail_on_exit_for_GDT (void) {
     return;
 }
 
+
+
+static inline int32_t get_average_from_buf (int32_t *buf, uint32_t num_el_buf) {
+    int64_t acc = 0;
+    for (uint32_t i = 0; i < num_el_buf; i++) {
+        acc += (int64_t)buf[i];
+    }
+    acc /= (int64_t)num_el_buf;
+    return (int32_t)acc;
+}
+
+static inline int32_t get_standard_deviation_from_buf (int32_t *buf, uint32_t num_el_buf, int32_t mean_val) {
+    int64_t acc = 0;
+    for (uint32_t i = 0; i < num_el_buf; i++) {
+        int64_t cur_delta = (int64_t)buf[i] - (int64_t)mean_val;
+        acc += cur_delta * cur_delta;
+    }
+    acc /= (int64_t)(num_el_buf - 1);
+    return (int32_t)uint64_sqrt(acc);
+}
+
 void proccessor_hardwarefail_proccess_for_GDT (void) {
     if (test_id >= MAX_TESTS_FOR_ONE_GDT) {
-        TestResult_TypeDef result = { 0 };
-        result.sequence_pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
-        for (uint8_t i = 0; i < MAX_TESTS_FOR_ONE_GDT; i++) {
-            result.res.voltage_uV.mean_value += voltage_max_buf[i];
-        }
-        result.res.voltage_uV.mean_value /= MAX_TESTS_FOR_ONE_GDT;
-
-        int64_t dispersion_voltage_uV = 0;
-        for (uint8_t i = 0; i < MAX_TESTS_FOR_ONE_GDT; i++) {
-            int32_t delta_voltage_uV = voltage_max_buf[i] - result.res.voltage_uV.mean_value;
-            int64_t delta_voltage_uV_sqr = (int64_t)delta_voltage_uV * (int64_t)delta_voltage_uV;
-            dispersion_voltage_uV += delta_voltage_uV_sqr;
-        }
-        dispersion_voltage_uV /= MAX_TESTS_FOR_ONE_GDT - 1;
-
-        result.res.voltage_uV.standard_deviation = (uint32_t)uint64_sqrt(dispersion_voltage_uV);
-        int32_t ionization_voltage_GDT_lowth = result.res.voltage_uV.mean_value - 3 * result.res.voltage_uV.standard_deviation;
-        int32_t ionization_voltage_GDT_highth = result.res.voltage_uV.mean_value + 3 * result.res.voltage_uV.standard_deviation;
-        int32_t ionization_voltage_GDT_lowth_pasp = hv_feedback_volts_to_target_uV(test_runtime.current_test_params->min_voltage);
-        int32_t ionization_voltage_GDT_highth_pasp = hv_feedback_volts_to_target_uV(test_runtime.current_test_params->max_voltage);
-        if ((ionization_voltage_GDT_lowth_pasp < ionization_voltage_GDT_lowth) && 
-            (ionization_voltage_GDT_highth_pasp >= ionization_voltage_GDT_highth)) {
-            // Если стандартное отклонение напряжения ионизации
-            // не превысило пороги по паспорту, то считаем тест 
-            // пройденным
-            result.pass = true;
-        } else {
-            // Стандартное отклонение вышло за порог по паспорту
-            // считаем разрядник павшим смерью храбрых
-            result.pass = false;
-        }
-        memcpy(&test_results[test_runtime.passed_cnt + test_runtime.failed_cnt], &result, sizeof(TestResult_TypeDef));
+        uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
+        test_results[pos].sequence_pos = pos;
+        test_results[pos].type = (uint8_t)GasDischargeTube;
+        test_results[pos].res.voltage_uV.mean_value = 
+            get_average_from_buf(voltage_max_buf, 
+                                 MAX_TESTS_FOR_ONE_GDT);
+        test_results[pos].res.voltage_uV.standard_deviation = 
+            get_standard_deviation_from_buf(voltage_max_buf, 
+                                            MAX_TESTS_FOR_ONE_GDT, 
+                                            test_results[pos].res.voltage_uV.mean_value);
+        test_results[pos].res.current_nA.mean_value = INT32_MAX;
         model_handle_test_result();
-        if (model_get_total_tests() == (test_runtime.failed_cnt + test_runtime.passed_cnt)) {
-            proccessor_raise_event(TestSequenceFinished);
-        } else {
-            proccessor_raise_event(TestResultRecorded);
-        }
+        proccessor_raise_after_result();
         test_id = 0;
         return;
     } else {
         proccessor_raise_event(DeviceCurrentWithinTheRange);
+        return;
     }
 }
 

@@ -20,7 +20,9 @@ void proccessor_idle_on_exit (void) {
      */
     model_reset_results();
     generation_step = 0;
+#ifdef TESTER_MODES
     resolver_set_new_mode(test_config.mode_id);
+#endif 
     if (test_config.mode_id == CheckDevice) {
         uint8_t TVS_num = test_runtime.current_device->num_seqs_type0;
         uint8_t VAR_num = test_runtime.current_device->num_seqs_type1;

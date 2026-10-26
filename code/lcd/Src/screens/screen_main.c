@@ -1,9 +1,5 @@
 ﻿#include "screens/screen_main.h"
 #include "cursor.h"
-#include "generation.h"
-#include "proccessor.h"
-#include "resolver.h"
-#include "calc.h"
 #include "screens.h"
 #include "strbuf.h"
 #include "framebuffer.h"
@@ -13,8 +9,18 @@
 
 #include <string.h>
 
+#ifdef TESTER_MODES
+#include "generation.h"
+#include "proccessor.h"
+#include "resolver.h"
+#include "calc.h"
+#endif
+
 
 void screen_main_on_enter (void) {
+#ifndef TESTER_MODES
+    cursor_init(&options_strg[1], 2, 0);
+#else
     switch (test_config.mode_id) {
         case CheckDevice: 
         case VoltageGenerator:
@@ -28,6 +34,7 @@ void screen_main_on_enter (void) {
 
         default: return;
     }
+#endif
     return;
 }
 
@@ -37,8 +44,11 @@ void screen_main_render (void) {
     StrBuf_TypeDef sb;
 
     strbuf_init(&sb, linebuffer, linebuffer_size);
+#ifdef TESTER_MODES
     switch (test_config.mode_id) {
         case CheckDevice: {
+#endif
+#ifndef TESTER_MODES
             screen_append_device_name(&sb);
             screen_get_center_from_string(&cur_x, sb.len);
             fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
@@ -58,14 +68,7 @@ void screen_main_render (void) {
             screen_get_center_from_string(&cur_x, sb.len);
             fb_draw_string_xy(cur_x, options_strg[2].y, strbuf_cstr(&sb));
             strbuf_clear(&sb);
-
-            strbuf_str(&sb, CHOSING_CYRILIC);
-            strbuf_char(&sb, ' ');
-            strbuf_str(&sb, MODEA_CYRILIC);
-            screen_get_center_from_string(&cur_x, sb.len);
-            fb_draw_string_xy(cur_x, options_strg[3].y, strbuf_cstr(&sb));
-            strbuf_clear(&sb);
-
+#else 
             break;
         }
 
@@ -192,15 +195,17 @@ void screen_main_render (void) {
         }
         default: break;
     }
-
+#endif
     cursor_draw_highlight();
     return;
 }
 
 ScreenID screen_main_handle_event (InputEvent event) {
+#ifdef TESTER_MODES
     switch (test_config.mode_id) {
         case CheckDevice: 
         case VoltageGenerator:
+#endif
             switch (event) {
                 case InputEvent_ButtonPressed_Previous: cursor_move(-1); return ScreenMain;
                 case InputEvent_ButtonPressed_Cancel: return ScreenMain;
@@ -216,7 +221,7 @@ ScreenID screen_main_handle_event (InputEvent event) {
                 }
                 default: return ScreenMain;
             }
-
+#ifdef TESTER_MODES
         case Voltmeter: 
         case Ommeter: 
             switch (event) {
@@ -228,6 +233,7 @@ ScreenID screen_main_handle_event (InputEvent event) {
 
         default: return ScreenMain;
     }
+#endif
 }
 
 void screen_main_on_exit (void) {

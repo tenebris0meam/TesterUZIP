@@ -70,5 +70,6 @@ bool calc_is_voltage_achieved (void);
 
 
 const CalcMetrics_TypeDef *calc_get_current_metrics (void);
+void calc_get_last_raw_data (int32_t *voltage_raw, int32_t *current_raw);
 
 #endif /* CALC_H */

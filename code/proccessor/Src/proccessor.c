@@ -1,5 +1,7 @@
 ﻿#include "proccessor.h"
+#include "commutation.h"
 #include "commutator.h"
+#include "generation.h"
 #include "model.h"
 #include "calc.h"
 #include "hv_feedback.h"
@@ -70,6 +72,7 @@ FiniteStateMachine proccessor[State_Count] = {
         .proccess = proccessor_idle_proccess, 
         .handle_event = proccessor_idle_handle_event
     }, 
+#ifdef TESTER_MODES
     [Commutation] = {
         .on_enter = 0,
         .on_exit = 0,
@@ -81,7 +84,21 @@ FiniteStateMachine proccessor[State_Count] = {
         .on_exit = 0, 
         .proccess = 0, 
         .handle_event = 0
-    }, 
+    },
+#else
+    [Commutation] = {
+        .on_enter = proccessor_commutation_on_enter_checkdevice,
+        .on_exit = proccessor_commutation_on_exit,
+        .proccess = proccessor_commutation_proccess_default,
+        .handle_event = proccessor_commutation_handle_event_default
+    },
+    [Generation] = {
+        .on_enter = proccessor_generation_on_enter_checkdevice, 
+        .on_exit = proccessor_generation_on_exit_checkdevice_default, 
+        .proccess = proccessor_generation_proccess_checkdevice_default, 
+        .handle_event = proccessor_generation_handle_event_checkdevice_default
+    },
+#endif
     [TestPassed] = {
         .on_enter = proccessor_testpassed_on_enter, 
         .on_exit = proccessor_testpassed_on_exit, 
@@ -223,19 +240,6 @@ bool proccessor_apply_setpoint (void) {
     calc_integrator_set_target_voltage(volts);
     return true; 
 }
-
-/** @brief Записать результат очередной проверки в модель. */
-// void proccessor_record_result (bool pass) {
-//     const CalcMetrics_TypeDef *cur_metrics = calc_get_current_metrics();
-
-//     TestResult_TypeDef result;
-//     result.sequence_pos = (uint8_t)(test_runtime.passed_cnt + test_runtime.failed_cnt);
-//     result.pass = pass;
-//     memcpy(&result.res, cur_metrics, sizeof(CalcMetrics_TypeDef));
-
-//     model_handle_test_result(&result);
-//     return;
-// }
 
 /** @brief Что делать после записи результата: следующая проверка или итог. */
 void proccessor_raise_after_result (void) {

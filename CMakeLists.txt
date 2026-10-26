@@ -20,6 +20,8 @@ add_compile_definitions(
     USE_HAL_DRIVER
     STM32F1
     STM32F103xB
+    # TESTER_MODES
+    # TESTER_MULTIPOLE
     $<$<CONFIG:Debug>:DEBUG>
 )
 
@@ -31,7 +33,7 @@ add_compile_options(
     -ffunction-sections
     $<$<CONFIG:Debug>:-g>
     $<$<CONFIG:Debug>:-gdwarf-2>
-    $<$<CONFIG:Debug>:-Og>
+    $<$<CONFIG:Debug>:-O0>
     $<$<CONFIG:Release>:-Os>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>

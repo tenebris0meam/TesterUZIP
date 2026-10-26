@@ -54,7 +54,7 @@ void screen_testdata_render (void) {
 
     strbuf_str(&sb, TO_TEST_CYRILIC);
     strbuf_char(&sb, ' ');
-    strbuf_u32(&sb, choosed_idx, 1);
+    strbuf_u32(&sb, choosed_idx + 1, 1);
     screen_get_center_from_string(&cur_x, sb.len);
     fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     strbuf_clear(&sb);
@@ -117,22 +117,32 @@ void screen_testdata_render (void) {
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
-    int32_t current_nA = choosed_metrics->current_nA.mean_value;
-    if (current_nA < 0) {
-        strbuf_char(&sb, '-');
-        current_nA = -current_nA;
+    if (type_choosed_test != GasDischargeTube) {
+        int32_t current_nA = choosed_metrics->current_nA.mean_value;
+        if (current_nA < 0) {
+            strbuf_char(&sb, '-');
+            current_nA = -current_nA;
+        }
+        int32_t tripple_standard_deviation_current_nA = 3 * choosed_metrics->current_nA.standard_deviation;
+        strbuf_u32(&sb, current_nA / 1000000L, 1);
+        strbuf_char(&sb, '.');
+        strbuf_u32(&sb, (current_nA % 1000000L) / 1000L, 3);
+        strbuf_char(&sb, '$');
+        strbuf_u32(&sb, tripple_standard_deviation_current_nA / 1000000L, 1);
+        strbuf_char(&sb, '.');
+        strbuf_u32(&sb, (tripple_standard_deviation_current_nA % 1000000L) / 1000L, 3);
+        strbuf_str(&sb, " l@");
+        screen_get_center_from_string(&cur_x, sb.len);
+        fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    } else {
+        strbuf_str(&sb, DISCHARGER_CYRILIC);
+        strbuf_char(&sb, ' ');
+        if (choosed_metrics->current_nA.mean_value != INT32_MAX) {
+            strbuf_str(&sb, NOT_CYRILIC);
+            strbuf_char(&sb, ' ');
+        }
+        strbuf_str(&sb, WAS_TRIGGERED_CYRILIC);
     }
-    int32_t tripple_standard_deviation_current_nA = 3 * choosed_metrics->current_nA.standard_deviation;
-    strbuf_u32(&sb, current_nA / 1000000L, 1);
-    strbuf_char(&sb, '.');
-    strbuf_u32(&sb, (current_nA % 1000000L) / 1000L, 3);
-    strbuf_char(&sb, '$');
-    strbuf_u32(&sb, tripple_standard_deviation_current_nA / 1000000L, 1);
-    strbuf_char(&sb, '.');
-    strbuf_u32(&sb, (tripple_standard_deviation_current_nA % 1000000L) / 1000L, 3);
-    strbuf_str(&sb, " l@");
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     return;
 }
 

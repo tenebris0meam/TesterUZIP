@@ -1,4 +1,5 @@
-﻿#include "screens/screen_generator_generation.h"
+﻿#ifdef TESTER_MODES
+#include "screens/screen_generator_generation.h"
 #include "calc.h"
 #include "framebuffer.h"
 #include "fonts.h"
@@ -77,3 +78,4 @@ ScreenID screen_generator_generation_handle_event(InputEvent event) {
         default: return ScreenGeneratorGeneration;
     }
 }
+#endif

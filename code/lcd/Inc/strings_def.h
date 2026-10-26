@@ -39,6 +39,8 @@
 #define K1_CYRILIC ("J1") // "К1"
 
 #define NOT_SUPPORTED_CYRILIC ("Mer") // "Нет"
+#define NOT_CYRILIC ("me") // "не"
+#define WAS_TRIGGERED_CYRILIC ("qp`anr`k") // "сработал"
 
 #define DENIED_BY_USER_CYRILIC ("nrlemem noep`rnpnl") // "отменен оператором"
 

@@ -1,3 +1,4 @@
+#ifdef TESTER_MULTIPOLE
 #include "multi_pole_test.h"
 
 #include <stddef.h>
@@ -251,3 +252,4 @@ uint8_t multi_pole_test_get_countdown(void)
 {
     return countdown_value;
 }
+#endif

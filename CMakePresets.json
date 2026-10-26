@@ -10,6 +10,16 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/arm-none-eabi.cmake",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
+        },
+        {
+            "name": "release",
+            "displayName": "Cross-compile with ARM GNU Toolchain Release",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/arm-none-eabi.cmake",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ]
 }

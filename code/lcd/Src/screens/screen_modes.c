@@ -1,3 +1,4 @@
+#ifdef TESTER_MODES
 #include "screens/screen_modes.h"
 #include "proccessor.h"
 #include "resolver.h"
@@ -73,3 +74,4 @@ ScreenID screen_modes_handle_event (InputEvent event) {
         default: return ScreenModes;
     }
 }
+#endif

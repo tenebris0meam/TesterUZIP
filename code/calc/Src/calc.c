@@ -45,6 +45,8 @@ static CalcMetrics_TypeDef metrics = { 0 };
 static bool is_voltage_achieved = false;
 static int32_t voltage_lowth = 0;
 static int32_t voltage_highth = 0;
+static int32_t voltage_raw_uV = 0;
+static int32_t current_raw_nA = 0;
 
 
 
@@ -92,7 +94,9 @@ static int32_t calc_get_standard_deviation_from_window (Window_TypeDef *window, 
     return (int32_t)uint64_sqrt(acc);
 }
 
-static inline void calc_update_metrics (void) {
+
+
+void calc_update_metrics (void) {
     metrics.voltage_uV.mean_value = calc_get_average_from_window(&voltage_window);
     metrics.current_nA.mean_value = calc_get_average_from_window(&current_window);
 
@@ -102,8 +106,6 @@ static inline void calc_update_metrics (void) {
         calc_get_standard_deviation_from_window(&current_window, metrics.current_nA.mean_value);
     return;
 }
-
-
 
 bool calc_integrator_Init (void) {
     INA239_Handle_t *hina = INA239_GetInstance();
@@ -162,6 +164,8 @@ void calc_reset_integrator (void) {
     is_voltage_achieved = false;
     voltage_lowth = 0;
     voltage_highth = 0;
+    voltage_raw_uV = 0;
+    current_raw_nA = 0;
     window_reset(&voltage_window);
     window_reset(&current_window);
     return;
@@ -175,8 +179,10 @@ void calc_reset_integrator (void) {
  *          безопасную скважность.
  */
 static void calc_integrator_step (int32_t measured_uV) {
-    if (!is_voltage_achieved && (measured_uV >= voltage_lowth) && (measured_uV < voltage_highth)) {
+    if (!is_voltage_achieved && ((measured_uV >= voltage_lowth) && (measured_uV < voltage_highth))) {
         is_voltage_achieved = true;
+    } else if (is_voltage_achieved && ((measured_uV < voltage_lowth) || (measured_uV >= voltage_highth))) {
+        is_voltage_achieved = false;
     }
 
     uint32_t cur_CYCCNT = DWT->CYCCNT;
@@ -217,19 +223,17 @@ void calc_measurement_update (void) {
     int16_t current_raw = calc_get_raw_val(frame, CURRENT);
 
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
-    int32_t cur_voltage = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
-    int32_t cur_current = hv_shunt_uV_to_nA(shunt_dropvoltage);
+    voltage_raw_uV = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    current_raw_nA = hv_shunt_uV_to_nA(shunt_dropvoltage);
 
-    window_push(&voltage_window, &cur_voltage);
-    window_push(&current_window, &cur_current);
-
-    calc_update_metrics();
+    window_push(&voltage_window, &voltage_raw_uV);
+    window_push(&current_window, &current_raw_nA);
     return;
 }
 
 void calc_routine (void) {
     calc_measurement_update();
-    calc_integrator_step(metrics.voltage_uV.mean_value);
+    calc_integrator_step(voltage_raw_uV);
     return;
 }
 
@@ -245,11 +249,12 @@ void calc_get_test_data (int32_t *voltage, int32_t *current) {
 
 void calc_get_last_raw_data (int32_t *voltage_raw, int32_t *current_raw) {
     if (voltage_raw) {
-        *voltage_raw = *((int32_t *)voltage_window.buf + (CALC_WINDOW_LENGTH - 1));
+        *voltage_raw = voltage_raw_uV;
     }
     if (current_raw) {
-        *current_raw = *((int32_t *)current_window.buf + (CALC_WINDOW_LENGTH - 1));
+        *current_raw = current_raw_nA;
     }
+    return;
 }
 
 bool calc_is_voltage_achieved (void) {

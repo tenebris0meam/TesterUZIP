@@ -110,6 +110,7 @@ void proccessor_generation_on_enter_checkdevice (void) {
 }
 
 void proccessor_generation_on_exit_checkdevice_default (void) {
+    calc_update_metrics();
     model_remember_result((ResolveType)test_runtime.current_type);
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
@@ -141,7 +142,7 @@ void proccessor_generation_proccess_checkdevice_default (void) {
         }
 
         int32_t current_nA, voltage_uV;
-        calc_get_test_data(&voltage_uV, &current_nA);
+        calc_get_last_raw_data(&voltage_uV, &current_nA);
         if (current_nA >= CALC_CURRENT_HIGH_nA) {
             /* Ток устройства превысил верхний порог тока теста */
             if ((voltage_uV >= voltage_lowth_uV) && (voltage_uV < voltage_highth_uV)) {
@@ -162,7 +163,7 @@ void proccessor_generation_proccess_checkdevice_default (void) {
             proccessor_raise_event(DeviceVoltageUnderVoltage);
         } else {
             /* Напряжение в диапазоне, проверяем ток */
-            if (current_nA < CALC_CURRENT_LOW_nA) {
+            if (current_nA < CALC_CURRENT_NOMINAL_nA) {
                 /* Ток устройства ещё не достиг тока теста */
                 proccessor_raise_event(DeviceCurrentUnderCurrent);
             } else {
@@ -329,6 +330,7 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
 }
 
 void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
+    calc_update_metrics();
     model_remember_result(GasDischargeTube);
     proccessor_force_shutdown_generation();
     TIM3_Stop_Count();

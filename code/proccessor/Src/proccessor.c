@@ -263,7 +263,7 @@ void proccessor_wait_cap_discharge (void) {
         }
         have_new_data = false;
         calc_measurement_update();
-        calc_get_test_data(&voltage_uV, &current_nA);
+        calc_get_last_raw_data(&voltage_uV, &current_nA);
     } while ((voltage_uV >= 500000) && (current_nA >= 20000));
     return;
 }

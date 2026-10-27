@@ -21,7 +21,7 @@
  */
 
 /** @brief Номинальный ток испытания, нА. */
-#define CALC_NOMINAL_CURRENT_nA (1000000L)
+#define CALC_CURRENT_NOMINAL_nA (1000000L)
 
 #define CALC_CURRENT_LOW_nA 900000L
 #define CALC_CURRENT_HIGH_nA 2000000L
@@ -71,5 +71,6 @@ bool calc_is_voltage_achieved (void);
 
 const CalcMetrics_TypeDef *calc_get_current_metrics (void);
 void calc_get_last_raw_data (int32_t *voltage_raw, int32_t *current_raw);
+void calc_update_metrics (void);
 
 #endif /* CALC_H */

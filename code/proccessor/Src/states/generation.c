@@ -1,6 +1,5 @@
 ﻿#include "states/generation.h"
 #include "calc.h"
-#include "delay.h"
 #include "display.h"
 #include "ina239.h"
 #include "keyboard.h"
@@ -12,7 +11,6 @@
 #include "model.h"
 #include "resolver.h"
 #include "ina239_user.h"
-#include "hv_feedback.h"
 #include "stm32f1xx_ll_tim.h"
 #include <limits.h>
 #include <stdbool.h>
@@ -21,15 +19,9 @@
 /** @brief Сколько ждать выхода на уставку, мс. */
 #define GENERATION_STEP_TIMEOUT_MS (1000U)
 
-uint8_t delay_step = 0;
 bool data_was = false;
 static uint8_t num_pressed_cancel = 0;
 static const uint8_t need_num_pressed_cancel = 3;
-
-/** @brief Переменные для хранения порогов напряжения устройства */
-int32_t voltage_lowth_uV = 0;
-int32_t voltage_highth_uV = 0;
-
 int32_t voltage_max_uV = 0;
 int32_t voltage_max_buf[MAX_TESTS_FOR_ONE_GDT] = { 0 };
 uint8_t test_id = 0;
@@ -76,32 +68,29 @@ void proccessor_generation_on_enter_checkdevice (void) {
         proccessor_raise_event(ReturnToIdle);
         return;
     }
-    generation_step = 0;
-    data_was = false;
+    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
 
-    /*
-    * Скважность обнуляем ДО включения выходов: в CCR лежит остаток от
-    * предыдущей проверки, и без этого генератор рванул бы сразу на него.
-    */
+    if (test_runtime.current_type == (uint8_t)GasDischargeTube) {
+        calc_set_test_mode(CalcTestMode_SweepGDT);
+    } else {
+        calc_set_test_mode(CalcTestMode_SweepTVS);
+    }
+    calc_set_test_params(testparams);
+
+    data_was = false;
     TIM1_set_CCR_value(0);
 
-    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
-    calc_integrator_set_target_voltage(
-        hv_feedback_volts_to_target_uV(testparams->min_voltage));
-
-    /* Заранее вычисляем пороги для данного теста */
-    resolver_fill_thresholds_with_current_testparams();
-
-    if (!delay_register_task(&delay_step, GENERATION_STEP_TIMEOUT_MS, Millis)) {
+    if (!calc_start_sweep()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
         return;
     }
 
     if (INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS) != INA239_OK) {
-        delay_unregister_task(delay_step);
+        calc_reset_sweep();
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
+        return;
     }
     TIM3_Start_Count();
     calc_integrator_set_start_time();
@@ -115,8 +104,7 @@ void proccessor_generation_on_exit_checkdevice_default (void) {
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
-    delay_unregister_task(delay_step);
-    calc_reset_integrator();
+    calc_integrator_reset();
     return;
 }
 
@@ -140,37 +128,6 @@ void proccessor_generation_proccess_checkdevice_default (void) {
         if (new_CCR1_val != cur_CCR1_val) {
             TIM1_set_CCR_value(new_CCR1_val);
         }
-
-        int32_t current_nA, voltage_uV;
-        calc_get_last_raw_data(&voltage_uV, &current_nA);
-        if (current_nA >= CALC_CURRENT_HIGH_nA) {
-            /* Ток устройства превысил верхний порог тока теста */
-            if ((voltage_uV >= voltage_lowth_uV) && (voltage_uV < voltage_highth_uV)) {
-                /* Ток превысил верхний порог, но напряжение держится в диапазоне
-                 * Устройство в рабочем состоянии, тестер не успел считать момент, 
-                 * когда ток был в диапазоне
-                 */
-                proccessor_raise_event(DeviceCurrentWithinTheRange);
-            } else {
-                /* Ток превысил верхний порог и напряжение не в диапазоне. Поломка */
-                proccessor_raise_event(DeviceCurrentOverCurrent);
-            }
-        } else if (voltage_uV >= voltage_highth_uV) {
-            /* Напряжение превысило максимальное значение, точно поломка */
-            proccessor_raise_event(DeviceVoltageOverVoltage);
-        } else if (voltage_uV < voltage_lowth_uV) {
-            /* Напряжение не достигло минимального значения, ждём ещё */
-            proccessor_raise_event(DeviceVoltageUnderVoltage);
-        } else {
-            /* Напряжение в диапазоне, проверяем ток */
-            if (current_nA < CALC_CURRENT_NOMINAL_nA) {
-                /* Ток устройства ещё не достиг тока теста */
-                proccessor_raise_event(DeviceCurrentUnderCurrent);
-            } else {
-                /* Ток устройства в диапазоне тока теста */
-                proccessor_raise_event(DeviceCurrentWithinTheRange);
-            }
-        }
     } else if (is_data_old()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
@@ -191,28 +148,13 @@ State proccessor_generation_handle_event_checkdevice_default (Event event) {
 
         case DeviceVoltageOverVoltage:
         case DeviceCurrentOverCurrent: 
+        case DeviceSetpointExhausted:
+        case DeviceVoltageSettleTimeout:
             num_pressed_cancel = 0;
             return TestFailed;
 
         case DeviceCurrentUnderCurrent: 
-        case DeviceVoltageUnderVoltage: 
-            if (delay_is_not_yet_expired(delay_step)) {
-                if (calc_is_voltage_achieved()) {
-                    generation_step++;
-                    if (!proccessor_apply_setpoint()) {
-                        num_pressed_cancel = 0;
-                        return TestFailed;
-                    } else {
-                        delay_update_task(delay_step);
-                        return Generation;
-                    }
-                } else {
-                    return Generation;
-                }
-            } else {
-                num_pressed_cancel = 0;
-                return TestFailed;
-            }
+        case DeviceVoltageUnderVoltage: return Generation;
 
         case AlertActive: 
             num_pressed_cancel = 0;
@@ -264,14 +206,6 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
         if (voltage_max_uV < voltage_uV) {
             voltage_max_uV = voltage_uV;
         }
-
-        if (voltage_uV >= voltage_highth_uV) {
-            /* Напряжение генерации стало больше напряжения ионизации газа, поломка */
-            proccessor_raise_event(DeviceVoltageOverVoltage);
-        } else {
-            /* Напряжение генерации не достигло напряжения ионизации газа, ждём ещё */
-            proccessor_raise_event(DeviceVoltageUnderVoltage);
-        }
     } else if (is_data_old()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
@@ -282,32 +216,24 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
 
 State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
     switch (event) {
-        case DeviceVoltageUnderVoltage: 
-            if (delay_is_not_yet_expired(delay_step)) {
-                if (calc_is_voltage_achieved()) {
-                    generation_step++;
-                    if (proccessor_apply_setpoint()) {
-                        delay_update_task(delay_step);
-                        return Generation;
-                    } else if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
-                        voltage_max_buf[test_id] = 0;
-                        test_id++;
-                        num_pressed_cancel = 0;
-                        return Commutation;
-                    } else {
-                        test_id = 0;
-                        num_pressed_cancel = 0;
-                        return TestFailed;
-                    }
-                } else {
-                    return Generation;
-                }
-            } else {
-                num_pressed_cancel = 0;
-                return TestFailed;
-            }
+        case DeviceVoltageUnderVoltage: return Generation;
 
         case DeviceVoltageOverVoltage: 
+            num_pressed_cancel = 0;
+            return TestFailed;
+
+        case DeviceSetpointExhausted:
+            if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
+                voltage_max_buf[test_id] = 0;
+                test_id++;
+                num_pressed_cancel = 0;
+                return Commutation;
+            }
+            test_id = 0;
+            num_pressed_cancel = 0;
+            return TestFailed;
+
+        case DeviceVoltageSettleTimeout:
             num_pressed_cancel = 0;
             return TestFailed;
 
@@ -330,15 +256,12 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
 }
 
 void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
-    calc_update_metrics();
     model_remember_result(GasDischargeTube);
-    proccessor_force_shutdown_generation();
-    TIM3_Stop_Count();
+    proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
     data_was = false;
-    delay_unregister_task(delay_step);
-    calc_reset_integrator();
+    calc_integrator_reset();
     return;
 }
 
@@ -485,14 +408,14 @@ void proccessor_generation_on_enter_ommeter (void) {
         proccessor_raise_event(ReturnToIdle);
         return;
     }
-    calc_integrator_set_target_voltage(
-        hv_feedback_volts_to_target_uV(OMMETER_EXCITATION_VOLTAGE_V));
+    // calc_integrator_set_target_voltage(
+    //     hv_feedback_volts_to_target_uV(OMMETER_EXCITATION_VOLTAGE_V));
 
-    if (!delay_register_task(&delay_step, GENERATION_STEP_TIMEOUT_MS, Millis)) {
-        ommeter_set_status(Ommeter_Error);
-        proccessor_raise_event(ReturnToIdle);
-        return;
-    }
+    // if (!delay_register_task(&delay_step, GENERATION_STEP_TIMEOUT_MS, Millis)) {
+    //     ommeter_set_status(Ommeter_Error);
+    //     proccessor_raise_event(ReturnToIdle);
+    //     return;
+    // }
 
     if (INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(),
                                           (int16_t)SOVL_RAW) != INA239_OK ||
@@ -626,13 +549,13 @@ void proccessor_generation_on_enter_generator (void) {
         proccessor_raise_event(ReturnToIdle);
         return;
     }
-    calc_integrator_set_target_voltage(
-        hv_feedback_volts_to_target_uV(manual_target_voltage_v));
+    // calc_integrator_set_target_voltage(
+    //     hv_feedback_volts_to_target_uV(manual_target_voltage_v));
 
-    if (!delay_register_task(&delay_step, GENERATION_STEP_TIMEOUT_MS, Millis)) {
-        proccessor_raise_event(ReturnToIdle);
-        return;
-    }
+    // if (!delay_register_task(&delay_step, GENERATION_STEP_TIMEOUT_MS, Millis)) {
+    //     proccessor_raise_event(ReturnToIdle);
+    //     return;
+    // }
 
     /* 1 mA -> 22 mV across the 22 Ohm shunt -> 4400 raw LSB (5 uV/LSB). */
     const int16_t current_limit_raw = (int16_t)(

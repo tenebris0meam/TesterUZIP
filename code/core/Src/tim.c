@@ -212,7 +212,7 @@ bool TIM4_Init (void) {
 
     LL_TIM_InitTypeDef TIM_InitStruct = { 0 };
     TIM_InitStruct.Prescaler = 29; // частота таймера 1 МГц, период 1 мкс
-    TIM_InitStruct.Autoreload = 24999; // 25 мс
+    TIM_InitStruct.Autoreload = 34999; // 35 мс
     TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
     TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
     TIM_InitStruct.RepetitionCounter = 0;

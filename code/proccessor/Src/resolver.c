@@ -1,7 +1,4 @@
 ﻿#include "resolver.h"
-#include "hv_feedback.h"
-#include "model.h"
-#include "params.h"
 #include "proccessor.h"
 #include "states/generation.h"
 #include "states/hardware_fail.h"
@@ -29,15 +26,6 @@ void resolver_set_TVS_VAR (void) {
     proccessor[HardwareFail].proccess = proccessor_hardwarefail_proccess_default;
     proccessor[HardwareFail].on_exit = proccessor_hardwarefail_on_exit_default;
     proccessor[HardwareFail].handle_event = proccessor_hardwarefail_handle_event_default;
-    return;
-}
-
-void resolver_fill_thresholds_with_current_testparams (void) {
-    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
-
-    voltage_highth_uV = hv_feedback_volts_to_target_uV(testparams->max_voltage);
-    voltage_lowth_uV = hv_feedback_volts_to_target_uV(testparams->min_voltage);
-
     return;
 }
 

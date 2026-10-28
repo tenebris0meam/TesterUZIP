@@ -4,9 +4,6 @@
 #include "proccessor.h"
 #include "model.h"
 
-extern int32_t voltage_lowth_uV;
-extern int32_t voltage_highth_uV;
-
 extern int32_t voltage_max_uV;
 extern int32_t voltage_max_buf[MAX_TESTS_FOR_ONE_GDT];
 extern uint8_t test_id;

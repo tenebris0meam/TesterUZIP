@@ -23,7 +23,7 @@ void proccessor_hardwarefail_on_enter_default (void) {
      */
     proccessor_shutdown_generation();
     commutator_forcedeny_commutation();
-    calc_reset_integrator();
+    calc_integrator_reset();
     display_allow_render();
     inputevent_allow_input();
 

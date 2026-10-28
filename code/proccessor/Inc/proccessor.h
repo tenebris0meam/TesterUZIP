@@ -41,6 +41,8 @@ typedef enum {
     DeviceCurrentWithinTheRange, 
     DeviceCurrentUnderCurrent,
     DeviceCurrentOverCurrent,
+    DeviceSetpointExhausted,
+    DeviceVoltageSettleTimeout,
     TestResultRecorded,
     TestSequenceFinished,
     ReturnToIdle,
@@ -71,7 +73,7 @@ typedef struct {
 extern FiniteStateMachine proccessor[State_Count];
 extern volatile Event current_event;
 extern volatile TypeFail typefail;
-extern uint8_t generation_step;
+// extern uint8_t generation_step;
 
 
 
@@ -81,8 +83,7 @@ void proccessor_change_state (State);
 Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin);
 bool proccessor_more_tests_left (void);
 bool proccessor_setup_lines (void);
-bool proccessor_apply_setpoint (void);
-// void proccessor_record_result (bool pass);
+// bool proccessor_apply_setpoint (void);
 void proccessor_raise_after_result (void);
 void proccessor_shutdown_generation (void);
 void proccessor_force_shutdown_generation (void);

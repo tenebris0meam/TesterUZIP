@@ -128,9 +128,6 @@ FiniteStateMachine proccessor[State_Count] = {
 static State current_state = State_Count;
 volatile Event current_event = Event_Count;
 
-/** @brief Номер шага подъёма уставки внутри текущей проверки, 0..GENERATION_MAX_STEPS. */
-uint8_t generation_step = 0;
-
 /** @brief Тип аппаратной ошибки */
 volatile TypeFail typefail = NoFail;
 
@@ -204,43 +201,6 @@ bool proccessor_setup_lines (void) {
             (commutator_get_active_line(LineType_Negative) == negative));
 }
 
-/**
- * @brief Выставить уставку регулятора под текущий номер шага.
- * @return false, если диапазон напряжений прибора исчерпан.
- *
- * @details Шаг 0 - минимальное напряжение теста, шаг GENERATION_MAX_STEPS -
- *          максимальное. Деление на GENERATION_MAX_STEPS в конце, а не в
- *          начале: иначе на узком диапазоне шаг обнулялся бы целочисленным
- *          делением, и последний шаг не попадал бы точно в MaV.
- */
-bool proccessor_apply_setpoint (void) {
-    const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
-
-    if (testparams == NULL) {
-        return false;
-    }
-    if (generation_step > GENERATION_MAX_STEPS) {
-        return false;
-    }
-
-    uint32_t max_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(testparams->max_voltage);
-    uint32_t min_volt_afterdiv_uV = hv_feedback_volts_to_target_uV(testparams->min_voltage);
-
-    uint32_t span = max_volt_afterdiv_uV - min_volt_afterdiv_uV;
-    /* Диапазон нулевой - поднимать уставку некуда, шаг может быть только один */
-    if ((span == 0U) && (generation_step > 0U)) {
-        return false;
-    }
-
-    uint32_t volts = min_volt_afterdiv_uV + (span * generation_step) / GENERATION_MAX_STEPS;
-    if (volts > HV_FEEDBACK_BUS_LIMIT_uV) {
-        volts = HV_FEEDBACK_BUS_LIMIT_uV;
-    }
-
-    calc_integrator_set_target_voltage(volts);
-    return true; 
-}
-
 /** @brief Что делать после записи результата: следующая проверка или итог. */
 void proccessor_raise_after_result (void) {
     proccessor_raise_event(proccessor_more_tests_left() ? 
@@ -252,7 +212,7 @@ void proccessor_raise_after_result (void) {
 /** @brief Дождаться разрядки конденсатора генератора */
 void proccessor_wait_cap_discharge (void) {
     uint32_t cur_CYCCNT = DWT->CYCCNT;
-    uint32_t timeout_tick = cur_CYCCNT + SystemCoreClock / 1000;
+    uint32_t timeout_tick = cur_CYCCNT + SystemCoreClock;
     int32_t voltage_uV = INT32_MAX, current_nA = INT32_MAX;
     do {
         if (DWT->CYCCNT > timeout_tick) {
@@ -264,7 +224,7 @@ void proccessor_wait_cap_discharge (void) {
         have_new_data = false;
         calc_measurement_update();
         calc_get_last_raw_data(&voltage_uV, &current_nA);
-    } while ((voltage_uV >= 500000) && (current_nA >= 20000));
+    } while ((voltage_uV >= 500000) || (current_nA >= 20000));
     return;
 }
 
@@ -285,7 +245,7 @@ void proccessor_force_shutdown_generation (void) {
 
 void proccessor_init_state (void) {
     model_init();
-    generation_step = 0;
+    calc_reset_sweep();
     current_state = Idle_Setting;
     return;
 }

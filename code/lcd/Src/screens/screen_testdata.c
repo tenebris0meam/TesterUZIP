@@ -142,6 +142,8 @@ void screen_testdata_render (void) {
             strbuf_char(&sb, ' ');
         }
         strbuf_str(&sb, WAS_TRIGGERED_CYRILIC);
+        screen_get_center_from_string(&cur_x, sb.len);
+        fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     }
     return;
 }

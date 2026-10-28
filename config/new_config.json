@@ -220,7 +220,7 @@
             { 
                 "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 4, "TestID": 0 } 
+                    { "SequenceID": 3, "TestID": 0 } 
                 ]
             }
         ],
@@ -269,7 +269,7 @@
             { 
                 "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 4, "TestID": 0 }
+                    { "SequenceID": 3, "TestID": 0 }
                 ]
             }
         ],

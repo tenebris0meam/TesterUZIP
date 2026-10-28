@@ -1,4 +1,5 @@
 ﻿#include "states/idle_setting.h"
+#include "calc.h"
 #include "model.h"
 #include "display.h"
 #include "params.h"
@@ -19,7 +20,7 @@ void proccessor_idle_on_exit (void) {
      * очередную последовательность.
      */
     model_reset_results();
-    generation_step = 0;
+    calc_reset_sweep();
 #ifdef TESTER_MODES
     resolver_set_new_mode(test_config.mode_id);
 #endif 

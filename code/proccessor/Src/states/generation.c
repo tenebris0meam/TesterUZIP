@@ -12,6 +12,7 @@
 #include "resolver.h"
 #include "ina239_user.h"
 #include "stm32f1xx_ll_tim.h"
+#include "utils.h"
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -214,12 +215,15 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
     return;
 }
 
+static bool gdt_failed = false;
+
 State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
     switch (event) {
         case DeviceVoltageUnderVoltage: return Generation;
 
         case DeviceVoltageOverVoltage: 
             num_pressed_cancel = 0;
+            gdt_failed = true;
             return TestFailed;
 
         case DeviceSetpointExhausted:
@@ -231,10 +235,12 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
             }
             test_id = 0;
             num_pressed_cancel = 0;
+            gdt_failed = true;
             return TestFailed;
 
         case DeviceVoltageSettleTimeout:
             num_pressed_cancel = 0;
+            gdt_failed = true;
             return TestFailed;
 
         case AlertActive: 
@@ -255,7 +261,35 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
     }
 }
 
+static inline int32_t get_average_from_buf (int32_t *buf, uint32_t num_el_buf) {
+    int64_t acc = 0;
+    for (uint32_t i = 0; i < num_el_buf; i++) {
+        acc += (int64_t)buf[i];
+    }
+    acc /= (int64_t)num_el_buf;
+    return (int32_t)acc;
+}
+
+static inline int32_t get_standard_deviation_from_buf (int32_t *buf, uint32_t num_el_buf, int32_t mean_val) {
+    int64_t acc = 0;
+    for (uint32_t i = 0; i < num_el_buf; i++) {
+        int64_t cur_delta = (int64_t)buf[i] - (int64_t)mean_val;
+        acc += cur_delta * cur_delta;
+    }
+    acc /= (int64_t)(num_el_buf - 1);
+    return (int32_t)uint64_sqrt(acc);
+}
+
 void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
+    if (gdt_failed) {
+        uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
+        test_results[pos].sequence_pos = pos;
+        test_results[pos].type = (uint8_t)GasDischargeTube;
+        test_results[pos].res.voltage_uV.mean_value = voltage_max_uV;
+        test_results[pos].res.voltage_uV.standard_deviation = 0;
+        test_results[pos].res.current_nA.mean_value = 0;
+        model_handle_test_result();
+    }
     model_remember_result(GasDischargeTube);
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);

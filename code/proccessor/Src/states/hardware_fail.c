@@ -28,7 +28,6 @@ void proccessor_hardwarefail_on_enter_default (void) {
     inputevent_allow_input();
 
     buzzer_turn_on();
-    display_set_screen(ScreenHardwareFail);
 
 	INA239_Handle_t *hina = INA239_GetInstance();
 	uint16_t cur_diag_alert = 0;
@@ -73,6 +72,7 @@ void proccessor_hardwarefail_on_enter_default (void) {
         /** Ошибка памяти INA239 */
         typefail |= MemoryError;
     }
+    display_set_screen(ScreenHardwareFail);
     return;
 }
 

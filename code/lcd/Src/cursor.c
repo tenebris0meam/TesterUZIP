@@ -5,7 +5,7 @@
 Cursor_TypeDef cursor = { 0 };
 
 OptionRect_TypeDef *options_strg = 0;
-uint32_t options_amount = 0;
+uint8_t options_amount = 0;
 
 void options_init (uint8_t start_x_px, 
                    uint8_t start_y_px, 
@@ -33,6 +33,7 @@ void cursor_init (const OptionRect_TypeDef *options,
     cursor.options = options;
     cursor.count = amount_options;
     cursor.selected_index = (initial_index < amount_options) ? initial_index : 0;
+    cursor.window_first = cursor.selected_index;
     return;
 }
 
@@ -100,5 +101,10 @@ void cursor_draw_highlight_row (uint8_t row) {
                    options_strg[row].y - 1, 
                    options_strg[row].w, 
                    options_strg[row].h);
+    return;
+}
+
+void cursor_set_options_amount (uint8_t options_amount_new) {
+    options_amount = options_amount_new;
     return;
 }

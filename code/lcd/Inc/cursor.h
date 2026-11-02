@@ -16,6 +16,7 @@ typedef struct {
     const OptionRect_TypeDef *options;
     uint8_t count;
     uint8_t selected_index;
+    uint8_t window_first;
 } Cursor_TypeDef;
 
 /** @brief Сколько строк списка помещается под заголовком экрана. */
@@ -55,9 +56,11 @@ void cursor_draw_highlight_row (uint8_t row);
  */
 uint8_t cursor_get_window_first (void);
 
+void cursor_set_options_amount (uint8_t options_amount_new);
+
 extern Cursor_TypeDef cursor;
 // extern const OptionRect_TypeDef options_in_list[CURSOR_VISIBLE_ROWS];
 extern OptionRect_TypeDef *options_strg;
-extern uint32_t options_amount;
+extern uint8_t options_amount;
 
 #endif /* CURSOR_H_ */

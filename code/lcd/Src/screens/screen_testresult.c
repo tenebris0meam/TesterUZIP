@@ -29,8 +29,10 @@ void screen_testresult_render (void) {
     StrBuf_TypeDef sb;
     strbuf_init(&sb, linebuffer, linebuffer_size);
     strbuf_str(&sb, test_runtime.fail_was ? FAILED_CYRILIC : SUCCESS_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
@@ -39,18 +41,27 @@ void screen_testresult_render (void) {
     strbuf_u32(&sb, test_runtime.passed_cnt, 1);
     strbuf_str(&sb, " hg ");
     strbuf_u32(&sb, model_get_total_tests(), 1);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
     uint8_t total = model_get_total_tests();
-    uint8_t first = cursor_get_window_first();
+    uint8_t selected = cursor_get_current_selected_index();
+    if (selected < cursor.window_first) {
+        cursor.window_first = selected;
+    }
+    if ((selected - cursor.window_first) == options_amount) {
+        cursor.window_first++;
+    }
+
     uint8_t test_seen = 0;
     uint8_t row = 0;
 
     for (uint8_t pos = 0; (pos < total) && (row < options_amount); pos++) {
-        if (test_seen < first) {
+        if (test_seen < cursor.window_first) {
             test_seen++;
             continue;
         }
@@ -66,7 +77,7 @@ void screen_testresult_render (void) {
             strbuf_char(&sb, '%');
         } else {
             // непредвиденная ошибка
-            strbuf_char(&sb, ' ');
+            strbuf_char(&sb, '?');
         }
         fb_draw_string_xy(cur_x, options_strg[row].y, strbuf_cstr(&sb));
         strbuf_clear(&sb);
@@ -85,24 +96,22 @@ void screen_testresult_render (void) {
         strbuf_clear(&sb);
         screen_append_pins(&sb, model_get_sequence_at(pos, pos_type));
         strbuf_char(&sb, ' ');
-        char char_type;
         switch (pos_type) {
-            case TransientVoltageSupressor: char_type = 'D'; break;
-            case Varistor: char_type = 'B'; break;
-            case GasDischargeTube: char_type = 'P'; break;
-            default: char_type = '@'; break;
+            case TransientVoltageSupressor: strbuf_str(&sb, DIODE_CYRILIC); break;
+            case Varistor: strbuf_str(&sb, VARIS_CYRILIC); break;
+            case GasDischargeTube: strbuf_str(&sb, DISCH_CYRILIC); break;
+            default: strbuf_char(&sb, '@'); break;
         }
-        strbuf_char(&sb, char_type);
-        screen_get_center_from_string(&cur_x, sb.len);
-        fb_draw_string_xy(cur_x, 
-                          options_strg[row].y, 
-                          strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    options_strg[row].y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         test_seen++;
         row++;
     }
     if (is_cursor_init) {
-        cursor_draw_highlight_row(cursor_get_current_selected_index() - first);
+        cursor_draw_highlight_row(selected - cursor.window_first);
     }
     return;
 }

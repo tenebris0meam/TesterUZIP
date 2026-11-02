@@ -255,21 +255,48 @@ void screen_render_name_list (const char *first_word,
     screen_draw_title(&sb, first_word, second_word);
 
     uint8_t count = screen_name_count(kind);
-    uint8_t first = cursor_get_window_first();
+    uint8_t selected = cursor_get_current_selected_index();
+    if (selected < cursor.window_first) {
+        cursor.window_first = selected;
+    }
+    if ((selected - cursor.window_first) == options_amount) {
+        cursor.window_first++;
+    }
 
     for (uint8_t row = 0; row < options_amount; row++) {
-        uint8_t idx = (uint8_t)(first + row);
+        uint8_t idx = (uint8_t)(cursor.window_first + row);
         if (idx >= count) {
             break;
         }
         strbuf_clear(&sb);
+
+        const MyString *name = screen_name_at(kind, idx);
+        const char *p = name->beg;
+        uint8_t lines = 1;
+        while (p < name->end) {
+            if (*p == '\n') {
+                lines++;
+            }
+            p++;
+        }
+        uint8_t option_height_in_px = lines * cgxyz.height_px + 1;
+        if (options_strg[row].h != option_height_in_px) {
+            options_strg[row].h = option_height_in_px;
+            uint8_t index_option = row;
+            cursor_set_options_amount((workspace_height_in_chars - 2) - (lines - 1));
+            while (index_option < options_amount) {
+                options_strg[index_option + 1].y = options_strg[index_option].y + options_strg[index_option].h;
+                index_option++;
+            }
+        }
+
         screen_append_mystring(&sb, screen_name_at(kind, idx));
-        screen_get_center_from_string(&cur_x, sb.len);
-        fb_draw_string_xy(cur_x, 
-                          options_strg[row].y, 
-                          strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    options_strg[row].y, 
+                                    strbuf_cstr(&sb));
     }
 
-    cursor_draw_highlight_row((uint8_t)(cursor_get_current_selected_index() - first));
+    cursor_draw_highlight_row((uint8_t)(selected - cursor.window_first));
     return;
 }

@@ -50,8 +50,10 @@ void screen_main_render (void) {
         case CheckDevice: {
 #endif
             screen_append_device_name(&sb);
-            screen_get_center_from_string(&cur_x, sb.len);
-            fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+            fb_draw_string_centered_xy(workspace_start_x, 
+                                        workspace_width_in_px, 
+                                        cur_y, 
+                                        strbuf_cstr(&sb));
             cur_y += cgxyz.height_px;
             strbuf_clear(&sb);
 
@@ -63,8 +65,10 @@ void screen_main_render (void) {
                             FONT_FIRST_CHAR, 
                             FONT_LAST_CHAR);
             }
-            screen_get_center_from_string(&cur_x, strlen(str_interface));
-            fb_draw_string_xy(cur_x, cur_y, str_interface);
+            fb_draw_string_centered_xy(workspace_start_x, 
+                                        workspace_width_in_px, 
+                                        cur_y, 
+                                        str_interface);
             if (test_runtime.current_device->connector_id == RJ45) {
                 fb_set_font(cgxyz.font_cyr, 
                             cgxyz.width_px, 
@@ -73,14 +77,18 @@ void screen_main_render (void) {
                             FONT_LAST_CHAR);
             }
 
-            screen_get_center_from_string(&cur_x, strlen(TO_TEST_CYRILIC));
-            fb_draw_string_xy(cur_x, options_strg[1].y, TO_TEST_CYRILIC);
+            fb_draw_string_centered_xy(workspace_start_x, 
+                                        workspace_width_in_px, 
+                                        options_strg[1].y, 
+                                        TO_TEST_CYRILIC);
 
             strbuf_str(&sb, CHOSING_CYRILIC);
             strbuf_char(&sb, ' ');
             strbuf_str(&sb, DEVICES_CYRILIC);
-            screen_get_center_from_string(&cur_x, sb.len);
-            fb_draw_string_xy(cur_x, options_strg[2].y, strbuf_cstr(&sb));
+            fb_draw_string_centered_xy(workspace_start_x, 
+                                        workspace_width_in_px, 
+                                        options_strg[2].y, 
+                                        strbuf_cstr(&sb));
             strbuf_clear(&sb);
 #ifdef TESTER_MODES
             break;

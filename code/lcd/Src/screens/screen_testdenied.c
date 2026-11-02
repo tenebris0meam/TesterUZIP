@@ -3,7 +3,6 @@
 #include "strings_def.h"
 #include "framebuffer.h"
 #include "fonts.h"
-#include "model.h"
 
 static const uint32_t delay_testdenied_ms = 1000;
 static uint8_t delay_task;
@@ -31,42 +30,19 @@ void screen_testdenied_render (void) {
 
     strbuf_clear(&sb);
     screen_append_device_name(&sb);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     cur_y += 2 * cgxyz.height_px;
     // пропускаем 2 строки для красоты
 
     strbuf_clear(&sb);
-    strbuf_str(&sb, INTERFACE_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += cgxyz.height_px;
-
-    strbuf_clear(&sb);
-    if (test_runtime.current_device->connector_id == RJ45) {
-        fb_set_font(cgxyz.font_lat, 
-                    cgxyz.width_px, 
-                    cgxyz.height_px, 
-                    FONT_FIRST_CHAR, 
-                    FONT_LAST_CHAR);
-    }
-    strbuf_str(&sb, screen_interface_name(test_runtime.current_device->connector_id));
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    if (test_runtime.current_device->connector_id == RJ45) {
-        fb_set_font(cgxyz.font_cyr, 
-                    cgxyz.width_px, 
-                    cgxyz.height_px, 
-                    FONT_FIRST_CHAR, 
-                    FONT_LAST_CHAR);
-    }
-    cur_y += 2 * cgxyz.height_px;
-    // Пропускаем 2 строки для красоты
-
-    strbuf_clear(&sb);
     strbuf_str(&sb, DENIED_BY_USER_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     return;
 }
 

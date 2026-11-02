@@ -184,12 +184,20 @@ void fb_draw_string_xy (uint8_t x, uint8_t y, const char *str) {
         return;
     }
 
-    if ((uint16_t)y + font_height > FB_HEIGHT) {
-        /* Строка не помещается по высоте */
-        return;
-    }
-
+    uint8_t start_x = x;
     while (*str) {
+        if (*str == '\n') {
+            y += font_height + 2;
+            x = start_x;
+            str++;
+            continue;
+        }
+
+        if ((uint16_t)y + font_height > FB_HEIGHT) {
+            /* Строка не помещается по высоте */
+            return;
+        }
+
         uint8_t width = fb_draw_char_xy(x, y, *str);
         if (width == 0) {
             /*
@@ -206,6 +214,65 @@ void fb_draw_string_xy (uint8_t x, uint8_t y, const char *str) {
         }
         x = (uint8_t)next;
         str++;
+    }
+    return;
+}
+
+void fb_draw_string_centered_xy (uint8_t x, uint8_t max_w, uint8_t y, const char *str) {
+    if ((str == 0) || (font_table == 0)) {
+        return;
+    }
+
+    const char *line_start = str;
+    while (*line_start) {
+        // Ищем конец текущей строки
+        const char *line_end = line_start;
+        while (*line_end && (*line_end != '\n')) {
+            line_end++;
+        }
+
+        // Считаем ширину текущей строки в пикселях
+        uint16_t line_w = 0;
+        for (const char *p = line_start; p < line_end; p++) {
+            uint8_t code = (uint8_t)*p;
+            if ((code < font_first) || (code > font_last)) {
+                code = (uint8_t)'.';
+            }
+            const uint8_t *glyph = font_table + (uint32_t)(code - font_first) * font_bytes_per_char;
+            uint8_t var_width = glyph[0];
+            if (var_width > font_width) {
+                var_width = font_width;
+            }
+            line_w += var_width + 1;
+        }
+        // последний пиксель между глифами не считаем
+        if (line_w) {
+            line_w--;
+        }
+
+        // вычисляем координату х левого верхнего пикселя
+        // отцентрованной строки длины line_w
+        uint8_t start_x = x;
+        if (line_w < max_w) {
+            start_x = x + (max_w - line_w) / 2;
+        }
+
+        for (const char *p = line_start; p < line_end; p++) {
+            uint8_t w = fb_draw_char_xy(start_x, y, *p);
+            if (!w) {
+                // если не влезло, не рисуем строку
+                break;
+            }
+            start_x += w + 1;
+        }
+
+        // переходим на следующую строку
+        if (*line_end == '\n') {
+            y += font_height;
+            line_start = line_end + 1;
+        } else {
+            break;
+        }
     }
     return;
 }

@@ -22,22 +22,30 @@ void screen_testconfirm_render (void) {
     uint8_t cur_y = workspace_start_y;
 
     strbuf_str(&sb, TO_TEST_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     cur_y += cgxyz.height_px;
 
     strbuf_clear(&sb);
     screen_append_device_name(&sb);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     cur_y += 2 * cgxyz.height_px;
     // пропускаем 2 строки для красоты
 
-    strbuf_clear(&sb);
-    strbuf_str(&sb, INTERFACE_CYRILIC);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
-    cur_y += cgxyz.height_px;
+    if (test_runtime.current_device->connector_id != (uint8_t)Probe) {
+        strbuf_clear(&sb);
+        strbuf_str(&sb, INTERFACE_CYRILIC);
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    cur_y, 
+                                    strbuf_cstr(&sb));
+        cur_y += cgxyz.height_px;
+    }
 
     strbuf_clear(&sb);
     if (test_runtime.current_device->connector_id == RJ45) {
@@ -48,8 +56,10 @@ void screen_testconfirm_render (void) {
                     FONT_LAST_CHAR);
     }
     strbuf_str(&sb, screen_interface_name(test_runtime.current_device->connector_id));
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     if (test_runtime.current_device->connector_id == RJ45) {
         fb_set_font(cgxyz.font_cyr, 
                     cgxyz.width_px, 
@@ -63,8 +73,10 @@ void screen_testconfirm_render (void) {
     strbuf_clear(&sb);
     strbuf_str(&sb, CONTINUE_CYRILIC);
     strbuf_char(&sb, '?');
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     return;
 }
 

@@ -23,8 +23,10 @@ void screen_hardwarefail_render (void) {
     StrBuf_TypeDef sb;
     strbuf_init(&sb, linebuffer, linebuffer_size);
     strbuf_str(&sb, HARDWAREFAIL_CYRILIC);
-    screen_get_center_from_string(&x, sb.len);
-    fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     y += 2 * cgxyz.height_px;
 
@@ -34,38 +36,48 @@ void screen_hardwarefail_render (void) {
         strbuf_str(&sb, HIGHER_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, HIGHEGO_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, THAN_LIMIT_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, SENSORA_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     } else if (typefail_screen & OverVoltage) {
         strbuf_str(&sb, VOLTAGE_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, HIGHER_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, HIGHEGO_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, THAN_LIMIT_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, SENSORA_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     } else if (typefail_screen & UnderCurrent) {
@@ -74,74 +86,96 @@ void screen_hardwarefail_render (void) {
         strbuf_str(&sb, LOWER_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, LOWEGO_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, THAN_LIMIT_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, SENSORA_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     } else if (typefail_screen & UnderVoltage) {
         strbuf_str(&sb, VOLTAGE_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, LOWER_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, LOWEGO_CYRILIC);
         strbuf_char(&sb, ' ');
         strbuf_str(&sb, THAN_LIMIT_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, SENSORA_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     } else if (typefail_screen & MathOverflow) {
         strbuf_str(&sb, OVERFLOW_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, REGISTERS_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, SENSORA_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     } else if (typefail_screen & MemoryError) {
         strbuf_str(&sb, MEMORY_ERROR_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
 
         strbuf_str(&sb, SENSORA_CYRILIC);
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     } else if (typefail_screen == NoFail) {
         strbuf_str(&sb, "Meopedbhdemm` nxhaj`");
-        screen_get_center_from_string(&x, sb.len);
-        fb_draw_string_xy(x, y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    y, 
+                                    strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
     }

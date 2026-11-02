@@ -9,7 +9,7 @@
 
 #define TO_TEST_CYRILIC ("Reqr") // "Тест"
 #define TESTA_CYRILIC ("reqr`") // "теста"
-#define INTERFACE_CYRILIC ("Hmrepteiq") // "Интерфейс"
+#define INTERFACE_CYRILIC ("J`aek|") // "Кабель"
 #define SETTINGS_CYRILIC ("M`qrpnijh") // "Настройки"
 #define CONTINUE_CYRILIC ("Opndnkfhr|") // "Продолжить"
 #define PASSED_CYRILIC ("g`wremn") // "зачтено"
@@ -30,9 +30,12 @@
 #define GENERATOR_CYRILIC ("Cemep`rnp") // "Генератор"
 #define GENERATORA_CYRILIC ("cemep`rnp`") // "генератора"
 #define GENERATION_CYRILIC ("Cemep`vh") // "Генерация"
+
 #define DIODE_CYRILIC ("Dhnd") // "Диод"
 #define VARISTOR_CYRILIC ("B`phqrnp") // "Варистор"
+#define VARIS_CYRILIC ("B`phq.") // "Варис."
 #define DISCHARGER_CYRILIC ("P`gpdmhj") // "Разрядник"
+#define DISCH_CYRILIC ("P`gp.") // "Разр."
 
 #define HARDWAREFAIL_CYRILIC ("@OO@P@RM@_ NXHAJ@!") // "АППАРАТНАЯ ОШИБКА!"
 #define LOWER_CYRILIC ("mhfe") // "ниже"
@@ -45,7 +48,7 @@
 #define REGISTERS_CYRILIC ("pechqrpnb") // "регистров"
 #define MEMORY_ERROR_CYRILIC ("Nxhaj` o`lrh") // "Ошибка памяти"
 
-#define PROBES_CYRILIC ("Yso{") // "Щупы"
+#define PROBES_CYRILIC ("Y1-Y2") // "Щ1-Щ2"
 // #define RJ45_CYRILIC ("P`gzel") // "Разъем"
 #define K1_CYRILIC ("J1") // "К1"
 

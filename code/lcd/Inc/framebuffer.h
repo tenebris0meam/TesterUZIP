@@ -89,6 +89,15 @@ uint8_t fb_draw_char_xy (uint8_t x, uint8_t y, char c);
 void fb_draw_string_xy (uint8_t x, uint8_t y, const char *str);
 
 /**
+ * @brief Нарисовать многострочную строку с выравниванием по центру.
+ * @param x      левый край области (обычно workspace_start_x)
+ * @param max_w  ширина области для центрирования (обычно workspace_width_in_px)
+ * @param y      верхний край
+ * @param str    строка (может содержать '\n')
+ */
+void fb_draw_string_centered_xy (uint8_t x, uint8_t max_w, uint8_t y, const char *str);
+
+/**
  * @brief Нарисовать монохромное изображение.
  * @param x      левый край
  * @param y      верхний край

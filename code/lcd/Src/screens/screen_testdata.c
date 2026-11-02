@@ -55,8 +55,10 @@ void screen_testdata_render (void) {
     strbuf_str(&sb, TO_TEST_CYRILIC);
     strbuf_char(&sb, ' ');
     strbuf_u32(&sb, choosed_idx + 1, 1);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
@@ -67,8 +69,10 @@ void screen_testdata_render (void) {
     strbuf_str(&sb, PROBEBLACK_CYRILIC);
     strbuf_str(&sb, ": ");
     strbuf_u32(&sb, seq->output_pin + 1, 1);
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
@@ -80,8 +84,10 @@ void screen_testdata_render (void) {
         case GasDischargeTube: strbuf_str(&sb, DISCHARGER_CYRILIC); break;
         default: strbuf_str(&sb, NOT_SUPPORTED_CYRILIC); return;
     }
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
@@ -91,8 +97,10 @@ void screen_testdata_render (void) {
     strbuf_str(&sb, "...");
     strbuf_u32(&sb, testparam->max_voltage, 1);
     strbuf_str(&sb, " B");
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     // пропускаем 5-ю строку
     cur_y += 2 * cgxyz.height_px;
@@ -112,8 +120,10 @@ void screen_testdata_render (void) {
     strbuf_char(&sb, '.');
     strbuf_u32(&sb, (tripple_standard_deviation_voltage_before_div_uV % 1000000L) / 1000L, 3);
     strbuf_str(&sb, " B");
-    screen_get_center_from_string(&cur_x, sb.len);
-    fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    fb_draw_string_centered_xy(workspace_start_x, 
+                                workspace_width_in_px, 
+                                cur_y, 
+                                strbuf_cstr(&sb));
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
@@ -132,8 +142,10 @@ void screen_testdata_render (void) {
         strbuf_char(&sb, '.');
         strbuf_u32(&sb, (tripple_standard_deviation_current_nA % 1000000L) / 1000L, 3);
         strbuf_str(&sb, " l@");
-        screen_get_center_from_string(&cur_x, sb.len);
-        fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    cur_y, 
+                                    strbuf_cstr(&sb));
     } else {
         strbuf_str(&sb, DISCHARGER_CYRILIC);
         strbuf_char(&sb, ' ');
@@ -142,8 +154,10 @@ void screen_testdata_render (void) {
             strbuf_char(&sb, ' ');
         }
         strbuf_str(&sb, WAS_TRIGGERED_CYRILIC);
-        screen_get_center_from_string(&cur_x, sb.len);
-        fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+        fb_draw_string_centered_xy(workspace_start_x, 
+                                    workspace_width_in_px, 
+                                    cur_y, 
+                                    strbuf_cstr(&sb));
     }
     return;
 }

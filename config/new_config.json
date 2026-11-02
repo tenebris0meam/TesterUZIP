@@ -10,7 +10,7 @@
             { "SeriaName": "SGO", "GroupBeginID": 9, "GroupCount": 4 }
         ],
         "Groups": [
-            { "GroupName": "SGK(O)-E(O)/(O,A)GK-EO", "DeviceBeginID": 0, "DeviceCount": 2 }, 
+            { "GroupName": "SGK-E/SGK(O)-EO,\nOGK-EO,AGK-EO", "DeviceBeginID": 0, "DeviceCount": 2 }, 
             { "GroupName": "SGK-H", "DeviceBeginID": 2, "DeviceCount": 6 }, 
             { "GroupName": "SGK-H2", "DeviceBeginID": 8, "DeviceCount": 7 }, 
             { "GroupName": "SGK-H2-5/5", "DeviceBeginID": 15, "DeviceCount": 6 }, 
@@ -27,7 +27,7 @@
         ],
         "DevicesNames": [
             "SGK-E",
-            "(S,A,O)GK-EO SGKO-EO",
+            "SGK(O)-,OGK-,AGK-EO",
             "SGK-H-12/5",
             "SGK-H-24/5",
             "SGK-H-30/5",

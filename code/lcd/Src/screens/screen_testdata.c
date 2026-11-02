@@ -63,7 +63,7 @@ void screen_testdata_render (void) {
     strbuf_str(&sb, PROBERED_CYRILIC);
     strbuf_str(&sb, ": ");
     strbuf_u32(&sb, seq->input_pin + 1, 1);
-    strbuf_str(&sb, "   ");
+    strbuf_str(&sb, "  ");
     strbuf_str(&sb, PROBEBLACK_CYRILIC);
     strbuf_str(&sb, ": ");
     strbuf_u32(&sb, seq->output_pin + 1, 1);

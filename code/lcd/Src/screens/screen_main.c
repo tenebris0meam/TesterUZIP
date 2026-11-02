@@ -1,5 +1,6 @@
 ﻿#include "screens/screen_main.h"
 #include "cursor.h"
+#include "params.h"
 #include "screens.h"
 #include "strbuf.h"
 #include "framebuffer.h"
@@ -48,7 +49,6 @@ void screen_main_render (void) {
     switch (test_config.mode_id) {
         case CheckDevice: {
 #endif
-#ifndef TESTER_MODES
             screen_append_device_name(&sb);
             screen_get_center_from_string(&cur_x, sb.len);
             fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
@@ -56,8 +56,22 @@ void screen_main_render (void) {
             strbuf_clear(&sb);
 
             const char *str_interface = screen_interface_name(test_runtime.current_device->connector_id);
+            if (test_runtime.current_device->connector_id == RJ45) {
+                fb_set_font(cgxyz.font_lat, 
+                            cgxyz.width_px, 
+                            cgxyz.height_px, 
+                            FONT_FIRST_CHAR, 
+                            FONT_LAST_CHAR);
+            }
             screen_get_center_from_string(&cur_x, strlen(str_interface));
             fb_draw_string_xy(cur_x, cur_y, str_interface);
+            if (test_runtime.current_device->connector_id == RJ45) {
+                fb_set_font(cgxyz.font_cyr, 
+                            cgxyz.width_px, 
+                            cgxyz.height_px, 
+                            FONT_FIRST_CHAR, 
+                            FONT_LAST_CHAR);
+            }
 
             screen_get_center_from_string(&cur_x, strlen(TO_TEST_CYRILIC));
             fb_draw_string_xy(cur_x, options_strg[1].y, TO_TEST_CYRILIC);
@@ -68,7 +82,7 @@ void screen_main_render (void) {
             screen_get_center_from_string(&cur_x, sb.len);
             fb_draw_string_xy(cur_x, options_strg[2].y, strbuf_cstr(&sb));
             strbuf_clear(&sb);
-#else 
+#ifdef TESTER_MODES
             break;
         }
 

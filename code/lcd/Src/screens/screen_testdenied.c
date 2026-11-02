@@ -43,9 +43,23 @@ void screen_testdenied_render (void) {
     cur_y += cgxyz.height_px;
 
     strbuf_clear(&sb);
+    if (test_runtime.current_device->connector_id == RJ45) {
+        fb_set_font(cgxyz.font_lat, 
+                    cgxyz.width_px, 
+                    cgxyz.height_px, 
+                    FONT_FIRST_CHAR, 
+                    FONT_LAST_CHAR);
+    }
     strbuf_str(&sb, screen_interface_name(test_runtime.current_device->connector_id));
     screen_get_center_from_string(&cur_x, sb.len);
     fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
+    if (test_runtime.current_device->connector_id == RJ45) {
+        fb_set_font(cgxyz.font_cyr, 
+                    cgxyz.width_px, 
+                    cgxyz.height_px, 
+                    FONT_FIRST_CHAR, 
+                    FONT_LAST_CHAR);
+    }
     cur_y += 2 * cgxyz.height_px;
     // Пропускаем 2 строки для красоты
 

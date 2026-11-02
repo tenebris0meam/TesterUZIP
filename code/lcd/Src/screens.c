@@ -141,7 +141,7 @@ uint8_t workspace_height_in_chars = 0;
 const char *screen_interface_name (Param_Connector interface_id) {
     switch (interface_id) {
         case Probe: return PROBES_CYRILIC;
-        case RJ45: return RJ45_CYRILIC;
+        case RJ45: return "FTP";
         case K1: return K1_CYRILIC;
         default: return NOT_SUPPORTED_CYRILIC;
     }
@@ -172,7 +172,7 @@ void screen_append_device_name (StrBuf_TypeDef *sb) {
 
 /** @brief Вычислить координату x начала отцентрированной строки заданной длины */
 void screen_get_center_from_string (uint8_t *center_x_px, 
-                                           uint8_t str_length) {
+                                    uint8_t str_length) {
     if (str_length >= workspace_width_in_chars) {
         *center_x_px = workspace_start_x;
     } else {

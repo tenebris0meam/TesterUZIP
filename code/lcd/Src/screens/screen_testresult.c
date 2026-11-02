@@ -34,11 +34,11 @@ void screen_testresult_render (void) {
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
-    strbuf_u32(&sb, test_runtime.passed_cnt, 3);
-    strbuf_char(&sb, '/');
-    strbuf_u32(&sb, model_get_total_tests(), 3);
-    strbuf_char(&sb, ' ');
     strbuf_str(&sb, PASSED_CYRILIC);
+    strbuf_char(&sb, ' ');
+    strbuf_u32(&sb, test_runtime.passed_cnt, 1);
+    strbuf_str(&sb, " hg ");
+    strbuf_u32(&sb, model_get_total_tests(), 1);
     screen_get_center_from_string(&cur_x, sb.len);
     fb_draw_string_xy(cur_x, cur_y, strbuf_cstr(&sb));
     strbuf_clear(&sb);

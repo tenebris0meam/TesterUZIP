@@ -51,9 +51,7 @@ bool display_init (void) {
     current_screen = ScreenHello;
     screens[current_screen].on_enter();
     screens[current_screen].render();
-    for (uint8_t i = 0; i < FB_BANKS; i++) {
-        display_draw_buffer();
-    }
+    display_draw_buffer();
     return true;
 }
 

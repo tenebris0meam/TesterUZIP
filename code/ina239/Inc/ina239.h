@@ -34,14 +34,14 @@ extern "C" {
 // формула 819,2e6 * SHUNT_CURRENT_LSB * SHUNT_RESISTANCE_Ohm
 #if defined DEBUG
 #define SHUNT_CAL_RAW   0x0339L
-#define SOVL_2mA        0x2260L // 44 mV limit, 44mV/5uV = 8800
-#define SOVL_MAX        0x7FFFL // 163.83 mV, 163.83 mV / 22 Ohm = 7.45 mA
-#define SOVL_MIN        0x8000L // -163.84 mV
 #else 
 #define SHUNT_CAL_RAW   0x0F5CUL // CURRENT_LSB = 32 nA/LSB, SHUNT_CAL = 3932
 #define SOVL_RAW        0x7D00L // 150 mV limit, 160mV/5uV = 32000
 #endif
 #define BOVL_RAW        0x6720L // 82.5V limit, 82.5V/3.125mV = 26400
+#define SOVL_2mA        0x2260L // 44 mV limit, 44mV/5uV = 8800
+#define SOVL_MAX        0x7FFFL // 163.83 mV, 163.83 mV / 22 Ohm = 7.45 mA
+#define SOVL_MIN        0x8000L // -163.84 mV
 
 #define VBUS_IMPEDANCE_Ohm 0x000F4240L // 1MOhm
 

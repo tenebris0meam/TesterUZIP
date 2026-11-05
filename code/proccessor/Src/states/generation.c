@@ -10,6 +10,7 @@
 #include "tim.h"
 #include "model.h"
 #include "resolver.h"
+#include "ina239.h"
 #include "ina239_user.h"
 #include "stm32f1xx_ll_tim.h"
 #include "utils.h"

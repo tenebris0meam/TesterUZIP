@@ -25,7 +25,7 @@ static uint8_t num_pressed_cancel = 0;
 static const uint8_t need_num_pressed_cancel = 3;
 int32_t voltage_max_uV = 0;
 int32_t voltage_max_buf[MAX_TESTS_FOR_ONE_GDT] = { 0 };
-uint8_t test_id = 0;
+volatile uint8_t test_id = 0;
 
 
 
@@ -73,6 +73,14 @@ void proccessor_generation_on_enter_checkdevice (void) {
 
     if (test_runtime.current_type == (uint8_t)GasDischargeTube) {
         calc_set_test_mode(CalcTestMode_SweepGDT);
+        if (INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(), SOVL_2mA) != INA239_OK) {
+            proccessor_raise_event(ReturnToIdle);
+            return;
+        }
+        if (INA239_WriteShuntUndervoltageLimit(INA239_GetInstance(), -SOVL_2mA) != INA239_OK) {
+            proccessor_raise_event(ReturnToIdle);
+            return;
+        }
     } else {
         calc_set_test_mode(CalcTestMode_SweepTVS);
     }
@@ -215,52 +223,6 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
     return;
 }
 
-static bool gdt_failed = false;
-
-State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
-    switch (event) {
-        case DeviceVoltageUnderVoltage: return Generation;
-
-        case DeviceVoltageOverVoltage: 
-            num_pressed_cancel = 0;
-            gdt_failed = true;
-            return TestFailed;
-
-        case DeviceSetpointExhausted:
-            if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
-                voltage_max_buf[test_id] = 0;
-                test_id++;
-                num_pressed_cancel = 0;
-                return Commutation;
-            }
-            test_id = 0;
-            num_pressed_cancel = 0;
-            gdt_failed = true;
-            return TestFailed;
-
-        case DeviceVoltageSettleTimeout:
-            num_pressed_cancel = 0;
-            gdt_failed = true;
-            return TestFailed;
-
-        case AlertActive: 
-            num_pressed_cancel = 0;
-            return HardwareFail;
-
-        case ReturnToIdle:
-            if (num_pressed_cancel == need_num_pressed_cancel) {
-                display_set_screen(ScreenTestDenied);
-                display_allow_render();
-                num_pressed_cancel = 0;
-                return Idle_Setting;
-            }
-            num_pressed_cancel = 0;
-            return TestSequenceComplete;
-
-        default: return Generation;
-    }
-}
-
 static inline int32_t get_average_from_buf (int32_t *buf, uint32_t num_el_buf) {
     int64_t acc = 0;
     for (uint32_t i = 0; i < num_el_buf; i++) {
@@ -280,17 +242,55 @@ static inline int32_t get_standard_deviation_from_buf (int32_t *buf, uint32_t nu
     return (int32_t)uint64_sqrt(acc);
 }
 
-void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
-    if (gdt_failed) {
-        uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
-        test_results[pos].sequence_pos = pos;
-        test_results[pos].type = (uint8_t)GasDischargeTube;
-        test_results[pos].res.voltage_uV.mean_value = voltage_max_uV;
-        test_results[pos].res.voltage_uV.standard_deviation = 0;
-        test_results[pos].res.current_nA.mean_value = 0;
-        model_handle_test_result();
+State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
+    switch (event) {
+        case DeviceVoltageUnderVoltage: return Generation;
+
+        case DeviceVoltageSettleTimeout:
+        case DeviceVoltageOverVoltage:
+        case DeviceSetpointExhausted: {
+            if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
+                voltage_max_buf[test_id] = voltage_max_uV;
+                voltage_max_uV = 0;
+                test_id++;
+                num_pressed_cancel = 0;
+                return Commutation;
+            }
+            uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
+            test_results[pos].sequence_pos = pos;
+            test_results[pos].type = (uint8_t)GasDischargeTube;
+            test_results[pos].res.voltage_uV.mean_value = 
+                get_average_from_buf(voltage_max_buf, 
+                                    MAX_TESTS_FOR_ONE_GDT);
+            test_results[pos].res.voltage_uV.standard_deviation = 
+                get_standard_deviation_from_buf(voltage_max_buf, 
+                                                MAX_TESTS_FOR_ONE_GDT, 
+                                                test_results[pos].res.voltage_uV.mean_value);
+            test_results[pos].res.current_nA.mean_value = 0;
+            voltage_max_uV = 0;
+            test_id = 0;
+            num_pressed_cancel = 0;
+            return TestFailed;
+        }
+        case AlertActive: 
+            num_pressed_cancel = 0;
+            return HardwareFail;
+
+        case ReturnToIdle:
+            if (num_pressed_cancel == need_num_pressed_cancel) {
+                display_set_screen(ScreenTestDenied);
+                display_allow_render();
+                num_pressed_cancel = 0;
+                return Idle_Setting;
+            }
+            num_pressed_cancel = 0;
+            return TestSequenceComplete;
+
+        default: return Generation;
     }
-    model_remember_result(GasDischargeTube);
+}
+
+void proccessor_generation_on_exit_checkdevice_for_GDT (void) {
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();

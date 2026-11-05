@@ -62,11 +62,11 @@ void screen_testdata_render (void) {
     strbuf_clear(&sb);
     cur_y += cgxyz.height_px;
 
-    strbuf_str(&sb, PROBERED_CYRILIC);
+    strbuf_str(&sb, (dev->connector_id == Probe) ? PROBERED_CYRILIC : CONTRED_CYRILIC);
     strbuf_str(&sb, ": ");
     strbuf_u32(&sb, seq->input_pin + 1, 1);
     strbuf_str(&sb, "  ");
-    strbuf_str(&sb, PROBEBLACK_CYRILIC);
+    strbuf_str(&sb, (dev->connector_id == Probe) ? PROBEBLACK_CYRILIC : CONTBLACK_CYRILIC);
     strbuf_str(&sb, ": ");
     strbuf_u32(&sb, seq->output_pin + 1, 1);
     fb_draw_string_centered_xy(workspace_start_x, 

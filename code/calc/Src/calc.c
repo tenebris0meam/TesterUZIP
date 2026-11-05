@@ -17,15 +17,14 @@
 #define CALC_WINDOW_LENGTH (4)
 #define CALC_WINDOW_LENGTH_POWER2 (2)
 
-#define CALC_DERIVATIVE_VOLTAGE_MAX (137470804LL) // 1000 V/s с учётом делителя напряжения
-// #define CALC_DERIVATIVE_VOLTAGE_MAX (68807339LL) // 500 V/s с учётом делителя напряжения
-#define CALC_SWEEP_TIMEOUT_MS (1000U)
+#define CALC_DERIVATIVE_VOLTAGE_MAX (68807339LL) // 500 V/s с учётом делителя напряжения
+#define CALC_SWEEP_TIMEOUT_MS (3000U)
 
-#define CALC_uV_TO_PPM(error_uV) ((error_uV) * 256LL / 256LL)
-#define CALC_nA_TO_PPM(error_nA) ((error_nA) * 256LL / 128LL)
+#define CALC_uV_TO_PPM(error_uV) (((error_uV) << 8LL) >> 8LL)
+#define CALC_nA_TO_PPM(error_nA) (((error_nA) << 8LL) >> 7LL)
 
 #define CALC_CC_ENTER_nA (100000L) // 0.1 мА
-#define CALC_CC_TIMEOUT_MS (1000U) // 1 с
+#define CALC_CC_TIMEOUT_MS (3000U) // 3 с
 
 
 typedef enum {

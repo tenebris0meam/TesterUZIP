@@ -61,12 +61,12 @@ bool INA239_MainInit (void) {
     }
 
     /* Пороги защиты (сырые коды, тоже посчитаны заранее пользователем) */
-    if (INA239_WriteShuntOvervoltageLimit(&ina239, SOVL_RAW) != INA239_OK) {
-        return false;
-    }
-    if (INA239_WriteShuntUndervoltageLimit(&ina239, -SOVL_RAW) != INA239_OK) {
-        return false;
-    }
+    // if (INA239_WriteShuntOvervoltageLimit(&ina239, SOVL_RAW) != INA239_OK) {
+    //     return false;
+    // }
+    // if (INA239_WriteShuntUndervoltageLimit(&ina239, -SOVL_RAW) != INA239_OK) {
+    //     return false;
+    // }
     // if (INA239_WriteBusOvervoltageLimit(&ina239, BOVL_RAW) != INA239_OK) {
     //     return false;
     // }

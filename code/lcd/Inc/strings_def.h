@@ -65,5 +65,7 @@
 
 #define PROBERED_CYRILIC ("Y1") // "Щ1"
 #define PROBEBLACK_CYRILIC ("Y2") // "Щ2"
+#define CONTRED_CYRILIC ("Jnmr.+") // "Конт.+"
+#define CONTBLACK_CYRILIC ("Jnmr.-") // "Конт.-"
 
 #endif /* STRINGS_DEF_H_ */

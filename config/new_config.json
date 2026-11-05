@@ -1102,15 +1102,10 @@
             {
                 "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 47, "TestID": 0 }
+                    { "SequenceID": 0, "TestID": 0 }
                 ]
             },
-            {
-                "TestSequenceAmount": 1, 
-                "TestSequence": [
-                    { "SequenceID": 7, "TestID": 3 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
         "ConnectorID": 0
     }, {
@@ -1122,15 +1117,10 @@
             {
                 "TestSequenceAmount": 1,
                 "TestSequence": [
-                    { "SequenceID": 55, "TestID": 0 }
+                    { "SequenceID": 0, "TestID": 0 }
                 ]
             },
-            {
-                "TestSequenceAmount": 1,
-                "TestSequence": [
-                    { "SequenceID": 7, "TestID": 3 }
-                ]
-            }
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
         "ConnectorID": 0
     }, {
@@ -1140,18 +1130,12 @@
         "TestSequences": [
             { "TestSequenceAmount": 0, "TestSequence": null },
             {
-                "TestSequenceAmount": 2, 
-                "TestSequence": [
-                    { "SequenceID": 45, "TestID": 0 },
-                    { "SequenceID": 1, "TestID": 0 }
-                ]
-            },
-            {
                 "TestSequenceAmount": 1, 
                 "TestSequence": [
-                    { "SequenceID": 50, "TestID": 3 }
+                    { "SequenceID": 0, "TestID": 0 }
                 ]
-            }
+            },
+            { "TestSequenceAmount": 0, "TestSequence": null }
         ],
         "ConnectorID": 0
     },

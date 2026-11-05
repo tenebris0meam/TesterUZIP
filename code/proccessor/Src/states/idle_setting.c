@@ -9,7 +9,8 @@
 
 void proccessor_idle_on_enter (void) {
     /* Restore the normal overcurrent threshold after leaving manual generation. */
-    (void)INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(), (int16_t)SOVL_RAW);
+    (void)INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(), (int16_t)SOVL_MAX);
+    (void)INA239_WriteShuntUndervoltageLimit(INA239_GetInstance(), (int16_t)SOVL_MIN);
     return;
 }
 

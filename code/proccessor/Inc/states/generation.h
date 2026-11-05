@@ -6,7 +6,7 @@
 
 extern int32_t voltage_max_uV;
 extern int32_t voltage_max_buf[MAX_TESTS_FOR_ONE_GDT];
-extern uint8_t test_id;
+extern volatile uint8_t test_id;
 
 void proccessor_generation_on_enter_checkdevice (void);
 void proccessor_generation_on_exit_checkdevice_default (void);

@@ -7,6 +7,7 @@
 #include "strings_def.h"
 
 static TypeFail typefail_screen = NoFail;
+static bool error_seen = false;
 
 void screen_hardwarefail_on_enter (void) {
     typefail_screen = typefail;
@@ -52,6 +53,7 @@ void screen_hardwarefail_render (void) {
                                     strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
+        error_seen = true;
     } else if (typefail_screen & OverVoltage) {
         strbuf_str(&sb, VOLTAGE_CYRILIC);
         strbuf_char(&sb, ' ');
@@ -80,6 +82,7 @@ void screen_hardwarefail_render (void) {
                                     strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
+        error_seen = true;
     } else if (typefail_screen & UnderCurrent) {
         strbuf_str(&sb, CURRENT_CYRILIC);
         strbuf_char(&sb, ' ');
@@ -102,6 +105,7 @@ void screen_hardwarefail_render (void) {
                                     strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
+        error_seen = true;
     } else if (typefail_screen & UnderVoltage) {
         strbuf_str(&sb, VOLTAGE_CYRILIC);
         strbuf_char(&sb, ' ');
@@ -130,6 +134,7 @@ void screen_hardwarefail_render (void) {
                                     strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
+        error_seen = true;
     } else if (typefail_screen & MathOverflow) {
         strbuf_str(&sb, OVERFLOW_CYRILIC);
         fb_draw_string_centered_xy(workspace_start_x, 
@@ -154,6 +159,7 @@ void screen_hardwarefail_render (void) {
                                     strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
+        error_seen = true;
     } else if (typefail_screen & MemoryError) {
         strbuf_str(&sb, MEMORY_ERROR_CYRILIC);
         fb_draw_string_centered_xy(workspace_start_x, 
@@ -170,7 +176,8 @@ void screen_hardwarefail_render (void) {
                                     strbuf_cstr(&sb));
         strbuf_clear(&sb);
         y += cgxyz.height_px;
-    } else if (typefail_screen == NoFail) {
+        error_seen = true;
+    } else if (typefail_screen == NoFail && !error_seen) {
         strbuf_str(&sb, "Meopedbhdemm` nxhaj`");
         fb_draw_string_centered_xy(workspace_start_x, 
                                     workspace_width_in_px, 
@@ -186,10 +193,7 @@ void screen_hardwarefail_render (void) {
 ScreenID screen_hardwarefail_handle_event (InputEvent event) {
     switch (event) {
         case InputEvent_ButtonPressed_Enter: 
-            if (typefail_screen == NoFail) {
-                proccessor_raise_event(EnterAccepted);
-                return ScreenMain;
-            } else if (typefail_screen & OverCurrent) {
+            if (typefail_screen & OverCurrent) {
                 typefail_screen &= (~OverCurrent);
             } else if (typefail_screen & OverVoltage) {
                 typefail_screen &= (~OverVoltage);
@@ -202,7 +206,13 @@ ScreenID screen_hardwarefail_handle_event (InputEvent event) {
             } else if (typefail_screen & MemoryError) {
                 typefail_screen &= (~MemoryError);
             }
-            return ScreenHardwareFail;
+            if (typefail_screen == NoFail) {
+                proccessor_raise_event(EnterAccepted);
+                error_seen = false;
+                return ScreenMain;
+            } else {
+                return ScreenHardwareFail;
+            }
         default: return ScreenHardwareFail;
     }
 }

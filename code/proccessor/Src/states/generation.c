@@ -244,6 +244,10 @@ static inline int32_t get_standard_deviation_from_buf (int32_t *buf, uint32_t nu
 }
 
 State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
+    if (num_pressed_cancel == need_num_pressed_cancel) { 
+        proccessor_force_raise_event(ReturnToIdle); 
+    }
+
     switch (event) {
         case DeviceVoltageUnderVoltage: return Generation;
 

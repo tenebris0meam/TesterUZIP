@@ -1,6 +1,5 @@
 ﻿#include "input_events.h"
 #include "delay.h"
-#include "exti.h"
 #include "keyboard.h"
 
 #include <stdint.h>
@@ -12,7 +11,6 @@
 static InputEvent cur_display_state = InputEvent_Count;
 static bool is_init = false;
 static uint8_t init_task_id = 0;
-static bool is_input_allowed = true;
 static bool is_testing_complete = false;
 
 /** @brief Кнопка, по которой уже выдано событие - нужна для детекта фронта. */
@@ -24,22 +22,6 @@ void inputevent_enable_init (void) {
     is_init = true;
     delay_register_task(&init_task_id, INPUTEVENT_HELLO_MS, Millis);
     return;
-}
-
-void inputevent_allow_input (void) {
-    is_input_allowed = true;
-    EXTI_enable_interrupt();
-    return;
-}
-
-void inputevent_deny_input (void) {
-    is_input_allowed = false;
-    EXTI_disable_interrupt();
-    return;
-}
-
-bool inputevent_get_input (void) {
-    return is_input_allowed;
 }
 
 void inputevent_testing_completed (void) {
@@ -63,17 +45,11 @@ void inputevent_routine (void) {
         return;
     }
 
-    /* Пока висит экран приветствия, ввод не принимаем */
     if (is_init) {
         if (!delay_is_not_yet_expired(init_task_id)) {
             is_init = false;
-            is_input_allowed = true;
             cur_display_state = InputEvent_HelloScreenTimeout;
         }
-        return;
-    }
-
-    if (!is_input_allowed) {
         return;
     }
 

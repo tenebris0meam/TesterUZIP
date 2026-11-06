@@ -33,6 +33,11 @@ extern const Pin_TypeDef DSUB_EN;
 extern const Pin_TypeDef RJ_SHIELD_P;
 extern const Pin_TypeDef RJ_SHIELD_N;
 
+extern const Pin_TypeDef BUTTON_UP;
+extern const Pin_TypeDef BUTTON_DOWN;
+extern const Pin_TypeDef BUTTON_REJECT;
+extern const Pin_TypeDef BUTTON_ACCEPT;
+
 
 
 static inline void Pin_Set_State (const Pin_TypeDef *pin, bool state) {

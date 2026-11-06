@@ -15,9 +15,6 @@ typedef enum {
 } InputEvent;
 
 void inputevent_enable_init (void);
-void inputevent_allow_input (void);
-void inputevent_deny_input (void); 
-bool inputevent_get_input (void);
 void inputevent_testing_completed (void);
 
 InputEvent inputevent_get_state (void);

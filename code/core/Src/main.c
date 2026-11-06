@@ -1,7 +1,6 @@
 ﻿#include "main.h"
 #include <stdbool.h>
 
-#include "exti.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_system.h"
@@ -85,10 +84,6 @@ static bool Hardware_Init (void) {
     }
 
     if (!DMA1_SPI2_Init()) {
-        return false;
-    }
-
-    if (!EXTI_Init()) {
         return false;
     }
 

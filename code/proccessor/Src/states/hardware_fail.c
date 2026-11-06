@@ -25,7 +25,6 @@ void proccessor_hardwarefail_on_enter_default (void) {
     commutator_forcedeny_commutation();
     calc_integrator_reset();
     display_allow_render();
-    inputevent_allow_input();
 
     buzzer_turn_on();
 

@@ -26,6 +26,11 @@ const Pin_TypeDef DSUB_EN = { .port = DSUB_EN_GPIO_Port, .pin = DSUB_EN_GPIO_Pin
 const Pin_TypeDef RJ_SHIELD_P = { .port = RJ_SHIELD_P_GPIO_Port, .pin = RJ_SHIELD_P_GPIO_Pin };
 const Pin_TypeDef RJ_SHIELD_N = { .port = RJ_SHIELD_N_GPIO_Port, .pin = RJ_SHIELD_N_GPIO_Pin };
 
+const Pin_TypeDef BUTTON_UP = { .port = BUTTON_UP_GPIO_Port, .pin = BUTTON_UP_GPIO_Pin };
+const Pin_TypeDef BUTTON_DOWN = { .port = BUTTON_DOWN_GPIO_Port, .pin = BUTTON_DOWN_GPIO_Pin };
+const Pin_TypeDef BUTTON_REJECT = { .port = BUTTON_REJECT_GPIO_Port, .pin = BUTTON_REJECT_GPIO_Pin };
+const Pin_TypeDef BUTTON_ACCEPT = { .port = BUTTON_ACCEPT_GPIO_Port, .pin = BUTTON_ACCEPT_GPIO_Pin };
+
 bool GPIO_Init (void) {
     /* Включаем тактирвание портов A и B */
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
@@ -50,9 +55,24 @@ bool GPIO_Init (void) {
         - PB1 (nMUX2_En)
         - PB8 (nRESET_LCD)
         - PB9 (Buzzer)
+
+        Input:
+        - PA0 (BUTTON_UP)
+        - PA1 (BUTTON_REJECT)
+        - PA2 (BUTTON_DOWN)
+        - PA3 (BUTTON_ACCEPT)
     */
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitStruct.Pin = BUTTON_UP.pin | 
+                            BUTTON_DOWN.pin | 
+                            BUTTON_REJECT.pin | 
+                            BUTTON_ACCEPT.pin;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+    if (LL_GPIO_Init(BUTTON_UP.port, &GPIO_InitStruct) != SUCCESS) {
+        return false;
+    }
+
     GPIO_InitStruct.Pin = MUX1_C.pin;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;

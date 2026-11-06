@@ -20,17 +20,21 @@
 
 void screen_main_on_enter (void) {
 #ifndef TESTER_MODES
-    cursor_init(&options_strg[1], 2, 0);
+    if (model_is_valid()) {
+        cursor_init(&options_strg[1], 2, 0, 0);
+    } else {
+        cursor_init(&options_strg[1], 1, 0, 0);
+    }
 #else
     switch (test_config.mode_id) {
         case CheckDevice: 
         case VoltageGenerator:
-            cursor_init(&options_strg[1], 3, 0);
+            cursor_init(&options_strg[1], 3, 0, 0);
             break;
 
         case Voltmeter: 
         case Ommeter: 
-            cursor_init(&options_strg[3], 1, 0);
+            cursor_init(&options_strg[3], 1, 0, 0);
             break;
 
         default: return;
@@ -49,47 +53,58 @@ void screen_main_render (void) {
     switch (test_config.mode_id) {
         case CheckDevice: {
 #endif
-            screen_append_device_name(&sb);
-            fb_draw_string_centered_xy(workspace_start_x, 
-                                        workspace_width_in_px, 
-                                        cur_y, 
-                                        strbuf_cstr(&sb));
-            cur_y += cgxyz.height_px;
-            strbuf_clear(&sb);
+            if (model_is_valid()) {
+                screen_append_device_name(&sb);
+                fb_draw_string_centered_xy(workspace_start_x, 
+                                            workspace_width_in_px, 
+                                            cur_y, 
+                                            strbuf_cstr(&sb));
+                cur_y += cgxyz.height_px;
+                strbuf_clear(&sb);
 
-            const char *str_interface = screen_interface_name(test_runtime.current_device->connector_id);
-            if (test_runtime.current_device->connector_id == RJ45) {
-                fb_set_font(cgxyz.font_lat, 
-                            cgxyz.width_px, 
-                            cgxyz.height_px, 
-                            FONT_FIRST_CHAR, 
-                            FONT_LAST_CHAR);
+                const char *str_interface = screen_interface_name(test_runtime.current_device->connector_id);
+                if (test_runtime.current_device->connector_id == RJ45) {
+                    fb_set_font(cgxyz.font_lat, 
+                                cgxyz.width_px, 
+                                cgxyz.height_px, 
+                                FONT_FIRST_CHAR, 
+                                FONT_LAST_CHAR);
+                }
+                fb_draw_string_centered_xy(workspace_start_x, 
+                                            workspace_width_in_px, 
+                                            cur_y, 
+                                            str_interface);
+                if (test_runtime.current_device->connector_id == RJ45) {
+                    fb_set_font(cgxyz.font_cyr, 
+                                cgxyz.width_px, 
+                                cgxyz.height_px, 
+                                FONT_FIRST_CHAR, 
+                                FONT_LAST_CHAR);
+                }
+
+                fb_draw_string_centered_xy(workspace_start_x, 
+                                            workspace_width_in_px, 
+                                            options_strg[1].y, 
+                                            TO_TEST_CYRILIC);
+
+                strbuf_str(&sb, CHOSING_CYRILIC);
+                strbuf_char(&sb, ' ');
+                strbuf_str(&sb, DEVICES_CYRILIC);
+                fb_draw_string_centered_xy(workspace_start_x, 
+                                            workspace_width_in_px, 
+                                            options_strg[2].y, 
+                                            strbuf_cstr(&sb));
+                strbuf_clear(&sb);
+            } else {
+                strbuf_str(&sb, CHOSING_CYRILIC);
+                strbuf_char(&sb, ' ');
+                strbuf_str(&sb, DEVICES_CYRILIC);
+                fb_draw_string_centered_xy(workspace_start_x, 
+                                            workspace_width_in_px, 
+                                            options_strg[1].y, 
+                                            strbuf_cstr(&sb));
+                strbuf_clear(&sb);
             }
-            fb_draw_string_centered_xy(workspace_start_x, 
-                                        workspace_width_in_px, 
-                                        cur_y, 
-                                        str_interface);
-            if (test_runtime.current_device->connector_id == RJ45) {
-                fb_set_font(cgxyz.font_cyr, 
-                            cgxyz.width_px, 
-                            cgxyz.height_px, 
-                            FONT_FIRST_CHAR, 
-                            FONT_LAST_CHAR);
-            }
-
-            fb_draw_string_centered_xy(workspace_start_x, 
-                                        workspace_width_in_px, 
-                                        options_strg[1].y, 
-                                        TO_TEST_CYRILIC);
-
-            strbuf_str(&sb, CHOSING_CYRILIC);
-            strbuf_char(&sb, ' ');
-            strbuf_str(&sb, DEVICES_CYRILIC);
-            fb_draw_string_centered_xy(workspace_start_x, 
-                                        workspace_width_in_px, 
-                                        options_strg[2].y, 
-                                        strbuf_cstr(&sb));
-            strbuf_clear(&sb);
 #ifdef TESTER_MODES
             break;
         }
@@ -234,11 +249,19 @@ ScreenID screen_main_handle_event (InputEvent event) {
                 case InputEvent_ButtonPressed_Next: cursor_move(+1); return ScreenMain;
                 case InputEvent_ButtonPressed_Enter: {
                     uint8_t cur_option = cursor_get_current_selected_index();
-                    switch (cur_option) {
-                        case 0: return ScreenTestConfirm;
-                        case 1: return ScreenCheckdeviceSeries;
-                        case 2: return ScreenModes;
-                        default: return ScreenMain;
+                    if (model_is_valid()) {
+                        switch (cur_option) {
+                            case 0: return ScreenTestConfirm;
+                            case 1: return ScreenCheckdeviceSeries;
+                            case 2: return ScreenModes;
+                            default: return ScreenMain;
+                        }
+                    } else {
+                        switch (cur_option) {
+                            case 0: return ScreenCheckdeviceSeries;
+                            case 1: return ScreenModes;
+                            default: return ScreenMain;
+                        }
                     }
                 }
                 default: return ScreenMain;

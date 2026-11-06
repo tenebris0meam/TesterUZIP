@@ -4,6 +4,7 @@
 #include "input_events.h"
 #include "strbuf.h"
 #include "params.h"
+#include "model.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -53,8 +54,11 @@ extern uint8_t workspace_height_in_chars;
 
 void screen_render_name_list (const char *first_word, 
                                 const char *second_word, 
-                                NameListKind kind);
-const MyString *screen_name_at (NameListKind kind, uint8_t idx);
+                                NameListKind kind,
+                                const TestConfig_TypeDef *config);
+const MyString *screen_name_at (NameListKind kind, 
+                                uint8_t idx, 
+                                const TestConfig_TypeDef *config);
 uint8_t screen_name_count (NameListKind kind);
 void screen_draw_title (StrBuf_TypeDef *sb, 
                         const char *first_word, 

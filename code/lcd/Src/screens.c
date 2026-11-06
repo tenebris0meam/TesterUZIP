@@ -213,28 +213,28 @@ uint8_t screen_name_count (NameListKind kind) {
         case NameList_Series: return params_get_series_num(&params);
         case NameList_Groups: {
             const Params_Range_TypeDef *groups_is_seria = 
-                params_get_groups_in_seria(&params, test_config.series_id);
+                params_get_groups_in_seria(&params, test_config_dirty.series_id);
             return groups_is_seria->count;
         } 
         default: {
             const Params_Range_TypeDef *devices_in_group = 
-                params_get_devices_in_group(&params, test_config.group_id);
+                params_get_devices_in_group(&params, test_config_dirty.group_id);
             return devices_in_group->count;
         }
     }
 }
 
-const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
+const MyString *screen_name_at (NameListKind kind, uint8_t idx, const TestConfig_TypeDef *config) {
     switch (kind) {
         case NameList_Series: return params_get_seria_name(&params, idx);
         case NameList_Groups: {
             const Params_Range_TypeDef *groups_in_seria = 
-                params_get_groups_in_seria(&params, test_config.series_id);
+                params_get_groups_in_seria(&params, config->series_id);
             return params_get_group_name(&params, groups_in_seria->begin_idx + idx);
         }
         default: {
             const Params_Range_TypeDef *devices_in_group = 
-                params_get_devices_in_group(&params, test_config.group_id);
+                params_get_devices_in_group(&params, config->group_id);
             return params_get_device_name(&params, devices_in_group->begin_idx + idx);
         }
     }
@@ -246,8 +246,9 @@ const MyString *screen_name_at (NameListKind kind, uint8_t idx) {
  *          список любой длины показывается корректно. 
  */
 void screen_render_name_list (const char *first_word, 
-                                     const char *second_word, 
-                                     NameListKind kind) {
+                                const char *second_word, 
+                                NameListKind kind,
+                                const TestConfig_TypeDef *config) {
     uint8_t cur_x;
     StrBuf_TypeDef sb;
     strbuf_init(&sb, linebuffer, linebuffer_size);
@@ -270,7 +271,7 @@ void screen_render_name_list (const char *first_word,
         }
         strbuf_clear(&sb);
 
-        const MyString *name = screen_name_at(kind, idx);
+        const MyString *name = screen_name_at(kind, idx, config);
         const char *p = name->beg;
         uint8_t lines = 1;
         while (p < name->end) {
@@ -290,7 +291,7 @@ void screen_render_name_list (const char *first_word,
             }
         }
 
-        screen_append_mystring(&sb, screen_name_at(kind, idx));
+        screen_append_mystring(&sb, screen_name_at(kind, idx, config));
         fb_draw_string_centered_xy(workspace_start_x, 
                                     workspace_width_in_px, 
                                     options_strg[row].y, 

@@ -9,7 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-TestConfig_TypeDef test_config = { 0 };
+TestConfig_TypeDef test_config = { 
+    .series_id = UINT8_MAX,
+    .group_id = UINT8_MAX,
+    .device_id = UINT8_MAX,
+    .mode_id = CheckDevice
+};
+TestConfig_TypeDef test_config_dirty = { 0 };
 TestRuntime_TypeDef test_runtime = { 0 };
 TestResult_TypeDef *test_results;
 
@@ -211,13 +217,14 @@ void model_reset_results (void) {
 }
 
 void model_select_device (const uint8_t device_idx) {
-    test_runtime.current_device = params_get_device(&params, device_idx);
-    test_config.device_id = device_idx;
-    if (test_runtime.current_device != 0) {
+    const Params_Device_TypeDef *dev = params_get_device(&params, device_idx);
+    if (dev) {
+        test_runtime.current_device = dev;
         test_config.series_id = test_runtime.current_device->seria_idx;
         test_config.group_id = test_runtime.current_device->group_idx;
+        test_config.device_id = device_idx;
+        model_reset_results();
     }
-    model_reset_results();
     return;
 }
 
@@ -237,10 +244,10 @@ void model_change_mode (const Modes_TypeDef new_mode) {
     return;
 }
 
-void model_init (void) {
-    model_select_device(0);
-    model_change_mode(CheckDevice);
-    return;
+bool model_is_valid (void) {
+    return ((test_config.series_id < params.series_count) && 
+            (test_config.group_id < params.groups_count) && 
+            (test_config.device_id < params.devices_count));
 }
 
 void model_handle_test_result (void) {

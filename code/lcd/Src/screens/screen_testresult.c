@@ -12,9 +12,19 @@
 static bool is_cursor_init = false;
 
 void screen_testresult_on_enter (void) {
+    uint8_t item_count = model_get_total_tests();
+    uint8_t item_selected = screen_testdata_get_choosed_idx();
+    bool is_item_count_bigger_workspace = (item_count > (workspace_height_in_chars - 2));
+    bool is_items_fit_in_workspace = (item_selected + workspace_height_in_chars - 2) <= item_count;
+    uint8_t item_first = (!is_item_count_bigger_workspace) ? 
+                            0 : 
+                            ((is_items_fit_in_workspace) ? 
+                                item_selected : 
+                                item_count - (workspace_height_in_chars - 2));
     cursor_init(&options_strg[3], 
-                model_get_total_tests(), 
-                screen_testdata_get_choosed_idx());
+                item_count, 
+                item_selected,
+                item_first);
     return;
 }
 

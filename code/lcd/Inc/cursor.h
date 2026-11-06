@@ -19,12 +19,10 @@ typedef struct {
     uint8_t window_first;
 } Cursor_TypeDef;
 
-/** @brief Сколько строк списка помещается под заголовком экрана. */
-// #define CURSOR_VISIBLE_ROWS (3)
-
 void cursor_init (const OptionRect_TypeDef *options, 
                   uint8_t amount_options, 
-                  uint8_t initial_index);
+                  uint8_t initial_index, 
+                  uint8_t first_item);
 void options_init (uint8_t start_x_px, 
                    uint8_t start_y_px, 
                    uint8_t workspace_width_px, 
@@ -59,7 +57,6 @@ uint8_t cursor_get_window_first (void);
 void cursor_set_options_amount (uint8_t options_amount_new);
 
 extern Cursor_TypeDef cursor;
-// extern const OptionRect_TypeDef options_in_list[CURSOR_VISIBLE_ROWS];
 extern OptionRect_TypeDef *options_strg;
 extern uint8_t options_amount;
 

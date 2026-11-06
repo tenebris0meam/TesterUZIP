@@ -11,9 +11,19 @@
 #include <string.h>
 
 void screen_modes_on_enter (void) {
+    uint8_t item_count = Modes_Count;
+    uint8_t item_selected = test_config.mode_id;
+    bool is_item_count_bigger_workspace = (item_count > (workspace_height_in_chars - 2));
+    bool is_items_fit_in_workspace = (item_selected + workspace_height_in_chars - 2) <= item_count;
+    uint8_t item_first = (!is_item_count_bigger_workspace) ? 
+                            0 : 
+                            ((is_items_fit_in_workspace) ? 
+                                item_selected : 
+                                item_count - (workspace_height_in_chars - 2));
     cursor_init(&options_strg[0], 
-                Modes_Count, 
-                test_config.mode_id);
+                item_count, 
+                item_selected, 
+                item_first);
 }
 
 void screen_modes_render (void) {

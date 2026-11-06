@@ -244,7 +244,6 @@ void proccessor_force_shutdown_generation (void) {
 }
 
 void proccessor_init_state (void) {
-    model_init();
     calc_reset_sweep();
     current_state = Idle_Setting;
     return;

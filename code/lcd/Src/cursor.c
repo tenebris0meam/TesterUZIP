@@ -29,11 +29,12 @@ void options_init (uint8_t start_x_px,
 
 void cursor_init (const OptionRect_TypeDef *options, 
                   uint8_t amount_options, 
-                  uint8_t initial_index) {
+                  uint8_t initial_index, 
+                  uint8_t first_item) {
     cursor.options = options;
     cursor.count = amount_options;
     cursor.selected_index = (initial_index < amount_options) ? initial_index : 0;
-    cursor.window_first = cursor.selected_index;
+    cursor.window_first = first_item;
     return;
 }
 

@@ -50,11 +50,12 @@ typedef struct {
 } TestRuntime_TypeDef;
 
 extern TestConfig_TypeDef test_config;
+extern TestConfig_TypeDef test_config_dirty;
 extern TestRuntime_TypeDef test_runtime;
 extern TestResult_TypeDef *test_results;
 
-/** @brief Выбрать первый прибор конфигурации и очистить результаты. */
-void model_init (void);
+/** @brief Проверить, выбрано ли какое-нибудь устройство */
+bool model_is_valid (void);
 
 /** @brief Сменить проверяемый прибор и начать проверку заново. */
 void model_select_device (const uint8_t device_idx);

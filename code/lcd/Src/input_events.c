@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 /** @brief Сколько держится экран приветствия, мс. */
-#define INPUTEVENT_HELLO_MS (3000)
+#define INPUTEVENT_HELLO_MS (2000)
 
 static InputEvent cur_display_state = InputEvent_Count;
 static bool is_init = false;

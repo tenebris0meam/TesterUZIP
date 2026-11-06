@@ -213,7 +213,7 @@ void proccessor_raise_after_result (void) {
 void proccessor_wait_cap_discharge (void) {
     uint32_t cur_CYCCNT = DWT->CYCCNT;
     uint32_t timeout_tick = cur_CYCCNT + SystemCoreClock;
-    int32_t voltage_uV = INT32_MAX, current_nA = INT32_MAX;
+    const CalcMetrics_TypeDef *metrics;
     do {
         if (DWT->CYCCNT > timeout_tick) {
             break;
@@ -223,8 +223,8 @@ void proccessor_wait_cap_discharge (void) {
         }
         have_new_data = false;
         calc_measurement_update();
-        calc_get_last_raw_data(&voltage_uV, &current_nA);
-    } while ((voltage_uV >= 500000) || (current_nA >= 20000));
+        metrics = calc_get_current_metrics();
+    } while ((metrics->voltage_uV >= 500000) || (metrics->current_nA >= 20000));
     return;
 }
 

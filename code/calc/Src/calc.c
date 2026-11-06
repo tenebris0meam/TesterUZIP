@@ -42,19 +42,12 @@ typedef struct {
 volatile bool have_new_data = false;
 
 static IntegratorTypeDef integrator = { 0 };
-static Window_TypeDef voltage_window = { 0 };
-static Window_TypeDef current_window = { 0 };
-static int32_t voltage_buf[CALC_WINDOW_LENGTH] = { 0 };
-static int32_t current_buf[CALC_WINDOW_LENGTH] = { 0 };
-
 static CalcMetrics_TypeDef metrics = { 0 };
 
 static bool is_voltage_achieved = false;
 static bool is_current_limitting = false;
 static int32_t voltage_lowth = 0;
 static int32_t voltage_highth = 0;
-static int32_t voltage_raw_uV = 0;
-static int32_t current_raw_nA = 0;
 
 /* --- sweep / CC state --- */
 static CalcTestMode test_mode = CalcTestMode_SweepTVS;
@@ -187,11 +180,13 @@ static void calc_sweep_step (Event continue_event) {
      * Мы должны удерживать напряжение и ждать, пока ток вырастет до порога CC
      * или пока не сработает таймаут ожидания стабилизации.
      */
-    if (generation_step >= GENERATION_MAX_STEPS) {
-        proccessor_raise_event(continue_event);
-        return;
+    if ((metrics.voltage_uV >= test_voltage_min_uV) && (metrics.voltage_uV < test_voltage_max_uV)) {
+        if (generation_step >= GENERATION_MAX_STEPS) {
+            proccessor_raise_event(continue_event);
+            return;
+        }
+        generation_step++;
     }
-    generation_step++;
 
     if (!calc_apply_setpoint_internal()) {
         proccessor_raise_event(DeviceSetpointExhausted);
@@ -258,15 +253,6 @@ static void calc_gdt_classify (int32_t v) {
     } else {
         calc_sweep_step(DeviceVoltageUnderVoltage);
     }
-}
-
-
-
-void calc_update_metrics (void) {
-    metrics.voltage_uV = calc_get_average_from_window(&voltage_window);
-    metrics.current_nA = calc_get_average_from_window(&current_window);
-
-    return;
 }
 
 void calc_set_test_mode (CalcTestMode mode) {
@@ -336,9 +322,6 @@ bool calc_integrator_Init (void) {
 
     TIM3_Change_Update_Time(delta_time_us);
 
-    window_init(&voltage_window, sizeof(int32_t), CALC_WINDOW_LENGTH, voltage_buf);
-    window_init(&current_window, sizeof(int32_t), CALC_WINDOW_LENGTH, current_buf);
-
     /*
      * Уставку здесь НЕ трогаем: её ставит процессор под конкретный прибор.
      */
@@ -374,10 +357,7 @@ void calc_integrator_reset (void) {
     is_current_limitting = false;
     voltage_lowth = 0;
     voltage_highth = 0;
-    voltage_raw_uV = 0;
-    current_raw_nA = 0;
-    window_reset(&voltage_window);
-    window_reset(&current_window);
+    memset(&metrics, 0, sizeof(CalcMetrics_TypeDef));
     calc_reset_sweep();
     return;
 }
@@ -432,48 +412,25 @@ void calc_measurement_update (void) {
     int16_t current_raw = calc_get_raw_val(frame, CURRENT);
 
     int32_t shunt_dropvoltage = (int32_t)current_raw * (int32_t)INA239_VSHUNT_LSB_RANGE0_uV;
-    voltage_raw_uV = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
-    current_raw_nA = hv_shunt_uV_to_nA(shunt_dropvoltage);
-
-    window_push(&voltage_window, &voltage_raw_uV);
-    window_push(&current_window, &current_raw_nA);
+    metrics.voltage_uV = (int32_t)voltage_raw * (int32_t)INA239_VBUS_LSB_uV - shunt_dropvoltage;
+    metrics.current_nA = hv_shunt_uV_to_nA(shunt_dropvoltage);
     return;
 }
 
 void calc_step (void) {
     if ((test_mode == CalcTestMode_SweepGDT) || 
         ((test_mode == CalcTestMode_SweepTVS) && !is_cc_mode)) {
-        calc_voltage_integrator_step(voltage_raw_uV);
+        calc_voltage_integrator_step(metrics.voltage_uV);
     } else if ((test_mode == CalcTestMode_SweepTVS) && is_cc_mode) {
-        calc_cc_step(current_raw_nA);
+        calc_cc_step(metrics.current_nA);
     }
 }
 
 void calc_control (void) {
     if (test_mode == CalcTestMode_SweepGDT) {
-        calc_gdt_classify(voltage_raw_uV);
+        calc_gdt_classify(metrics.voltage_uV);
     } else {
-        calc_tvs_var_classify(voltage_raw_uV, current_raw_nA);
-    }
-    return;
-}
-
-void calc_get_test_data (int32_t *voltage, int32_t *current) {
-    if (voltage) {
-        *voltage = metrics.voltage_uV;
-    }
-    if (current) {
-        *current = metrics.current_nA;
-    }
-    return;
-}
-
-void calc_get_last_raw_data (int32_t *voltage_raw, int32_t *current_raw) {
-    if (voltage_raw) {
-        *voltage_raw = voltage_raw_uV;
-    }
-    if (current_raw) {
-        *current_raw = current_raw_nA;
+        calc_tvs_var_classify(metrics.voltage_uV, metrics.current_nA);
     }
     return;
 }

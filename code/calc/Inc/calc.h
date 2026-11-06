@@ -40,10 +40,6 @@ void calc_integrator_reset (void);
 void calc_control (void);
 void calc_step (void);
 void calc_measurement_update (void);
-
-void calc_get_test_data (int32_t *voltage, int32_t *current);
 const CalcMetrics_TypeDef *calc_get_current_metrics (void);
-void calc_get_last_raw_data (int32_t *voltage_raw, int32_t *current_raw);
-void calc_update_metrics (void);
 
 #endif /* CALC_H */

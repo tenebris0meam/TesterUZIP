@@ -109,7 +109,6 @@ void proccessor_generation_on_enter_checkdevice (void) {
 }
 
 void proccessor_generation_on_exit_checkdevice_default (void) {
-    calc_update_metrics();
     model_remember_result((ResolveType)test_runtime.current_type);
     proccessor_shutdown_generation();
     INA239_SetMode(INA239_MODE_SHUTDOWN);
@@ -214,10 +213,9 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
             TIM1_set_CCR_value(new_CCR1_val);
         }
 
-        int32_t current_nA, voltage_uV;
-        calc_get_last_raw_data(&voltage_uV, &current_nA);
-        if (voltage_max_uV < voltage_uV) {
-            voltage_max_uV = voltage_uV;
+        const CalcMetrics_TypeDef *metrics = calc_get_current_metrics();
+        if (voltage_max_uV < metrics->voltage_uV) {
+            voltage_max_uV = metrics->voltage_uV;
         }
         calc_control();
     } else if (is_data_old()) {

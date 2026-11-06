@@ -238,7 +238,6 @@ static void calc_tvs_var_classify (int32_t v, int32_t i) {
         return;
     }
     /* вход в CC: ток подошёл к 1 мА, регулятор напряжения устоялся */
-    // if ((i >= CALC_CC_ENTER_nA) && is_voltage_achieved) {
     if (i >= CALC_CC_ENTER_nA) {
         calc_enter_cc_mode();
         proccessor_raise_event(DeviceCurrentUnderCurrent);
@@ -264,13 +263,9 @@ static void calc_gdt_classify (int32_t v) {
 
 
 void calc_update_metrics (void) {
-    metrics.voltage_uV.mean_value = calc_get_average_from_window(&voltage_window);
-    metrics.current_nA.mean_value = calc_get_average_from_window(&current_window);
+    metrics.voltage_uV = calc_get_average_from_window(&voltage_window);
+    metrics.current_nA = calc_get_average_from_window(&current_window);
 
-    metrics.voltage_uV.standard_deviation = 
-        calc_get_standard_deviation_from_window(&voltage_window, metrics.voltage_uV.mean_value);
-    metrics.current_nA.standard_deviation = 
-        calc_get_standard_deviation_from_window(&current_window, metrics.current_nA.mean_value);
     return;
 }
 
@@ -464,10 +459,10 @@ void calc_routine (void) {
 
 void calc_get_test_data (int32_t *voltage, int32_t *current) {
     if (voltage) {
-        *voltage = metrics.voltage_uV.mean_value;
+        *voltage = metrics.voltage_uV;
     }
     if (current) {
-        *current = metrics.current_nA.mean_value;
+        *current = metrics.current_nA;
     }
     return;
 }

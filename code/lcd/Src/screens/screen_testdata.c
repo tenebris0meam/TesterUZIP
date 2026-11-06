@@ -105,20 +105,14 @@ void screen_testdata_render (void) {
     // пропускаем 5-ю строку
     cur_y += 2 * cgxyz.height_px;
 
-    int32_t voltage_before_div_uV = (int32_t)((float)choosed_metrics->voltage_uV.mean_value * HV_FEEDBACK_DIVIDER);
-    int32_t tripple_standard_deviation_voltage_before_div_uV = (int32_t)
-                (3LL * (int64_t)((float)choosed_metrics->voltage_uV.standard_deviation * HV_FEEDBACK_DIVIDER));
+    int32_t voltage_before_div_uV = (int32_t)((float)choosed_metrics->voltage_uV * HV_FEEDBACK_DIVIDER);
     if (voltage_before_div_uV < 0) {
         strbuf_char(&sb, '-');
         voltage_before_div_uV = -voltage_before_div_uV;
     }
     strbuf_u32(&sb, voltage_before_div_uV / 1000000L, 1);
     strbuf_char(&sb, '.');
-    strbuf_u32(&sb, (voltage_before_div_uV % 1000000L) / 1000L, 3);
-    strbuf_char(&sb, '$');
-    strbuf_u32(&sb, tripple_standard_deviation_voltage_before_div_uV / 1000000L, 1);
-    strbuf_char(&sb, '.');
-    strbuf_u32(&sb, (tripple_standard_deviation_voltage_before_div_uV % 1000000L) / 1000L, 3);
+    strbuf_u32(&sb, (voltage_before_div_uV % 1000000L) / 10000L, 2);
     strbuf_str(&sb, " B");
     fb_draw_string_centered_xy(workspace_start_x, 
                                 workspace_width_in_px, 
@@ -128,19 +122,14 @@ void screen_testdata_render (void) {
     cur_y += cgxyz.height_px;
 
     if (type_choosed_test != GasDischargeTube) {
-        int32_t current_nA = choosed_metrics->current_nA.mean_value;
+        int32_t current_nA = choosed_metrics->current_nA;
         if (current_nA < 0) {
             strbuf_char(&sb, '-');
             current_nA = -current_nA;
         }
-        int32_t tripple_standard_deviation_current_nA = 3 * choosed_metrics->current_nA.standard_deviation;
         strbuf_u32(&sb, current_nA / 1000000L, 1);
         strbuf_char(&sb, '.');
-        strbuf_u32(&sb, (current_nA % 1000000L) / 1000L, 3);
-        strbuf_char(&sb, '$');
-        strbuf_u32(&sb, tripple_standard_deviation_current_nA / 1000000L, 1);
-        strbuf_char(&sb, '.');
-        strbuf_u32(&sb, (tripple_standard_deviation_current_nA % 1000000L) / 1000L, 3);
+        strbuf_u32(&sb, (current_nA % 1000000L) / 10000L, 2);
         strbuf_str(&sb, " l@");
         fb_draw_string_centered_xy(workspace_start_x, 
                                     workspace_width_in_px, 
@@ -149,7 +138,7 @@ void screen_testdata_render (void) {
     } else {
         strbuf_str(&sb, DISCHARGER_CYRILIC);
         strbuf_char(&sb, ' ');
-        if (choosed_metrics->current_nA.mean_value != INT32_MAX) {
+        if (choosed_metrics->current_nA != INT32_MAX) {
             strbuf_str(&sb, NOT_CYRILIC);
             strbuf_char(&sb, ' ');
         }

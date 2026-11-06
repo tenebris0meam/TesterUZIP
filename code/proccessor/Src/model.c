@@ -262,12 +262,10 @@ void model_handle_test_result (void) {
     const Params_TestParam_TypeDef *testparams = test_runtime.current_test_params;
     int32_t voltage_lowth_uV = hv_feedback_volts_to_target_uV(testparams->min_voltage);
     int32_t voltage_highth_uV = hv_feedback_volts_to_target_uV(testparams->max_voltage);
-    int32_t voltage_lower_uV = test_results[pos].res.voltage_uV.mean_value - 3 * test_results[pos].res.voltage_uV.standard_deviation;
-    int32_t voltage_higher_uV = test_results[pos].res.voltage_uV.mean_value + 3 * test_results[pos].res.voltage_uV.standard_deviation;
-    bool is_voltage_within_range = ((voltage_lower_uV > voltage_lowth_uV) && 
-                                    (voltage_higher_uV < voltage_highth_uV));
-    bool is_current_within_range = ((test_results[pos].res.current_nA.mean_value > CALC_CURRENT_LOW_nA) && 
-                                    (test_results[pos].res.current_nA.mean_value < CALC_CURRENT_HIGH_nA));
+    bool is_voltage_within_range = ((test_results[pos].res.voltage_uV > voltage_lowth_uV) && 
+                                    (test_results[pos].res.voltage_uV < voltage_highth_uV));
+    bool is_current_within_range = ((test_results[pos].res.current_nA > CALC_CURRENT_LOW_nA) && 
+                                    (test_results[pos].res.current_nA < CALC_CURRENT_HIGH_nA));
     if (is_voltage_within_range) {
         // тест пройден
         if (test_results[pos].type != GasDischargeTube) {
@@ -279,7 +277,7 @@ void model_handle_test_result (void) {
             }
         } else {
             // тест для разрядника, проверяем только напряжение ионизации и факт наличия броска тока
-            if (test_results[pos].res.current_nA.mean_value == INT32_MAX) {
+            if (test_results[pos].res.current_nA == INT32_MAX) {
                 test_results[pos].pass = true;
             } else {
                 test_results[pos].pass = false;

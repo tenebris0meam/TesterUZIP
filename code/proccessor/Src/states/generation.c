@@ -264,14 +264,10 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
             uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
             test_results[pos].sequence_pos = pos;
             test_results[pos].type = (uint8_t)GasDischargeTube;
-            test_results[pos].res.voltage_uV.mean_value = 
+            test_results[pos].res.voltage_uV = 
                 get_average_from_buf(voltage_max_buf, 
                                     MAX_TESTS_FOR_ONE_GDT);
-            test_results[pos].res.voltage_uV.standard_deviation = 
-                get_standard_deviation_from_buf(voltage_max_buf, 
-                                                MAX_TESTS_FOR_ONE_GDT, 
-                                                test_results[pos].res.voltage_uV.mean_value);
-            test_results[pos].res.current_nA.mean_value = 0;
+            test_results[pos].res.current_nA = 0;
             voltage_max_uV = 0;
             test_id = 0;
             num_pressed_cancel = 0;

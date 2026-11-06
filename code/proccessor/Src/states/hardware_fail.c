@@ -231,14 +231,10 @@ void proccessor_hardwarefail_proccess_for_GDT (void) {
         uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
         test_results[pos].sequence_pos = pos;
         test_results[pos].type = (uint8_t)GasDischargeTube;
-        test_results[pos].res.voltage_uV.mean_value = 
+        test_results[pos].res.voltage_uV = 
             get_average_from_buf(voltage_max_buf, 
                                  MAX_TESTS_FOR_ONE_GDT);
-        test_results[pos].res.voltage_uV.standard_deviation = 
-            get_standard_deviation_from_buf(voltage_max_buf, 
-                                            MAX_TESTS_FOR_ONE_GDT, 
-                                            test_results[pos].res.voltage_uV.mean_value);
-        test_results[pos].res.current_nA.mean_value = INT32_MAX;
+        test_results[pos].res.current_nA = INT32_MAX;
         model_handle_test_result();
         proccessor_raise_after_result();
         test_id = 0;

@@ -13,14 +13,10 @@
 
 extern volatile bool have_new_data;
 
-struct Metric {
-    int32_t mean_value;
-    int32_t standard_deviation;
-};
 
 typedef struct {
-    struct Metric voltage_uV;
-    struct Metric current_nA;
+    int32_t voltage_uV;
+    int32_t current_nA;
 } CalcMetrics_TypeDef;
 
 typedef enum {

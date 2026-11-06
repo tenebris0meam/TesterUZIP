@@ -12,10 +12,10 @@
  */
 
 /** @brief Ширина логотипа, пикселей. */
-#define LOGO_WIDTH (64)
+#define LOGO_WIDTH (126)
 
 /** @brief Высота логотипа, пикселей. */
-#define LOGO_HEIGHT (64)
+#define LOGO_HEIGHT (32)
 
 extern const uint8_t logo[LOGO_WIDTH * LOGO_HEIGHT / 8];
 

@@ -318,3 +318,83 @@ void fb_draw_bitmap (uint8_t x,
     }
     return;
 }
+
+/* ===== Скроллбар: геометрия (правый край экрана) ===== */
+#define SB_GAP_W      1u
+#define SB_FRAME_L_W  1u
+#define SB_BAR_W      3u
+#define SB_FRAME_R_W  1u
+#define SB_TOTAL_W    (SB_GAP_W + SB_FRAME_L_W + SB_BAR_W + SB_FRAME_R_W) /* 6 */
+
+#define SB_X_GAP      ((uint8_t)(FB_WIDTH - SB_TOTAL_W))              /* 122 */
+#define SB_X_FRAME_L  ((uint8_t)(SB_X_GAP + SB_GAP_W))                /* 123 */
+#define SB_X_BAR_L    ((uint8_t)(SB_X_FRAME_L + SB_FRAME_L_W))        /* 124 */
+#define SB_X_BAR_R    ((uint8_t)(SB_X_BAR_L + SB_BAR_W - 1u))         /* 126 */
+#define SB_X_FRAME_R  ((uint8_t)(SB_X_BAR_R + 1u))                    /* 127 */
+
+#define SB_Y_FRAME_T  0u
+#define SB_Y_BAR_T    1u
+#define SB_Y_BAR_B    ((uint8_t)(FB_HEIGHT - 2u))                     /* 62 */
+#define SB_Y_FRAME_B  ((uint8_t)(FB_HEIGHT - 1u))                     /* 63 */
+
+#define SB_MIN_BAR_H  4u
+
+void fb_draw_scrollbar (uint16_t total, uint16_t first, uint16_t visible) {
+    if ((total == 0u) || (visible == 0u)) {
+        return;
+    }
+
+    /* 1. Чёрный gap: перекрывает правый край списка */
+    for (uint8_t y = 0; y < FB_HEIGHT; y++) {
+        fb_set_pixel(SB_X_GAP, y, FB_WHITE);
+    }
+
+    /* 2. Белая рамка вокруг трека */
+    for (uint8_t x = SB_X_FRAME_L; x <= SB_X_FRAME_R; x++) {
+        fb_set_pixel(x, SB_Y_FRAME_T, FB_BLACK);
+        fb_set_pixel(x, SB_Y_FRAME_B, FB_BLACK);
+    }
+    for (uint8_t y = SB_Y_FRAME_T; y <= SB_Y_FRAME_B; y++) {
+        fb_set_pixel(SB_X_FRAME_L, y, FB_BLACK);
+        fb_set_pixel(SB_X_FRAME_R, y, FB_BLACK);
+    }
+
+    /* 3. Чёрный фон трека (чтобы бегунок контрастировал и текст не просвечивал) */
+    for (uint8_t y = SB_Y_BAR_T; y <= SB_Y_BAR_B; y++) {
+        for (uint8_t x = SB_X_BAR_L; x <= SB_X_BAR_R; x++) {
+            fb_set_pixel(x, y, FB_WHITE);
+        }
+    }
+
+    /* 4. Белый бегунок: высота и позиция пропорциональны */
+    const uint16_t track_h = (uint16_t)(SB_Y_BAR_B - SB_Y_BAR_T + 1u); /* 62 */
+    uint16_t bar_h;
+
+    if (total <= visible) {
+        bar_h = track_h; /* всё влезло - полный бегунок */
+    } else {
+        bar_h = (uint16_t)(((uint32_t)track_h * visible) / total);
+        if (bar_h < SB_MIN_BAR_H) {
+            bar_h = SB_MIN_BAR_H;
+        }
+    }
+
+    uint16_t bar_y0 = SB_Y_BAR_T;
+    if ((total > visible) && (track_h > bar_h)) {
+        const uint16_t range  = (uint16_t)(total - visible);
+        const uint16_t max_off = (uint16_t)(track_h - bar_h);
+        if (first > range) {
+            first = range;
+        }
+        bar_y0 = (uint16_t)(SB_Y_BAR_T +
+                            (((uint32_t)max_off * first) / range));
+    }
+
+    const uint16_t bar_y1 = (uint16_t)(bar_y0 + bar_h);
+    for (uint16_t y = bar_y0; y < bar_y1; y++) {
+        for (uint8_t x = SB_X_BAR_L; x <= SB_X_BAR_R; x++) {
+            fb_set_pixel(x, (uint8_t)y, FB_BLACK);
+        }
+    }
+    return;
+}

@@ -299,5 +299,8 @@ void screen_render_name_list (const char *first_word,
     }
 
     cursor_draw_highlight_row((uint8_t)(selected - cursor.window_first));
+    if (cursor.count > workspace_height_in_chars - 2) {
+        fb_draw_scrollbar(cursor.count, cursor.window_first, workspace_height_in_chars - 2);
+    }
     return;
 }

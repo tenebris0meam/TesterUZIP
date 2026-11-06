@@ -112,4 +112,19 @@ void fb_draw_bitmap (uint8_t x,
                      uint8_t h, 
                      const uint8_t *bitmap);
 
+/**
+ * @brief Нарисовать вертикальный скроллбар на правом краю экрана.
+ * @param total    всего элементов в списке
+ * @param first    индекс первого видимого элемента (cursor.window_first)
+ * @param visible  сколько строк помещается (options_amount)
+ *
+ * @details Раскладка (справа налево): 1px чёрный gap | 1px белая рамка |
+ *          3px чёрный трек с белым бегунком | 1px белая рамка.
+ *          Высота бегунка пропорциональна visible/total, минимум 4px.
+ *
+ *          Вызывать ПОСЛЕ отрисовки элементов списка. Функция перезаписывает
+ *          пиксели в своей области. Безопасно вызывать на каждой полосе.
+ */
+void fb_draw_scrollbar (uint16_t total, uint16_t first, uint16_t visible);
+
 #endif /* FRAMEBUFFER_H_ */

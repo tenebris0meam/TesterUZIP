@@ -123,6 +123,9 @@ void screen_testresult_render (void) {
     if (is_cursor_init) {
         cursor_draw_highlight_row(selected - cursor.window_first);
     }
+    if (total > workspace_height_in_chars - 2) {
+        fb_draw_scrollbar(total, cursor.window_first, workspace_height_in_chars - 2);
+    }
     return;
 }
 

@@ -440,18 +440,19 @@ void calc_measurement_update (void) {
     return;
 }
 
-void calc_routine (void) {
-    calc_measurement_update();
-
-    if (test_mode == CalcTestMode_SweepGDT) {
+void calc_step (void) {
+    if ((test_mode == CalcTestMode_SweepGDT) || 
+        ((test_mode == CalcTestMode_SweepTVS) && !is_cc_mode)) {
         calc_voltage_integrator_step(voltage_raw_uV);
+    } else if ((test_mode == CalcTestMode_SweepTVS) && is_cc_mode) {
+        calc_cc_step(current_raw_nA);
+    }
+}
+
+void calc_control (void) {
+    if (test_mode == CalcTestMode_SweepGDT) {
         calc_gdt_classify(voltage_raw_uV);
     } else {
-        if (is_cc_mode) {
-            calc_cc_step(current_raw_nA);
-        } else {
-            calc_voltage_integrator_step(voltage_raw_uV);
-        }
         calc_tvs_var_classify(voltage_raw_uV, current_raw_nA);
     }
     return;

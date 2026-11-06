@@ -37,7 +37,8 @@ uint32_t calc_integrator_get_target_voltage (void);
 int32_t calc_integrator_get_integral_value (void);
 void calc_integrator_reset (void);
 
-void calc_routine (void);
+void calc_control (void);
+void calc_step (void);
 void calc_measurement_update (void);
 
 void calc_get_test_data (int32_t *voltage, int32_t *current);

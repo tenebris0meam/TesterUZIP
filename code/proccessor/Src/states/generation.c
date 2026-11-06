@@ -122,7 +122,8 @@ void proccessor_generation_proccess_checkdevice_default (void) {
     if (have_new_data) {
         data_was = true;
         have_new_data = false;
-        calc_routine();
+        calc_measurement_update();
+        calc_step();
 
         int32_t duty_ppm = calc_integrator_get_integral_value();
         if (duty_ppm < 0) {
@@ -138,6 +139,7 @@ void proccessor_generation_proccess_checkdevice_default (void) {
         if (new_CCR1_val != cur_CCR1_val) {
             TIM1_set_CCR_value(new_CCR1_val);
         }
+        calc_control();
     } else if (is_data_old()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
@@ -194,7 +196,8 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
     if (have_new_data) {
         data_was = true;
         have_new_data = false;
-        calc_routine();
+        calc_measurement_update();
+        calc_step();
 
         int32_t duty_ppm = calc_integrator_get_integral_value();
         if (duty_ppm < 0) {
@@ -216,6 +219,7 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
         if (voltage_max_uV < voltage_uV) {
             voltage_max_uV = voltage_uV;
         }
+        calc_control();
     } else if (is_data_old()) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
@@ -254,9 +258,9 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
         case DeviceVoltageSettleTimeout:
         case DeviceVoltageOverVoltage:
         case DeviceSetpointExhausted: {
+            voltage_max_buf[test_id] = voltage_max_uV;
+            voltage_max_uV = 0;
             if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
-                voltage_max_buf[test_id] = voltage_max_uV;
-                voltage_max_uV = 0;
                 test_id++;
                 num_pressed_cancel = 0;
                 return Commutation;
@@ -268,7 +272,6 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
                 get_average_from_buf(voltage_max_buf, 
                                     MAX_TESTS_FOR_ONE_GDT);
             test_results[pos].res.current_nA = 0;
-            voltage_max_uV = 0;
             test_id = 0;
             num_pressed_cancel = 0;
             return TestFailed;
@@ -480,7 +483,9 @@ void proccessor_generation_proccess_ommeter (void) {
     if (have_new_data) {
         data_was = true;
         have_new_data = false;
-        calc_routine();
+        calc_measurement_update();
+        calc_step();
+        calc_control();
 
         /* Не измеряем сопротивление на переходном процессе регулятора. */
         if (!calc_is_voltage_achieved()) {
@@ -632,7 +637,8 @@ void proccessor_generation_proccess_generator (void) {
         return;
     }
     have_new_data = false;
-    calc_routine();
+    calc_measurement_update();
+    calc_step();
 
     int32_t duty_ppm = calc_integrator_get_integral_value();
     if (duty_ppm < 0) {
@@ -656,6 +662,7 @@ void proccessor_generation_proccess_generator (void) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
     }
+    calc_control();
     return;
 }
 

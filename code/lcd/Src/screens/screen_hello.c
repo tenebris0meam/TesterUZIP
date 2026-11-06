@@ -1,4 +1,5 @@
 ﻿#include "screens/screen_hello.h"
+#include "screens.h"
 #include "tachyon_logo.h"
 #include "framebuffer.h"
 
@@ -17,7 +18,7 @@ void screen_hello_render (void) {
 
 ScreenID screen_hello_handle_event(InputEvent event) {
     switch (event) {
-        case InputEvent_HelloScreenTimeout: return ScreenMain;
+        case InputEvent_HelloScreenTimeout: return ScreenCheckdeviceSeries;
         default: return ScreenHello;
     }
 }

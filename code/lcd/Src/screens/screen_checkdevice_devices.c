@@ -4,6 +4,7 @@
 #include "screens.h"
 #include "strings_def.h"
 #include "model.h"
+#include <string.h>
 
 void screen_checkdevice_devices_on_enter (void) {
     const Params_Range_TypeDef *devices_in_group = params_get_devices_in_group(&params, test_config_dirty.group_id);
@@ -44,7 +45,8 @@ ScreenID screen_checkdevice_devices_handle_event (InputEvent event) {
             const Params_Range_TypeDef *devices_in_group = 
                 params_get_devices_in_group(&params, test_config_dirty.group_id);
             uint8_t selected = devices_in_group->begin_idx + cursor_get_current_selected_index();
-            if (selected != test_config_dirty.device_id) {
+            if ((selected != test_config_dirty.device_id) || 
+                (memcmp(&test_config_dirty, &test_config, sizeof(TestConfig_TypeDef)))) {
                 model_select_device(selected);
             }
             return ScreenMain;

@@ -81,14 +81,18 @@ void model_point_to (const uint8_t pos) {
     if (TVS_num && (pos < TVS_num)) {
         test_runtime.current_type = (uint8_t)TransientVoltageSupressor;
         resolver_set_TVS_VAR();
+        goto strictly_once;
     } else if (VAR_num && (pos < TVS_num + VAR_num)) {
         test_runtime.current_type = (uint8_t)Varistor;
         resolver_set_TVS_VAR();
+        goto strictly_once;
     } else if (GDT_num && (pos < TVS_num + VAR_num + GDT_num)) {
         test_runtime.current_type = (uint8_t)GasDischargeTube;
         resolver_set_GDT();
+        goto strictly_once;
     }
 
+    strictly_once:
     test_runtime.current_sequence = model_get_sequence_at(pos, (const ResolveType)test_runtime.current_type);
     test_runtime.current_test_params = model_get_testparams_at(pos, (const ResolveType)test_runtime.current_type);
     return;

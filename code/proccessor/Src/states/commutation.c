@@ -1,8 +1,10 @@
 ﻿#include "states/commutation.h"
 #include "commutator.h"
 #include "display.h"
+#include "params.h"
 #include "proccessor.h"
 #include "model.h"
+#include "states/generation.h"
 
 void proccessor_commutation_on_enter_checkdevice (void) {
     // Выключаем ввод
@@ -61,7 +63,19 @@ void proccessor_commutation_proccess_default (void) {
 State proccessor_commutation_handle_event_default (Event event) {
     switch (event) {
         case CommutationComplete:
-            return (test_runtime.current_device->connector_id == Probe) ? (MultiPoleWaitAlert) : (Generation);
+            if (test_runtime.current_device->connector_id == Probe) {
+                if (test_runtime.current_type == GasDischargeTube) {
+                    if (!test_id) {
+                        return MultiPoleWaitAlert;
+                    } else {
+                        return Generation;
+                    }
+                } else {
+                    return MultiPoleWaitAlert;
+                }
+            } else {
+                return Generation;
+            }
             
         case TestSequenceFinished: return TestSequenceComplete;
 

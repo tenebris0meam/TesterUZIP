@@ -31,10 +31,10 @@ void proccessor_idle_on_exit (void) {
         uint8_t GDT_num = test_runtime.current_device->num_seqs_type2;
         if (TVS_num) {
             resolver_set_TVS_VAR();
-        } else if (GDT_num) {
-            resolver_set_GDT();
         } else if (VAR_num) {
             resolver_set_TVS_VAR();
+        } else if (GDT_num) {
+            resolver_set_GDT();
         }
         (void)model_alloc_test_results(TVS_num + VAR_num + GDT_num);
     }

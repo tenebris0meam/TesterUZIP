@@ -1,4 +1,4 @@
-﻿#include "screens.h"
+#include "screens.h"
 #include "fonts.h"
 #include "framebuffer.h"
 #include "cursor.h"
@@ -10,6 +10,8 @@
 #include "screens/screen_main.h"
 #include "screens/screen_testconfirm.h"
 #include "screens/screen_testrunning.h"
+#include "screens/screen_multipole_wait.h"
+#include "screens/screen_multipole_countdown.h"
 #include "screens/screen_testdenied.h"
 #include "screens/screen_testresult.h"
 #include "screens/screen_testdata.h"
@@ -50,7 +52,19 @@ const Screen_TypeDef screens[ScreenCount] = {
         .on_exit = screen_testrunning_on_exit,
         .render = screen_testrunning_render,
         .handle_event = screen_testrunning_handle_event
-    }, 
+    },
+    [ScreenMultiPoleWait] = {
+        .on_enter = screen_multipole_wait_on_enter,
+        .on_exit = screen_multipole_wait_on_exit,
+        .render = screen_multipole_wait_render,
+        .handle_event = screen_multipole_wait_handle_event
+    },
+    [ScreenMultiPoleCountdown] = {
+        .on_enter = screen_multipole_countdown_on_enter,
+        .on_exit = screen_multipole_countdown_on_exit,
+        .render = screen_multipole_countdown_render,
+        .handle_event = screen_multipole_countdown_handle_event
+    },
     [ScreenTestDenied] = {
         .on_enter = screen_testdenied_on_enter,
         .on_exit = screen_testdenied_on_exit,

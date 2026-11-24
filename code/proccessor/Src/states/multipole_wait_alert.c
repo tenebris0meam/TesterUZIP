@@ -4,13 +4,14 @@
 #include "commutator.h"
 #include "ina239_user.h"
 #include "proccessor.h"
+#include "screens.h"
 #include "stm32f1xx_ll_tim.h"
 #include "tim.h"
 
-void proccessor_multipole_wait_alert_on_enter(void)
-{
+void proccessor_multipole_wait_alert_on_enter (void) {
     /* Экран штатного тестирования остаётся активным. */
     display_allow_render();
+    display_set_screen(ScreenMultiPoleWait);
 
     /* После предыдущей генерации TIM1_BRK_IRQn мог быть отключён. */
     NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
@@ -36,17 +37,16 @@ void proccessor_multipole_wait_alert_on_enter(void)
     return;
 }
 
-void proccessor_multipole_wait_alert_on_exit(void)
-{
+void proccessor_multipole_wait_alert_on_exit (void) {
+    return;
 }
 
-void proccessor_multipole_wait_alert_process(void)
-{
+void proccessor_multipole_wait_alert_process (void) {
     /* Ожидание выполняется исключительно через AlertActive. */
+    return;
 }
 
-State proccessor_multipole_wait_alert_handle_event(Event event)
-{
+State proccessor_multipole_wait_alert_handle_event (Event event) {
     switch (event) {
         case AlertActive:
             /*

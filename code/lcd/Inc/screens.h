@@ -1,4 +1,4 @@
-﻿#ifndef SCREEN_H_
+#ifndef SCREEN_H_
 #define SCREEN_H_
 
 #include "input_events.h"
@@ -14,6 +14,8 @@ typedef enum {
     ScreenMain, 
     ScreenTestConfirm,
     ScreenTestRunning,
+    ScreenMultiPoleWait,
+    ScreenMultiPoleCountdown,
     ScreenTestDenied,
     ScreenTestResult,
     ScreenTestData,

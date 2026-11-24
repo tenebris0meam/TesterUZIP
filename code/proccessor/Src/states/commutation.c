@@ -60,8 +60,9 @@ void proccessor_commutation_proccess_default (void) {
 
 State proccessor_commutation_handle_event_default (Event event) {
     switch (event) {
-        case CommutationComplete: return Generation;
-
+        case CommutationComplete:
+            return (test_runtime.current_device->connector_id == Probe) ? (MultiPoleWaitAlert) : (Generation);
+            
         case TestSequenceFinished: return TestSequenceComplete;
 
         case ReturnToIdle:

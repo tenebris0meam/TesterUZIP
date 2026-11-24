@@ -12,6 +12,8 @@
 typedef enum {
     Idle_Setting, 
     Commutation, 
+    MultiPoleWaitAlert,
+    MultiPoleCountdown,
     Generation, 
     TestPassed, 
     TestFailed, 
@@ -49,6 +51,7 @@ typedef enum {
     OutputData,
     DataOutputed,
     AlertActive,
+    CountdownComplete,
     Event_Count
 } Event;
 

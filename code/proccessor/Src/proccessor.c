@@ -14,6 +14,8 @@
 #include "states/testfailed.h"
 #include "states/testsequence_complete.h"
 #include "states/hardware_fail.h"
+#include "states/multipole_wait_alert.h"
+#include "states/multipole_countdown.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -99,6 +101,18 @@ FiniteStateMachine proccessor[State_Count] = {
         .handle_event = proccessor_generation_handle_event_checkdevice_default
     },
 #endif
+    [MultiPoleWaitAlert] = {
+        .on_enter = proccessor_multipole_wait_alert_on_enter,
+        .on_exit = proccessor_multipole_wait_alert_on_exit,
+        .proccess = proccessor_multipole_wait_alert_process,
+        .handle_event = proccessor_multipole_wait_alert_handle_event
+    },
+    [MultiPoleCountdown] = {
+        .on_enter = proccessor_multipole_countdown_on_enter,
+        .on_exit = proccessor_multipole_countdown_on_exit,
+        .proccess = proccessor_multipole_countdown_process,
+        .handle_event = proccessor_multipole_countdown_handle_event
+    },
     [TestPassed] = {
         .on_enter = proccessor_testpassed_on_enter, 
         .on_exit = proccessor_testpassed_on_exit, 
@@ -189,14 +203,12 @@ bool proccessor_setup_lines (void) {
     }
 
     commutator_set_active_interface(device->connector_id);
+    if (device->connector_id == Probe) {
+        positive = ActiveLine_1;
+        negative = ActiveLine_2;
+    }
     commutator_set_active_line(positive, LineType_Positive);
     commutator_set_active_line(negative, LineType_Negative);
-
-    /*
-     * Коммутатор отказывает молча: у щупов доступны только линии 1 и 2,
-     * у клеммника K1 - с 1 по 5. Поэтому не верим на слово, а спрашиваем,
-     * что он в итоге принял.
-     */
     return ((commutator_get_active_line(LineType_Positive) == positive) && 
             (commutator_get_active_line(LineType_Negative) == negative));
 }

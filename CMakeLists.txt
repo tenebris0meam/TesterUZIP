@@ -8,7 +8,7 @@ project(tester-uzip C CXX ASM)
 # Пути к проекту и библиотеке
 # ===========================
 set(WORKSPACE_PATH     "C:/Users/A.Nitkin/MyWorkspace")
-set(PROJ_ROOT          "${WORKSPACE_PATH}/tester-uzip")
+set(PROJ_ROOT          "${WORKSPACE_PATH}/tester-uzip-variant-b")
 set(STM32CUBE_DRIVERS  "${WORKSPACE_PATH}/STM32CubeF1")
 
 # ===========================
@@ -21,7 +21,6 @@ add_compile_definitions(
     STM32F1
     STM32F103xB
     # TESTER_MODES
-    # TESTER_MULTIPOLE
     $<$<CONFIG:Debug>:DEBUG>
 )
 

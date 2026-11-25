@@ -2,6 +2,7 @@
 #include "display.h"
 #include "input_events.h"
 #include "buzzer.h"
+#include "proccessor.h"
 
 void proccessor_testsequencecomplete_on_enter (void) {
     /* Экран сам перейдёт на итоги: событие увидит inputevent_routine() */
@@ -22,10 +23,14 @@ void proccessor_testsequencecomplete_proccess (void) {
 
 State proccessor_testsequencecomplete_handle_event (Event event) {
     switch (event) {
-        case ReturnToIdle: return Idle_Setting;
+        case ReturnToIdle:
+        case TestDeniedByUser: 
+            return Idle_Setting;
+
         case AlertActive: 
             inputevent_enable_hardwarefail();
             return HardwareFail;
+
         default: return TestSequenceComplete;
     }
 }

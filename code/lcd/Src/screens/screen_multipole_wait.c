@@ -81,6 +81,7 @@ ScreenID screen_multipole_wait_handle_event (InputEvent event) {
             proccessor_raise_event(TestDeniedByUser);
             return ScreenTestDenied;
         case InputEvent_SystemEvent: return ScreenMultiPoleCountdown;
+        case InputEvent_HardwareFail: return ScreenHardwareFail;
         default: return ScreenMultiPoleWait;
     }
 }

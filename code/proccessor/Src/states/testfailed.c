@@ -23,6 +23,7 @@ State proccessor_testfailed_handle_event (Event event) {
         case AlertActive: 
             inputevent_enable_hardwarefail();
             return HardwareFail;
+        case TestDeniedByUser: return Idle_Setting;
         default: return TestFailed;
     }
 }

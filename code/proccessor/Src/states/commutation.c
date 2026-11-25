@@ -78,6 +78,7 @@ State proccessor_commutation_handle_event_default (Event event) {
 
         case ReturnToIdle:
             commutator_deny_commutation();
+        case TestDeniedByUser:
             return Idle_Setting;
 
         case AlertActive: 

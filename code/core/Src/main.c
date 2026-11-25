@@ -145,9 +145,7 @@ __attribute__((noreturn)) void main (void) {
         proccessor[tester_state].proccess();
 
         buzzer_routine();
-        if (display_get_render()) {
-            display_routine();
-        }
+        display_routine();
     }
 }
 #pragma clang diagnostic pop

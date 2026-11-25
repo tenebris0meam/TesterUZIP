@@ -7,9 +7,6 @@
 #include "states/generation.h"
 
 void proccessor_commutation_on_enter_checkdevice (void) {
-    // Выключаем ввод
-    // inputevent_deny_input();
-    
     if (test_runtime.current_sequence == NULL) {
         proccessor_raise_event(TestSequenceFinished);
         return;
@@ -26,7 +23,7 @@ void proccessor_commutation_on_enter_checkdevice (void) {
      * прогона меняются только номера выводов и счётчик проверок, то есть
      * ровно то, что обновляется здесь, между проверками.
      */
-    display_allow_render();
+    display_set_updatepolicy(DisplayUpdateEnable);
 
     if (!proccessor_setup_lines()) {
         /*
@@ -51,7 +48,7 @@ void proccessor_commutation_on_enter_probe (void) {
 #endif
 
 void proccessor_commutation_on_exit (void) {
-    display_deny_render();
+    display_set_updatepolicy(DisplayUpdateSuspended);
     return;
 }
 
@@ -64,7 +61,7 @@ State proccessor_commutation_handle_event_default (Event event) {
     switch (event) {
         case CommutationComplete:
             if (test_runtime.current_device->connector_id == Probe) {
-                if (test_runtime.current_type == GasDischargeTube) {
+                if (test_runtime.current_type == (uint8_t)GasDischargeTube) {
                     if (!test_id) {
                         return MultiPoleWaitAlert;
                     } else {

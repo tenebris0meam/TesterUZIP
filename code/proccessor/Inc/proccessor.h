@@ -48,6 +48,7 @@ typedef enum {
     TestResultRecorded,
     TestSequenceFinished,
     ReturnToIdle,
+    TestDeniedByUser,
     OutputData,
     DataOutputed,
     AlertActive,

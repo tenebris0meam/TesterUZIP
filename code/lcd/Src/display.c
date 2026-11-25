@@ -10,7 +10,9 @@
 #include <stdlib.h>
 
 static ScreenID current_screen = ScreenHello;
-static bool is_render_allowed = true;
+static ScreenID previous_screen = ScreenHello;
+static DisplayUpdatePolicy update_policy = DisplayUpdateEnable;
+static bool is_screen_dirty;
 
 static inline void display_draw_buffer (void) {
     for (uint8_t bank_id = 0; bank_id < FB_BANKS; bank_id++) {
@@ -47,24 +49,43 @@ bool display_init (void) {
                  workspace_height_in_chars);
 
     inputevent_enable_init();
-
-    current_screen = ScreenHello;
-    screens[current_screen].on_enter();
-    screens[current_screen].render();
-    display_draw_buffer();
     return true;
 }
 
-void display_routine (void) {
+static void display_proccess_input (void) {
     inputevent_routine();
 
-    InputEvent cur_state = inputevent_get_state();
-    if (cur_state != InputEvent_Count) {
-        ScreenID next_screen = screens[current_screen].handle_event(cur_state);
+    InputEvent cur_event = inputevent_get_state();
+    if (cur_event != InputEvent_Count) {
+        ScreenID next_screen = screens[current_screen].handle_event(cur_event);
         if (next_screen != current_screen) {
-            display_set_screen(next_screen);
+            previous_screen = current_screen;
+            current_screen = next_screen;
+            is_screen_dirty = true;
         }
     }
+    return;
+}
+
+static void display_refresh (void) {
+    if (screens[previous_screen].on_exit) {
+        screens[previous_screen].on_exit();
+    }
+    screens[current_screen].on_enter();
+    return;
+}
+
+void display_routine (void) {
+    display_proccess_input();
+
+    if (update_policy == DisplayUpdateSuspended) {
+        return;
+    }
+    if (is_screen_dirty) {
+        display_refresh();
+        is_screen_dirty = false;
+    }
+
     display_draw_buffer();
     return;
 }
@@ -73,28 +94,7 @@ ScreenID display_get_current_screen (void) {
     return current_screen;
 }
 
-void display_set_screen (ScreenID screen) {
-    if ((screen >= ScreenCount) || (screen == current_screen)) {
-        return;
-    }
-    if (screens[current_screen].on_exit) {
-        screens[current_screen].on_exit();
-    }
-    current_screen = screen;
-    screens[current_screen].on_enter();
+void display_set_updatepolicy (const DisplayUpdatePolicy new_policy) {
+    update_policy = new_policy;
     return;
-}
-
-void display_deny_render (void) {
-    is_render_allowed = false;
-    return;
-}
-
-void display_allow_render (void) {
-    is_render_allowed = true;
-    return;
-}
-
-bool display_get_render (void) {
-    return is_render_allowed;
 }

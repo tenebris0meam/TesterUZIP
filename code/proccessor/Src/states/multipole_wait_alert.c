@@ -1,28 +1,28 @@
 #include "states/multipole_wait_alert.h"
 
-#include "display.h"
 #include "commutator.h"
+#include "display.h"
+#include "ina239.h"
 #include "ina239_user.h"
+#include "input_events.h"
 #include "proccessor.h"
-#include "screens.h"
 #include "stm32f1xx_ll_tim.h"
 #include "tim.h"
+#include "calc.h"
 
 void proccessor_multipole_wait_alert_on_enter (void) {
-    /* Экран штатного тестирования остаётся активным. */
-    display_allow_render();
-    display_set_screen(ScreenMultiPoleWait);
+    display_set_updatepolicy(DisplayUpdateEnable);
 
     /* После предыдущей генерации TIM1_BRK_IRQn мог быть отключён. */
     NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
     NVIC_EnableIRQ(TIM1_BRK_IRQn);
 
     /* Запускаем минимальную генерацию, чтобы замыкание щупов вызвало ALERT. */
-    if (INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(), SOVL_2mA) != INA239_OK) {
+    if (INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(), SOVL_500nA) != INA239_OK) {
         proccessor_raise_event(ReturnToIdle);
         return;
     }
-    if (INA239_WriteShuntUndervoltageLimit(INA239_GetInstance(), -SOVL_2mA) != INA239_OK) {
+    if (INA239_WriteShuntUndervoltageLimit(INA239_GetInstance(), -SOVL_500nA) != INA239_OK) {
         proccessor_raise_event(ReturnToIdle);
         return;
     }
@@ -75,9 +75,10 @@ State proccessor_multipole_wait_alert_handle_event (Event event) {
                 return HardwareFail;
             }
             commutator_allow_commutation();
-
+            inputevent_enable_systemevent();
             return MultiPoleCountdown;
 
+        case TestDeniedByUser: 
         case ReturnToIdle:
             return Idle_Setting;
 

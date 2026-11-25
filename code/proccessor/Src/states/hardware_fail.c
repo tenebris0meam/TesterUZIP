@@ -5,6 +5,7 @@
 #include "ina239.h"
 #include "ina239_user.h"
 #include "delay.h"
+#include "input_events.h"
 #include "main.h"
 #include "proccessor.h"
 #include "resolver.h"
@@ -24,7 +25,7 @@ void proccessor_hardwarefail_on_enter_default (void) {
     proccessor_shutdown_generation();
     commutator_forcedeny_commutation();
     calc_integrator_reset();
-    display_allow_render();
+    display_set_updatepolicy(DisplayUpdateEnable);
 
     buzzer_turn_on();
 
@@ -71,7 +72,7 @@ void proccessor_hardwarefail_on_enter_default (void) {
         /** Ошибка памяти INA239 */
         typefail |= MemoryError;
     }
-    display_set_screen(ScreenHardwareFail);
+    inputevent_enable_hardwarefail();
     return;
 }
 

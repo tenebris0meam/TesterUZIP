@@ -40,6 +40,7 @@ extern "C" {
 #endif
 #define BOVL_RAW        0x6720L // 82.5V limit, 82.5V/3.125mV = 26400
 #define SOVL_2mA        0x2260L // 44 mV limit, 44mV/5uV = 8800
+#define SOVL_500nA      0x0898L // 11 mV limit, 11mV/5uV = 2200
 #define SOVL_MAX        0x7FFFL // 163.83 mV, 163.83 mV / 22 Ohm = 7.45 mA
 #define SOVL_MIN        0x8000L // -163.84 mV
 

@@ -7,8 +7,7 @@ void proccessor_testsequencecomplete_on_enter (void) {
     /* Экран сам перейдёт на итоги: событие увидит inputevent_routine() */
     inputevent_testing_completed();
     buzzer_turn_on();
-    // inputevent_allow_input();
-    display_allow_render();
+    display_set_updatepolicy(DisplayUpdateEnable);
     return;
 }
 

@@ -5,19 +5,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum {
+    DisplayUpdateEnable,
+    DisplayUpdateSuspended
+} DisplayUpdatePolicy;
+
 bool display_init (void);
 ScreenID display_get_current_screen (void);
-
-/**
- * @brief Принудительно перевести экран.
- * @details Нужно процессору: при аппаратной аварии экран должен смениться
- *          сам, без участия оператора. Отрабатывает on_exit прежнего экрана
- *          и on_enter нового, как при обычном переходе.
- */
-void display_set_screen (ScreenID screen);
 void display_routine (void);
-void display_deny_render (void);
-void display_allow_render (void);
-bool display_get_render (void);
+void display_set_updatepolicy (const DisplayUpdatePolicy new_policy);
 
 #endif /* DISPLAY_H_ */

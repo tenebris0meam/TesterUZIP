@@ -6,11 +6,13 @@
 #include "resolver.h"
 #include "ina239.h"
 #include "ina239_user.h"
+#include "screens.h"
 
 void proccessor_idle_on_enter (void) {
     /* Restore the normal overcurrent threshold after leaving manual generation. */
     (void)INA239_WriteShuntOvervoltageLimit(INA239_GetInstance(), (int16_t)SOVL_MAX);
     (void)INA239_WriteShuntUndervoltageLimit(INA239_GetInstance(), (int16_t)SOVL_MIN);
+    display_set_updatepolicy(DisplayUpdateEnable);
     return;
 }
 
@@ -50,6 +52,7 @@ State proccessor_idle_handle_event (Event event) {
         case EnterAccepted:
             switch (display_get_current_screen()) {
                 case ScreenTestRunning:
+                case ScreenMultiPoleWait:
                 case ScreenGeneratorGeneration:
                     return Commutation;
                 default:

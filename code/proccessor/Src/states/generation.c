@@ -1,10 +1,8 @@
 ﻿#include "states/generation.h"
 #include "calc.h"
-#include "display.h"
 #include "ina239.h"
-#include "keyboard.h"
+#include "input_events.h"
 #include "proccessor.h"
-#include "screens.h"
 #include "spi.h"
 #include "system_stm32f1xx.h"
 #include "tim.h"
@@ -22,8 +20,6 @@
 #define GENERATION_STEP_TIMEOUT_MS (1000U)
 
 bool data_was = false;
-static uint8_t num_pressed_cancel = 0;
-static const uint8_t need_num_pressed_cancel = 3;
 int32_t voltage_max_uV = 0;
 int32_t voltage_max_buf[MAX_TESTS_FOR_ONE_GDT] = { 0 };
 volatile uint8_t test_id = 0;
@@ -48,18 +44,6 @@ static bool is_data_old (void) {
     } else {
         return false;
     }
-}
-
-static void proccess_user_test_deny (void) {
-    static Keyboard_ActiveButton prev_active = NoActive;
-    Keyboard_ActiveButton cur_active = keyboard_get_active_button();
-    if (cur_active != prev_active) {
-        if (cur_active == CancelActive) {
-            num_pressed_cancel++;
-        }
-        prev_active = cur_active;
-    }
-    return;
 }
 
 
@@ -143,43 +127,32 @@ void proccessor_generation_proccess_checkdevice_default (void) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
     }
-    proccess_user_test_deny();
     return;
 }
 
 State proccessor_generation_handle_event_checkdevice_default (Event event) {
-    if (num_pressed_cancel == need_num_pressed_cancel) { 
-        proccessor_force_raise_event(ReturnToIdle); 
-    }
-
     switch (event) {
         case DeviceCurrentWithinTheRange: 
-            num_pressed_cancel = 0;
+            if (test_runtime.current_device->connector_id == Probe) {
+                inputevent_enable_systemevent();
+            }
             return TestPassed;
 
         case DeviceVoltageOverVoltage:
         case DeviceCurrentOverCurrent: 
         case DeviceSetpointExhausted:
-        case DeviceVoltageSettleTimeout:
-            num_pressed_cancel = 0;
+        case DeviceVoltageSettleTimeout: 
+            if (test_runtime.current_device->connector_id == Probe) {
+                inputevent_enable_systemevent();
+            }
             return TestFailed;
 
         case DeviceCurrentUnderCurrent: 
         case DeviceVoltageUnderVoltage: return Generation;
 
-        case AlertActive: 
-            num_pressed_cancel = 0;
-            return HardwareFail;
-
-        case ReturnToIdle:
-            if (num_pressed_cancel == need_num_pressed_cancel) {
-                num_pressed_cancel = 0;
-                display_set_screen(ScreenTestDenied);
-                display_allow_render();
-                return Idle_Setting;
-            }
-            num_pressed_cancel = 0;
-            return TestSequenceComplete;
+        case AlertActive: return HardwareFail;
+        case TestDeniedByUser: return Idle_Setting;
+        case ReturnToIdle: return TestSequenceComplete;
 
         default: return Generation;
     }
@@ -222,7 +195,6 @@ void proccessor_generation_proccess_checkdevice_for_GDT (void) {
         proccessor_shutdown_generation();
         proccessor_raise_event(ReturnToIdle);
     }
-    proccess_user_test_deny();
     return;
 }
 
@@ -246,10 +218,6 @@ static inline int32_t get_standard_deviation_from_buf (int32_t *buf, uint32_t nu
 }
 
 State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
-    if (num_pressed_cancel == need_num_pressed_cancel) { 
-        proccessor_force_raise_event(ReturnToIdle); 
-    }
-
     switch (event) {
         case DeviceVoltageUnderVoltage: return Generation;
 
@@ -260,7 +228,6 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
             voltage_max_uV = 0;
             if (test_id + 1 < MAX_TESTS_FOR_ONE_GDT) {
                 test_id++;
-                num_pressed_cancel = 0;
                 return Commutation;
             }
             uint8_t pos = test_runtime.failed_cnt + test_runtime.passed_cnt;
@@ -271,22 +238,11 @@ State proccessor_generation_handle_event_checkdevice_for_GDT (Event event) {
                                     MAX_TESTS_FOR_ONE_GDT);
             test_results[pos].res.current_nA = 0;
             test_id = 0;
-            num_pressed_cancel = 0;
             return TestFailed;
         }
-        case AlertActive: 
-            num_pressed_cancel = 0;
-            return HardwareFail;
-
-        case ReturnToIdle:
-            if (num_pressed_cancel == need_num_pressed_cancel) {
-                display_set_screen(ScreenTestDenied);
-                display_allow_render();
-                num_pressed_cancel = 0;
-                return Idle_Setting;
-            }
-            num_pressed_cancel = 0;
-            return TestSequenceComplete;
+        case AlertActive: return HardwareFail;
+        case TestDeniedByUser: return Idle_Setting;
+        case ReturnToIdle: return TestSequenceComplete;
 
         default: return Generation;
     }

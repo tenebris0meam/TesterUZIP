@@ -85,7 +85,11 @@ ScreenID screen_testconfirm_handle_event (InputEvent event) {
         case InputEvent_ButtonPressed_Cancel: return ScreenMain;
         case InputEvent_ButtonPressed_Enter: 
             proccessor_raise_event(EnterAccepted);
-            return ScreenTestRunning;
+            if (test_runtime.current_device->connector_id == Probe) {
+                return ScreenMultiPoleWait;
+            } else {
+                return ScreenTestRunning;
+            }
         default: return ScreenTestConfirm;
     }
 }

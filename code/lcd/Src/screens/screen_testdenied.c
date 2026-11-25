@@ -1,14 +1,12 @@
 ﻿#include "screens/screen_testdenied.h"
-#include "delay.h"
+#include "input_events.h"
+#include "screens.h"
 #include "strings_def.h"
 #include "framebuffer.h"
 #include "fonts.h"
 
-static const uint32_t delay_testdenied_ms = 1000;
-static uint8_t delay_task;
-
 void screen_testdenied_on_enter (void) {
-    (void)delay_register_task(&delay_task, delay_testdenied_ms, Millis);
+    inputevent_enable_testdenied();
     return;
 }
 
@@ -47,5 +45,8 @@ void screen_testdenied_render (void) {
 }
 
 ScreenID screen_testdenied_handle_event (InputEvent event) {
-    return ((delay_is_not_yet_expired(delay_task)) ? ScreenTestDenied : ScreenMain);
+    switch (event) {
+        case InputEvent_TestDeniedScreenTimeout: return ScreenMain;
+        default: return ScreenTestDenied;
+    }
 }

@@ -1,5 +1,6 @@
 ﻿#include "screens/screen_testrunning.h"
 #include "input_events.h"
+#include "proccessor.h"
 #include "screens.h"
 #include "strings_def.h"
 #include "model.h"
@@ -52,7 +53,11 @@ void screen_testrunning_render (void) {
 
 ScreenID screen_testrunning_handle_event (InputEvent event) {
     switch (event) {
+        case InputEvent_SystemEvent: return ScreenMultiPoleWait;
         case InputEvent_TestSequenceComplete: return ScreenTestResult;
+        case InputEvent_ButtonTripplePressed_Cancel:
+            proccessor_raise_event(TestDeniedByUser);
+            return ScreenTestDenied;
         default: return ScreenTestRunning;
     }
 }

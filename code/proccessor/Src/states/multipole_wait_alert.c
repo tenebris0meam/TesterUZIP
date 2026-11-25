@@ -58,6 +58,7 @@ State proccessor_multipole_wait_alert_handle_event (Event event) {
             TIM1_set_CCR_value(0U);
 
             if (!INA239_MainInit()) {
+                inputevent_enable_hardwarefail();
                 return HardwareFail;
             }
 
@@ -72,6 +73,7 @@ State proccessor_multipole_wait_alert_handle_event (Event event) {
              * даёт реле время завершить переключение до старта генерации.
              */
             if (!proccessor_setup_lines()) {
+                inputevent_enable_hardwarefail();
                 return HardwareFail;
             }
             commutator_allow_commutation();

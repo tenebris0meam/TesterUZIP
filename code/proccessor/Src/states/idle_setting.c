@@ -59,7 +59,9 @@ State proccessor_idle_handle_event (Event event) {
                     return Idle_Setting;
             }
         case ReturnToIdle: return Idle_Setting;
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            inputevent_enable_hardwarefail();
+            return HardwareFail;
         default: return Idle_Setting;
     }
 }

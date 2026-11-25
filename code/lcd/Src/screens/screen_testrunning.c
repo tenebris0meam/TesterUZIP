@@ -53,6 +53,7 @@ void screen_testrunning_render (void) {
 
 ScreenID screen_testrunning_handle_event (InputEvent event) {
     switch (event) {
+        case InputEvent_HardwareFail: return ScreenHardwareFail;
         case InputEvent_SystemEvent: return ScreenMultiPoleWait;
         case InputEvent_TestSequenceComplete: return ScreenTestResult;
         case InputEvent_ButtonTripplePressed_Cancel:

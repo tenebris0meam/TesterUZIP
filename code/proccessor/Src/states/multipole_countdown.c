@@ -28,7 +28,9 @@ State proccessor_multipole_countdown_handle_event (Event event) {
         case CountdownComplete: return Generation;
 
         /* Повторный ALERT уже не является ожидаемым подтверждением. */
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            inputevent_enable_hardwarefail();
+            return HardwareFail;
 
         case TestDeniedByUser: 
         case ReturnToIdle: return Idle_Setting;

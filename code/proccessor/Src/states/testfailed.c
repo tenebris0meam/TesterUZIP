@@ -1,5 +1,6 @@
 ﻿#include "states/testfailed.h"
 #include "model.h"
+#include "input_events.h"
 
 void proccessor_testfailed_on_enter (void) {
     model_handle_test_result();
@@ -19,7 +20,9 @@ State proccessor_testfailed_handle_event (Event event) {
     switch (event) {
         case TestResultRecorded: return Commutation;
         case TestSequenceFinished: return TestSequenceComplete;
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            inputevent_enable_hardwarefail();
+            return HardwareFail;
         default: return TestFailed;
     }
 }

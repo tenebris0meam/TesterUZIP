@@ -150,7 +150,10 @@ State proccessor_generation_handle_event_checkdevice_default (Event event) {
         case DeviceCurrentUnderCurrent: 
         case DeviceVoltageUnderVoltage: return Generation;
 
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            inputevent_enable_hardwarefail();
+            return HardwareFail;
+
         case TestDeniedByUser: return Idle_Setting;
         case ReturnToIdle: return TestSequenceComplete;
 

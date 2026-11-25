@@ -23,7 +23,9 @@ void proccessor_testsequencecomplete_proccess (void) {
 State proccessor_testsequencecomplete_handle_event (Event event) {
     switch (event) {
         case ReturnToIdle: return Idle_Setting;
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            inputevent_enable_hardwarefail();
+            return HardwareFail;
         default: return TestSequenceComplete;
     }
 }

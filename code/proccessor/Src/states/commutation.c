@@ -80,7 +80,9 @@ State proccessor_commutation_handle_event_default (Event event) {
             commutator_deny_commutation();
             return Idle_Setting;
 
-        case AlertActive: return HardwareFail;
+        case AlertActive: 
+            inputevent_enable_hardwarefail();
+            return HardwareFail;
 
         default: return Commutation;
     }

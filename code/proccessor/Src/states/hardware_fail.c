@@ -25,9 +25,6 @@ void proccessor_hardwarefail_on_enter_default (void) {
     proccessor_shutdown_generation();
     commutator_forcedeny_commutation();
     calc_integrator_reset();
-    display_set_updatepolicy(DisplayUpdateEnable);
-
-    buzzer_turn_on();
 
 	INA239_Handle_t *hina = INA239_GetInstance();
 	uint16_t cur_diag_alert = 0;
@@ -72,7 +69,8 @@ void proccessor_hardwarefail_on_enter_default (void) {
         /** Ошибка памяти INA239 */
         typefail |= MemoryError;
     }
-    inputevent_enable_hardwarefail();
+    display_set_updatepolicy(DisplayUpdateEnable);
+    buzzer_turn_on();
     return;
 }
 

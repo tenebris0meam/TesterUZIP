@@ -119,6 +119,7 @@ void inputevent_routine (void) {
                             cur_display_state = InputEvent_ButtonPressed_Cancel;
                         }
                     } else {
+                        cancel_pressed_num = 0;
                         cur_display_state = InputEvent_ButtonPressed_Cancel;
                     }
                 } else {

@@ -5,7 +5,6 @@
 #include "ina239.h"
 #include "ina239_user.h"
 #include "delay.h"
-#include "input_events.h"
 #include "main.h"
 #include "proccessor.h"
 #include "resolver.h"

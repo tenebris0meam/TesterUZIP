@@ -3,10 +3,10 @@
 #include "model.h"
 #include "display.h"
 #include "params.h"
+#include "proccessor.h"
 #include "resolver.h"
 #include "ina239.h"
 #include "ina239_user.h"
-#include "screens.h"
 
 void proccessor_idle_on_enter (void) {
     /* Restore the normal overcurrent threshold after leaving manual generation. */
@@ -49,15 +49,7 @@ void proccessor_idle_proccess (void) {
 
 State proccessor_idle_handle_event (Event event) {
     switch (event) {
-        case EnterAccepted:
-            switch (display_get_current_screen()) {
-                case ScreenTestRunning:
-                case ScreenMultiPoleWait:
-                case ScreenGeneratorGeneration:
-                    return Commutation;
-                default:
-                    return Idle_Setting;
-            }
+        case TestConfirmedByUser: return Commutation;
         case ReturnToIdle: return Idle_Setting;
         case AlertActive: 
             inputevent_enable_hardwarefail();

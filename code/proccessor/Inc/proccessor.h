@@ -37,6 +37,7 @@ typedef enum {
  */
 typedef enum {
     EnterAccepted, 
+    TestConfirmedByUser,
     CommutationComplete, 
     DeviceVoltageUnderVoltage,
     DeviceVoltageOverVoltage,

@@ -41,13 +41,16 @@ bool display_init (void) {
 
     linebuffer_size = workspace_width_in_px + 1; // дополнительный '\0' для си-строк
     linebuffer = (char *)malloc(linebuffer_size);
-
-    options_init(workspace_start_x, 
-                 workspace_start_y, 
-                 FB_WIDTH, 
-                 workspace_height_in_px, 
-                 workspace_height_in_chars);
-
+    if (!linebuffer) {
+        return false;
+    }
+    if (!options_init(workspace_start_x, 
+                      workspace_start_y, 
+                      FB_WIDTH, 
+                      workspace_height_in_px, 
+                      workspace_height_in_chars)) {
+        return false;
+    }
     inputevent_enable_init();
     return true;
 }

@@ -23,7 +23,7 @@ void cursor_init (const OptionRect_TypeDef *options,
                   uint8_t amount_options, 
                   uint8_t initial_index, 
                   uint8_t first_item);
-void options_init (uint8_t start_x_px, 
+bool options_init (uint8_t start_x_px, 
                    uint8_t start_y_px, 
                    uint8_t workspace_width_px, 
                    uint8_t workspace_height_px,

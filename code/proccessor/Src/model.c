@@ -51,21 +51,21 @@ static uint8_t model_get_GDT_tests_num (void) {
 }
 
 bool model_alloc_test_results (const uint8_t num_tests) {
-    if (num_tests >= MODEL_MAX_TESTS) {
+    if (num_tests > MODEL_MAX_TESTS) {
         return false;
     }
 
     test_results = (TestResult_TypeDef *)malloc(num_tests * sizeof(TestResult_TypeDef));
-    if (test_results) {
-        memset(test_results, 0, num_tests * sizeof(TestResult_TypeDef));
-        return true;
-    } else {
+    if (!test_results) {
         return false;
     }
+    memset(test_results, 0, num_tests * sizeof(TestResult_TypeDef));
+    return true;
 }
 
 void model_dealloc_test_results (void) {
     free(test_results);
+    test_results = NULL;
     return;
 }
 

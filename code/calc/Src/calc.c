@@ -20,8 +20,8 @@
 #define CALC_DERIVATIVE_VOLTAGE_MAX (68807339LL) // 500 V/s с учётом делителя напряжения
 #define CALC_SWEEP_TIMEOUT_MS (3000U)
 
-#define CALC_uV_TO_PPM(error_uV) (((error_uV) << 8LL) >> 8LL)
-#define CALC_nA_TO_PPM(error_nA) (((error_nA) << 8LL) >> 7LL)
+#define CALC_uV_TO_PPM(error_uV) (error_uV)
+#define CALC_nA_TO_PPM(error_nA) ((error_nA) * 2)
 
 #define CALC_CC_ENTER_nA (100000L) // 0.1 мА
 #define CALC_CC_TIMEOUT_MS (3000U) // 3 с

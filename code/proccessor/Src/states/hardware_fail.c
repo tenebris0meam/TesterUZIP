@@ -31,6 +31,8 @@ void proccessor_hardwarefail_on_enter_default (void) {
     delay_register_task(&delay_id, 3000, Millis);
     while (INA239_ReadDiagAlert(hina, &cur_diag_alert) != INA239_OK) {
         if (!delay_is_not_yet_expired(delay_id)) {
+            display_set_updatepolicy(DisplayUpdateEnable);
+            buzzer_turn_on();
             return;
         }
     }
@@ -126,6 +128,8 @@ void proccessor_hardwarefail_on_enter_for_GDT (void) {
     delay_register_task(&delay_id, 3000, Millis);
     while (INA239_ReadDiagAlert(hina, &cur_diag_alert) != INA239_OK) {
         if (!delay_is_not_yet_expired(delay_id)) {
+            display_set_updatepolicy(DisplayUpdateEnable);
+            buzzer_turn_on();
             return;
         }
     }
@@ -166,10 +170,14 @@ void proccessor_hardwarefail_on_enter_for_GDT (void) {
 
     if ((typefail & MathOverflow) || (typefail & OverCurrent)) {
         if (!INA239_MainInit()) {
-            Error_Handler();
+            display_set_updatepolicy(DisplayUpdateEnable);
+            buzzer_turn_on();
+            return;
         }
         if (INA239_SetMode(INA239_MODE_CONT_SHUNT_BUS) != INA239_OK) {
-            Error_Handler();
+            display_set_updatepolicy(DisplayUpdateEnable);
+            buzzer_turn_on();
+            return;
         }
         TIM3_Start_Count();
         proccessor_wait_cap_discharge();

@@ -82,6 +82,9 @@ State proccessor_multipole_wait_alert_handle_event (Event event) {
 
         case TestDeniedByUser: 
         case ReturnToIdle:
+            proccessor_shutdown_generation();
+            (void)INA239_SetMode(INA239_MODE_SHUTDOWN);
+            commutator_deny_commutation();
             return Idle_Setting;
 
         default:

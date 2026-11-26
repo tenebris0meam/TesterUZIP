@@ -223,11 +223,10 @@ void proccessor_raise_after_result (void) {
 
 /** @brief Дождаться разрядки конденсатора генератора */
 void proccessor_wait_cap_discharge (void) {
-    uint32_t cur_CYCCNT = DWT->CYCCNT;
-    uint32_t timeout_tick = cur_CYCCNT + SystemCoreClock;
+    uint32_t start_CYCCNT = DWT->CYCCNT;
     const CalcMetrics_TypeDef *metrics;
     do {
-        if (DWT->CYCCNT > timeout_tick) {
+        if ((uint32_t)(DWT->CYCCNT - start_CYCCNT) >= SystemCoreClock) {
             break;
         }
         if (!have_new_data) {

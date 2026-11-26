@@ -1,5 +1,6 @@
 #include "states/multipole_countdown.h"
 
+#include "commutator.h"
 #include "display.h"
 #include "input_events.h"
 #include "multi_pole_test.h"
@@ -33,7 +34,9 @@ State proccessor_multipole_countdown_handle_event (Event event) {
             return HardwareFail;
 
         case TestDeniedByUser: 
-        case ReturnToIdle: return Idle_Setting;
+        case ReturnToIdle: 
+            commutator_deny_commutation();
+            return Idle_Setting;
 
         default: return MultiPoleCountdown;
     }

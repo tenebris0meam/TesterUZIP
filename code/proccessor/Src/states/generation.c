@@ -95,7 +95,7 @@ void proccessor_generation_on_enter_checkdevice (void) {
 void proccessor_generation_on_exit_checkdevice_default (void) {
     model_remember_result((ResolveType)test_runtime.current_type);
     proccessor_shutdown_generation();
-    INA239_SetMode(INA239_MODE_SHUTDOWN);
+    (void)INA239_SetMode(INA239_MODE_SHUTDOWN);
     commutator_deny_commutation();
     calc_integrator_reset();
     return;

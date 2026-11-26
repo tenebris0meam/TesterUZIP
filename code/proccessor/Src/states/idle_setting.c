@@ -38,7 +38,9 @@ void proccessor_idle_on_exit (void) {
         } else if (GDT_num) {
             resolver_set_GDT();
         }
-        (void)model_alloc_test_results(TVS_num + VAR_num + GDT_num);
+        if (!model_alloc_test_results(TVS_num + VAR_num + GDT_num)) {
+            proccessor_raise_event(ReturnToIdle);
+        }
     }
     return;
 }

@@ -7,12 +7,15 @@ Cursor_TypeDef cursor = { 0 };
 OptionRect_TypeDef *options_strg = 0;
 uint8_t options_amount = 0;
 
-void options_init (uint8_t start_x_px, 
+bool options_init (uint8_t start_x_px, 
                    uint8_t start_y_px, 
                    uint8_t workspace_width_px, 
                    uint8_t workspace_height_px,
                    uint8_t workspace_height_chars) {
     options_strg = (OptionRect_TypeDef *)malloc(sizeof(OptionRect_TypeDef) * workspace_height_chars);
+    if (!options_strg) {
+        return false;
+    }
 
     // Первая строка всегда отдаётся под заголовок, 
     // а вторая всегда пропускается, чтобы отделить заголовок от списка
@@ -24,7 +27,7 @@ void options_init (uint8_t start_x_px,
         options_strg[i].w = workspace_width_px;
         options_strg[i].h = glyph_height_px;
     }
-    return;
+    return true;
 }
 
 void cursor_init (const OptionRect_TypeDef *options, 

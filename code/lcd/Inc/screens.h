@@ -29,11 +29,12 @@ typedef enum {
     ScreenCount 
 } ScreenID;
 
+/** @brief Обработчики одного экрана. */
 typedef struct {
-    void (*on_enter) (void);
-    void (*on_exit) (void);
-    void (*render) (void);
-    ScreenID (*handle_event) (InputEvent);
+    void (*on_enter) (void);  /**< Вызывается при переходе на экран */
+    void (*on_exit) (void);  /**< Вызывается при уходе с экрана */
+    void (*render) (void);  /**< Рисует экран (вызывается для каждой полосы кадра) */
+    ScreenID (*handle_event) (InputEvent);  /**< Разбирает событие ввода, возвращает следующий экран */
 } Screen_TypeDef;
 
 /** @brief Какой список имён показывает экран настроек. */

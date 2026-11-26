@@ -139,6 +139,7 @@ FiniteStateMachine proccessor[State_Count] = {
     }
 };
 
+/** @brief Текущее состояние автомата. */
 static State current_state = State_Count;
 volatile Event current_event = Event_Count;
 

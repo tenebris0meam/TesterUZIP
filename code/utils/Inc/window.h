@@ -4,13 +4,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/** @brief Окно фиксированного числа элементов в линейном буфере. */
 typedef struct {
-    uint32_t beg;
-    uint32_t end;
-    uint32_t cnt;
-    uint32_t num_elements;
-    uint32_t element_size;
-    void *buf;
+    uint32_t beg;  /**< Смещение первого элемента, байт */
+    uint32_t end;  /**< Смещение конца данных, байт */
+    uint32_t cnt;  /**< Число элементов в окне */
+    uint32_t num_elements;  /**< Ёмкость окна, элементов */
+    uint32_t element_size;  /**< Размер элемента, байт */
+    void *buf;  /**< Буфер под элементы */
 } Window_TypeDef;
 
 void window_init (Window_TypeDef *hfilt, 

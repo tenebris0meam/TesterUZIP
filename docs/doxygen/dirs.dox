@@ -1,0 +1,59 @@
+/**
+@dir code/proccessor
+@brief Конечный автомат проверки прибора и модель данных.
+@details proccessor.c (таблица состояний), resolver.c (подмена обработчиков по типу
+компонента), model.c (ход проверки, результаты), `states/*` (обработчики состояний),
+multi_pole_test.c (отсчёт после замыкания щупов).
+*/
+
+/**
+@dir code/calc
+@brief Регулятор напряжения/тока и классификация измерений.
+@details calc.c, hv_feedback.h (единственное место, где живёт связь между напряжением
+на выходе генератора, током шунта и показаниями INA239).
+*/
+
+/**
+@dir code/ina239
+@brief Драйвер монитора INA239 (SPI) и обмен кадрами по DMA.
+@details ina239.c - доступ к регистрам; ina239_user.c - инициализация под тестер и кадр запроса VBUS/VSHUNT.
+*/
+
+/**
+@dir code/commutator
+@brief Коммутация линий: мультиплексоры и реле.
+@details commutator.c (логика интерфейсов Probe/RJ45/K1), mux.c, relay.c. Аварийный путь -
+relay_force_off_all() и commutator_forcedeny_commutation() - без задержек, безопасен из прерывания.
+*/
+
+/**
+@dir code/lcd
+@brief Драйвер дисплея NT75451, построчная отрисовка, экраны.
+@details lcd.c, framebuffer.c (одна полоса 128 байт в ОЗУ), display.c, screens.c,
+cursor.c, fonts.c, `screens/*` (по файлу на экран), input_events.c.
+*/
+
+/**
+@dir code/keyboard
+@brief Опрос четырёх кнопок с антидребезгом (вызывается из TIM4).
+*/
+
+/**
+@dir code/buzzer
+@brief Звуковой сигнал.
+*/
+
+/**
+@dir code/configurator
+@brief Модель конфигурации приборов (params.h) и проверка блока во Flash.
+*/
+
+/**
+@dir code/core
+@brief Инициализация и периферия: main.c, gpio.c, spi.c (арбитраж SPI2), dma.c, tim.c, delay.c, flash.c.
+*/
+
+/**
+@dir code/utils
+@brief Вспомогательные средства: strbuf (безопасная сборка строк), window, critical_section, utils.
+*/

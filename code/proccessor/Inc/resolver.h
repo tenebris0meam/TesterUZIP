@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+/** @brief Режим работы тестера. */
 typedef enum {
     CheckDevice,
     CheckComponent,
@@ -12,6 +13,7 @@ typedef enum {
     Modes_Count
 } Modes_TypeDef;
 
+/** @brief Тип проверяемого компонента; от него зависят обработчики Generation и HardwareFail. */
 typedef enum {
     TransientVoltageSupressor, 
     Varistor, 

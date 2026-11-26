@@ -14,6 +14,7 @@
  *          который лежит там же.
  */
 
+/** @brief Максимальная длина имени устройства в символах */
 #define MAX_NAME_SIZE (31)
 
 /** @brief Сигнатура блока конфигурации: 'T','U','Z','P'. */
@@ -22,6 +23,7 @@
 /** @brief Версия формата блока конфигурации. Поднимать при смене раскладки. */
 #define CONFIG_VERSION (1UL)
 
+/** @brief Разъём подключения прибора (ConnectorID в конфигурации). */
 typedef enum {
     Probe, 
     RJ45, 
@@ -39,6 +41,7 @@ typedef struct {
 
 
 
+/** @brief Длина строки [beg, end) в байтах. */
 static inline uint32_t MyString_GetSize (const MyString *const str) {
     return ((uint32_t)(str->end - str->beg));
 }
@@ -51,19 +54,22 @@ typedef struct {
     uint8_t output_pin;
 } Params_TestSequence_TypeDef;
 
+/** @brief Окно напряжения одной проверки. */
 typedef struct {
-    uint16_t min_voltage;
-    uint16_t max_voltage;
+    uint16_t min_voltage;  /**< Нижняя граница окна напряжения, В */
+    uint16_t max_voltage;  /**< Верхняя граница окна напряжения, В */
 } Params_TestParam_TypeDef;
 
+/** @brief Шаг прибора: последовательность выводов и параметры теста. */
 typedef struct {
-    uint8_t seq_idx;
-    uint8_t test_param_idx;
+    uint8_t seq_idx;  /**< Индекс в params.sequences */
+    uint8_t test_param_idx;  /**< Индекс в массиве параметров теста нужного типа */
 } Params_TestSeq_TypeDef;
 
+/** @brief Непрерывный диапазон позиций в плоском массиве. */
 typedef struct {
-    uint8_t begin_idx;
-    uint8_t count;
+    uint8_t begin_idx;  /**< Индекс первого элемента диапазона */
+    uint8_t count;  /**< Число элементов в диапазоне */
 } Params_Range_TypeDef;
 
 /** @brief Описание одного испытуемого прибора. */
@@ -118,28 +124,36 @@ extern const Params_TypeDef params;
 
 
 
+/** @brief Число серий. */
 static inline uint8_t params_get_series_num (const Params_TypeDef *cfg) {
     return cfg->series_count;
 }
+/** @brief Число групп. */
 static inline uint8_t params_get_groups_num (const Params_TypeDef *cfg) {
     return cfg->groups_count;
 }
+/** @brief Число приборов. */
 static inline uint8_t params_get_devices_num (const Params_TypeDef *cfg) {
     return cfg->devices_count;
 }
+/** @brief Число тестовых последовательностей. */
 static inline uint8_t params_get_sequences_num (const Params_TypeDef *cfg) {
     return cfg->sequences_count;
 }
+/** @brief Число параметров теста для диода (TVS). */
 static inline uint8_t params_get_testparams_num_for_TVS (const Params_TypeDef *cfg) {
     return cfg->test_params_count0;
 }
+/** @brief Число параметров теста для варистора. */
 static inline uint8_t params_get_testparams_num_for_VAR (const Params_TypeDef *cfg) {
     return cfg->test_params_count1;
 }
+/** @brief Число параметров теста для газового разрядника. */
 static inline uint8_t params_get_testparams_num_for_GDT (const Params_TypeDef *cfg) {
     return cfg->test_params_count2;
 }
 
+/** @brief Имя серии; 0, если индекс вне каталога. */
 static inline 
 const MyString *params_get_seria_name (const Params_TypeDef *cfg, 
                                        uint8_t ser_idx) {
@@ -148,6 +162,7 @@ const MyString *params_get_seria_name (const Params_TypeDef *cfg,
             0);
 }
 
+/** @brief Имя группы; 0, если индекс вне каталога. */
 static inline 
 const MyString *params_get_group_name (const Params_TypeDef *cfg, 
                                        uint8_t grp_idx) {
@@ -156,6 +171,7 @@ const MyString *params_get_group_name (const Params_TypeDef *cfg,
             0);
 }
 
+/** @brief Имя прибора; 0, если индекс вне каталога. */
 static inline 
 const MyString *params_get_device_name (const Params_TypeDef *cfg, 
                                         uint8_t dev_idx) {
@@ -164,6 +180,7 @@ const MyString *params_get_device_name (const Params_TypeDef *cfg,
             0);
 }
 
+/** @brief Пара выводов тестовой последовательности; 0, если индекс вне каталога. */
 static inline 
 const Params_TestSequence_TypeDef *params_get_sequence (const Params_TypeDef *cfg, 
                                                         uint8_t seq_idx) {
@@ -172,6 +189,7 @@ const Params_TestSequence_TypeDef *params_get_sequence (const Params_TypeDef *cf
             0);
 }
 
+/** @brief Описание прибора; 0, если индекс вне каталога. */
 static inline 
 const Params_Device_TypeDef *params_get_device (const Params_TypeDef *cfg, 
                                                 uint8_t dev_idx) {
@@ -180,6 +198,7 @@ const Params_Device_TypeDef *params_get_device (const Params_TypeDef *cfg,
             0);
 }
 
+/** @brief Диапазон групп, входящих в серию; 0, если индекс вне каталога. */
 static inline 
 const Params_Range_TypeDef *params_get_groups_in_seria (const Params_TypeDef *cfg, 
                                                         uint8_t seria_idx) {
@@ -188,6 +207,7 @@ const Params_Range_TypeDef *params_get_groups_in_seria (const Params_TypeDef *cf
             0);
 }
 
+/** @brief Диапазон приборов, входящих в группу; 0, если индекс вне каталога. */
 static inline 
 const Params_Range_TypeDef *params_get_devices_in_group (const Params_TypeDef *cfg, 
                                                          uint8_t group_idx) {
@@ -196,6 +216,7 @@ const Params_Range_TypeDef *params_get_devices_in_group (const Params_TypeDef *c
             0);
 }
 
+/** @brief Окно напряжения для диода (TVS); 0, если индекс вне каталога. */
 static inline
 const Params_TestParam_TypeDef *params_get_test_params_for_TVS (const Params_TypeDef *cfg, 
                                                                 uint8_t test_idx) {
@@ -204,6 +225,7 @@ const Params_TestParam_TypeDef *params_get_test_params_for_TVS (const Params_Typ
             0);
 }
 
+/** @brief Окно напряжения для варистора; 0, если индекс вне каталога. */
 static inline
 const Params_TestParam_TypeDef *params_get_test_params_for_VAR (const Params_TypeDef *cfg, 
                                                                 uint8_t test_idx) {
@@ -212,6 +234,7 @@ const Params_TestParam_TypeDef *params_get_test_params_for_VAR (const Params_Typ
             0);
 }
 
+/** @brief Окно напряжения для газового разрядника; 0, если индекс вне каталога. */
 static inline
 const Params_TestParam_TypeDef *params_get_test_params_for_GDT (const Params_TypeDef *cfg, 
                                                                 uint8_t test_idx) {

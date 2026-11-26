@@ -9,7 +9,10 @@
  *          диагностики: посчитать занятый объём или CRC.
  */
 
+/** @brief Начало секции .config (символ линковщика). */
 extern char _sconfig[];
+
+/** @brief Конец секции .config (символ линковщика). */
 extern char _econfig[];
 
 #endif // __LINKER_SYMBOLS_H

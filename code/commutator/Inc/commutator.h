@@ -31,12 +31,12 @@ typedef enum {
  * @brief Схема коммутации: какие реле и мультиплексоры за что отвечают.
  */
 typedef struct {
-    const Relay_TypeDef probe_ctrl;
-    const Relay_TypeDef eth_ctrl;
-    const Multiplexer_TypeDef *const positive_datalines_ctrl;
-    const Multiplexer_TypeDef *const negative_datalines_ctrl;
-    const Relay_TypeDef PE_positive_ctrl;
-    const Relay_TypeDef PE_negative_ctrl;
+    const Relay_TypeDef probe_ctrl;  /**< Реле щупов */
+    const Relay_TypeDef eth_ctrl;  /**< Реле разъёма (RJ45 и клеммник K1) */
+    const Multiplexer_TypeDef *const positive_datalines_ctrl;  /**< Мультиплексор плюсовой линии */
+    const Multiplexer_TypeDef *const negative_datalines_ctrl;  /**< Мультиплексор минусовой линии */
+    const Relay_TypeDef PE_positive_ctrl;  /**< Реле экрана RJ45 на плюсовой линии */
+    const Relay_TypeDef PE_negative_ctrl;  /**< Реле экрана RJ45 на минусовой линии */
 } Commutator_TypeDef;
 
 

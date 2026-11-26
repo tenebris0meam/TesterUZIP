@@ -17,6 +17,7 @@
 /** @brief Высота логотипа, пикселей. */
 #define LOGO_HEIGHT (32)
 
+/** @brief Растр логотипа экрана приветствия. */
 extern const uint8_t logo[LOGO_WIDTH * LOGO_HEIGHT / 8];
 
 #endif /* TACHYON_LOGO_H_ */

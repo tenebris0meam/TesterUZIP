@@ -8,9 +8,10 @@
 
 bool GPIO_Init (void);
 
+/** @brief Вывод микроконтроллера: порт и маска пина. */
 typedef struct {
-    GPIO_TypeDef *port;
-    uint32_t pin;
+    GPIO_TypeDef *port;  /**< Порт GPIO */
+    uint32_t pin;  /**< Маска пина (LL_GPIO_PIN_x) */
 } Pin_TypeDef;
 
 extern const Pin_TypeDef BUZZER;

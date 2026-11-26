@@ -16,6 +16,7 @@
 /** @brief Разрядность масок результатов: столько позиций проверки помещается. */
 #define MODEL_MAX_TESTS (32)
 
+/** @brief Сколько пусков газового разрядника усредняется в одной проверке. */
 #define MAX_TESTS_FOR_ONE_GDT 3
 
 /** @brief Что выбрано пользователем на экранах настроек. */
@@ -42,16 +43,20 @@ typedef struct {
     uint32_t done_mask;         /**< бит i: проверка i выполнена  */
     uint32_t pass_mask;         /**< бит i: проверка i пройдена   */
 
-    /** @ref ResolveType */
+    /** @brief Тип текущей проверки (::ResolveType). */
     uint8_t current_type; 
     uint8_t passed_cnt;
     uint8_t failed_cnt;
     bool fail_was;
 } TestRuntime_TypeDef;
 
+/** @brief Выбор оператора, применённый к текущему прибору. */
 extern TestConfig_TypeDef test_config;
+/** @brief Выбор на экранах настроек до подтверждения (применяется в model_select_device()). */
 extern TestConfig_TypeDef test_config_dirty;
+/** @brief Ход текущей проверки. */
 extern TestRuntime_TypeDef test_runtime;
+/** @brief Результаты прогона, по одному на позицию (выделяются malloc). */
 extern TestResult_TypeDef *test_results;
 
 /** @brief Проверить, выбрано ли какое-нибудь устройство */
@@ -90,10 +95,13 @@ const Params_TestParam_TypeDef *model_get_testparams_at (const uint8_t pos, cons
 /** @brief Навести current_sequence на проверку с указанной позицией. */
 void model_point_to (const uint8_t pos);
 
+/** @brief Выделить и обнулить массив результатов прогона. Возвращает false, если памяти нет или проверок слишком много. */
 bool model_alloc_test_results (const uint8_t num_tests);
 
+/** @brief Освободить массив результатов. */
 void model_dealloc_test_results (void);
 
+/** @brief Сохранить текущие метрики calc в результат очередной позиции. */
 void model_remember_result (const ResolveType type);
 
 #endif /* MODEL_H_ */

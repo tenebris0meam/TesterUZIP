@@ -14,11 +14,12 @@ typedef enum {
     ActiveLine8
 } MUX_ActiveLine;
 
+/** @brief Выводы управления мультиплексором. */
 typedef struct {
-    const Pin_TypeDef *const Enable;
-    const Pin_TypeDef *const A;
-    const Pin_TypeDef *const B;
-    const Pin_TypeDef *const C;
+    const Pin_TypeDef *const Enable;  /**< Разрешение работы (активный уровень - низкий) */
+    const Pin_TypeDef *const A;  /**< Адресный вход A (младший разряд) */
+    const Pin_TypeDef *const B;  /**< Адресный вход B */
+    const Pin_TypeDef *const C;  /**< Адресный вход C (старший разряд) */
 } Multiplexer_TypeDef;
 
 extern const Multiplexer_TypeDef MUX_POS;

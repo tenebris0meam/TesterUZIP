@@ -35,65 +35,66 @@ extern "C" {
 #if defined DEBUG
 #define SHUNT_CAL_RAW   0x0339L
 #else 
-#define SHUNT_CAL_RAW   0x0F5CUL // CURRENT_LSB = 32 nA/LSB, SHUNT_CAL = 3932
-#define SOVL_RAW        0x7D00L // 150 mV limit, 160mV/5uV = 32000
+#define SHUNT_CAL_RAW   0x0F5CUL  ///< CURRENT_LSB = 32 nA/LSB, SHUNT_CAL = 3932
+#define SOVL_RAW        0x7D00L  ///< 150 mV limit, 160mV/5uV = 32000
 #endif
-#define BOVL_RAW        0x6720L // 82.5V limit, 82.5V/3.125mV = 26400
-#define SOVL_2mA        0x2260L // 44 mV limit, 44mV/5uV = 8800
-#define SOVL_500nA      0x0898L // 11 mV limit, 11mV/5uV = 2200
-#define SOVL_MAX        0x7FFFL // 163.83 mV, 163.83 mV / 22 Ohm = 7.45 mA
-#define SOVL_MIN        0x8000L // -163.84 mV
+#define BOVL_RAW        0x6720L  ///< 82.5V limit, 82.5V/3.125mV = 26400
+#define SOVL_2mA        0x2260L  ///< 44 mV limit, 44mV/5uV = 8800
+#define SOVL_500nA      0x0898L  ///< 11 mV limit, 11mV/5uV = 2200
+#define SOVL_MAX        0x7FFFL  ///< 163.83 mV, 163.83 mV / 22 Ohm = 7.45 mA
+#define SOVL_MIN        0x8000L  ///< -163.84 mV
 
-#define VBUS_IMPEDANCE_Ohm 0x000F4240L // 1MOhm
+#define VBUS_IMPEDANCE_Ohm 0x000F4240L ///< Входное сопротивление VBUS, Ом (1МОм)
 
 /* =========================================================================
  *  Адреса регистров (datasheet Table 7-3)
  * ========================================================================= */
-#define INA239_REG_CONFIG          0x00U  /* Configuration,                16 бит, R/W */
-#define INA239_REG_ADC_CONFIG      0x01U  /* ADC Configuration,             16 бит, R/W */
-#define INA239_REG_SHUNT_CAL       0x02U  /* Shunt Calibration,             16 бит, R/W */
-#define INA239_REG_VSHUNT          0x04U  /* Shunt Voltage Measurement,     16 бит, R  */
-#define INA239_REG_VBUS            0x05U  /* Bus Voltage Measurement,       16 бит, R  */
-#define INA239_REG_DIETEMP         0x06U  /* Temperature Measurement,       16 бит, R  */
-#define INA239_REG_CURRENT         0x07U  /* Current Result,                16 бит, R  */
-#define INA239_REG_POWER           0x08U  /* Power Result,                  24 бит, R  */
-#define INA239_REG_DIAG_ALRT       0x0BU  /* Diagnostic Flags and Alert,    16 бит, R/W */
-#define INA239_REG_SOVL            0x0CU  /* Shunt Overvoltage Threshold,   16 бит, R/W */
-#define INA239_REG_SUVL            0x0DU  /* Shunt Undervoltage Threshold,  16 бит, R/W */
-#define INA239_REG_BOVL            0x0EU  /* Bus Overvoltage Threshold,     16 бит, R/W */
-#define INA239_REG_BUVL            0x0FU  /* Bus Undervoltage Threshold,    16 бит, R/W */
-#define INA239_REG_TEMP_LIMIT      0x10U  /* Temperature Over-Limit,        16 бит, R/W */
-#define INA239_REG_PWR_LIMIT       0x11U  /* Power Over-Limit Threshold,    16 бит, R/W */
-#define INA239_REG_MANUFACTURER_ID 0x3EU  /* Manufacturer ID ("TI"),        16 бит, R  */
-#define INA239_REG_DEVICE_ID       0x3FU  /* Device ID / Revision,          16 бит, R  */
+#define INA239_REG_CONFIG          0x00U  /**< Configuration,                16 бит, R/W */
+#define INA239_REG_ADC_CONFIG      0x01U  /**< ADC Configuration,             16 бит, R/W */
+#define INA239_REG_SHUNT_CAL       0x02U  /**< Shunt Calibration,             16 бит, R/W */
+#define INA239_REG_VSHUNT          0x04U  /**< Shunt Voltage Measurement,     16 бит, R */
+#define INA239_REG_VBUS            0x05U  /**< Bus Voltage Measurement,       16 бит, R */
+#define INA239_REG_DIETEMP         0x06U  /**< Temperature Measurement,       16 бит, R */
+#define INA239_REG_CURRENT         0x07U  /**< Current Result,                16 бит, R */
+#define INA239_REG_POWER           0x08U  /**< Power Result,                  24 бит, R */
+#define INA239_REG_DIAG_ALRT       0x0BU  /**< Diagnostic Flags and Alert,    16 бит, R/W */
+#define INA239_REG_SOVL            0x0CU  /**< Shunt Overvoltage Threshold,   16 бит, R/W */
+#define INA239_REG_SUVL            0x0DU  /**< Shunt Undervoltage Threshold,  16 бит, R/W */
+#define INA239_REG_BOVL            0x0EU  /**< Bus Overvoltage Threshold,     16 бит, R/W */
+#define INA239_REG_BUVL            0x0FU  /**< Bus Undervoltage Threshold,    16 бит, R/W */
+#define INA239_REG_TEMP_LIMIT      0x10U  /**< Temperature Over-Limit,        16 бит, R/W */
+#define INA239_REG_PWR_LIMIT       0x11U  /**< Power Over-Limit Threshold,    16 бит, R/W */
+#define INA239_REG_MANUFACTURER_ID 0x3EU  /**< Manufacturer ID ("TI"),        16 бит, R */
+#define INA239_REG_DEVICE_ID       0x3FU  /**< Device ID / Revision,          16 бит, R */
 
 /* Ожидаемые значения ID (datasheet 7.6.1.16 / 7.6.1.17) */
-#define INA239_MANUFACTURER_ID_VALUE 0x5449U /* ASCII "TI" */
-#define INA239_DEVICE_ID_VALUE       0x2391U /* DIEID=0x239, REV_ID=0x1 */
+#define INA239_MANUFACTURER_ID_VALUE 0x5449U  /**< ASCII "TI" */
+#define INA239_DEVICE_ID_VALUE       0x2391U  /**< DIEID=0x239, REV_ID=0x1 */
 
 /* =========================================================================
  *  LSB / масштабные коэффициенты (datasheet Table 8-1, Section 7.6.1.x)
  * ========================================================================= */
-#define INA239_VSHUNT_LSB_RANGE0_uV  5U        /* 5 uV/LSB   при ADCRANGE = 0 (±163.84 mV) */
-#define INA239_VSHUNT_LSB_RANGE1_nV  1250U     /* 1.25 uV/LSB при ADCRANGE = 1 (±40.96 mV) */
-#define INA239_VBUS_LSB_uV           3125U     /* 3.125 mV/LSB */
-#define INA239_DIETEMP_LSB_MC        125U      /* 125 m°C/LSB */
+#define INA239_VSHUNT_LSB_RANGE0_uV  5U  /**< 5 uV/LSB   при ADCRANGE = 0 (±163.84 mV) */
+#define INA239_VSHUNT_LSB_RANGE1_nV  1250U  /**< 1.25 uV/LSB при ADCRANGE = 1 (±40.96 mV) */
+#define INA239_VBUS_LSB_uV           3125U  /**< 3.125 mV/LSB */
+#define INA239_DIETEMP_LSB_MC        125U  /**< 125 m°C/LSB */
 #if defined DEBUG
-#define INA239_CURRENT_LSB_nA        46U       /* 46 nA/LSB */
+#define INA239_CURRENT_LSB_nA        46U  /**< 46 nA/LSB */
 #else 
-#define INA239_CURRENT_LSB_nA        32U       /* 32 nA/LSB */
+#define INA239_CURRENT_LSB_nA        32U  /**< 32 nA/LSB */
 #endif
 
 /* =========================================================================
  *  CONFIG register (0x00) — битовые поля (datasheet 7.6.1.1)
  * ========================================================================= */
-#define INA239_CONFIG_RST_Pos        15U
-#define INA239_CONFIG_RST_Msk        (1U << INA239_CONFIG_RST_Pos)
-#define INA239_CONFIG_CONVDLY_Pos    6U
-#define INA239_CONFIG_CONVDLY_Msk    (0xFFU << INA239_CONFIG_CONVDLY_Pos) /* шаг 2 мс, 0..510 мс */
-#define INA239_CONFIG_ADCRANGE_Pos   4U
-#define INA239_CONFIG_ADCRANGE_Msk   (1U << INA239_CONFIG_ADCRANGE_Pos)
+#define INA239_CONFIG_RST_Pos        15U  /**< Позиция поля RST в регистре CONFIG */
+#define INA239_CONFIG_RST_Msk        (1U << INA239_CONFIG_RST_Pos)  /**< Маска поля RST в регистре CONFIG */
+#define INA239_CONFIG_CONVDLY_Pos    6U  /**< Позиция поля CONVDLY в регистре CONFIG */
+#define INA239_CONFIG_CONVDLY_Msk    (0xFFU << INA239_CONFIG_CONVDLY_Pos)  /**< шаг 2 мс, 0..510 мс */
+#define INA239_CONFIG_ADCRANGE_Pos   4U  /**< Позиция поля ADCRANGE в регистре CONFIG */
+#define INA239_CONFIG_ADCRANGE_Msk   (1U << INA239_CONFIG_ADCRANGE_Pos)  /**< Маска поля ADCRANGE в регистре CONFIG */
 
+/** @brief Диапазон измерений падения напряжения на шунте */
 typedef enum {
     INA239_ADCRANGE_163_84_MV = 0, /* ±163.84 mV, 5 uV/LSB    */
     INA239_ADCRANGE_40_96_MV  = 1  /* ±40.96 mV,  1.25 uV/LSB */
@@ -102,18 +103,19 @@ typedef enum {
 /* =========================================================================
  *  ADC_CONFIG register (0x01) — битовые поля (datasheet 7.6.1.2)
  * ========================================================================= */
-#define INA239_ADCCFG_MODE_Pos       12U
-#define INA239_ADCCFG_MODE_Msk       (0xFU << INA239_ADCCFG_MODE_Pos)
-#define INA239_ADCCFG_VBUSCT_Pos     9U
-#define INA239_ADCCFG_VBUSCT_Msk     (0x7U << INA239_ADCCFG_VBUSCT_Pos)
-#define INA239_ADCCFG_VSHCT_Pos      6U
-#define INA239_ADCCFG_VSHCT_Msk      (0x7U << INA239_ADCCFG_VSHCT_Pos)
-#define INA239_ADCCFG_VTCT_Pos       3U
-#define INA239_ADCCFG_VTCT_Msk       (0x7U << INA239_ADCCFG_VTCT_Pos)
-#define INA239_ADCCFG_AVG_Pos        0U
-#define INA239_ADCCFG_AVG_Msk        (0x7U << INA239_ADCCFG_AVG_Pos)
+#define INA239_ADCCFG_MODE_Pos       12U  /**< Позиция поля MODE в регистре ADC_CONFIG */
+#define INA239_ADCCFG_MODE_Msk       (0xFU << INA239_ADCCFG_MODE_Pos)  /**< Маска поля MODE в регистре ADC_CONFIG */
+#define INA239_ADCCFG_VBUSCT_Pos     9U  /**< Позиция поля VBUSCT в регистре ADC_CONFIG */
+#define INA239_ADCCFG_VBUSCT_Msk     (0x7U << INA239_ADCCFG_VBUSCT_Pos)  /**< Маска поля VBUSCT в регистре ADC_CONFIG */
+#define INA239_ADCCFG_VSHCT_Pos      6U  /**< Позиция поля VSHCT в регистре ADC_CONFIG */
+#define INA239_ADCCFG_VSHCT_Msk      (0x7U << INA239_ADCCFG_VSHCT_Pos)  /**< Маска поля VSHCT в регистре ADC_CONFIG */
+#define INA239_ADCCFG_VTCT_Pos       3U  /**< Позиция поля VTCT в регистре ADC_CONFIG */
+#define INA239_ADCCFG_VTCT_Msk       (0x7U << INA239_ADCCFG_VTCT_Pos)  /**< Маска поля VTCT в регистре ADC_CONFIG */
+#define INA239_ADCCFG_AVG_Pos        0U  /**< Позиция поля AVG в регистре ADC_CONFIG */
+#define INA239_ADCCFG_AVG_Msk        (0x7U << INA239_ADCCFG_AVG_Pos)  /**< Маска поля AVG в регистре ADC_CONFIG */
 
 /* MODE (bits 15-12) */
+/** @brief Режим работы АЦП (ADC_CONFIG.MODE). */
 typedef enum {
     INA239_MODE_SHUTDOWN                    = 0x0,
     INA239_MODE_TRIG_BUS                    = 0x1,
@@ -134,6 +136,7 @@ typedef enum {
 } INA239_Mode_t;
 
 /* Время преобразования (общий enum для VBUSCT/VSHCT/VTCT, datasheet 7.6.1.2) */
+/** @brief Время преобразования канала (ADC_CONFIG.VBUSCT/VSHCT/VTCT). */
 typedef enum {
     INA239_CT_50US   = 0x0,
     INA239_CT_84US   = 0x1,
@@ -146,6 +149,7 @@ typedef enum {
 } INA239_ConvTime_t;
 
 /* Усреднение (AVG, biты 2-0) */
+/** @brief Число усреднений (ADC_CONFIG.AVG). */
 typedef enum {
     INA239_AVG_1    = 0x0, /* значение по умолчанию после reset */
     INA239_AVG_4    = 0x1,
@@ -160,36 +164,37 @@ typedef enum {
 /* =========================================================================
  *  DIAG_ALRT register (0x0B) — битовые поля (datasheet 7.6.1.9)
  * ========================================================================= */
-#define INA239_DIAG_ALATCH_Pos     15U
-#define INA239_DIAG_ALATCH_Msk     (1U << INA239_DIAG_ALATCH_Pos)
-#define INA239_DIAG_CNVR_Pos       14U
-#define INA239_DIAG_CNVR_Msk       (1U << INA239_DIAG_CNVR_Pos)
-#define INA239_DIAG_SLOWALERT_Pos  13U
-#define INA239_DIAG_SLOWALERT_Msk  (1U << INA239_DIAG_SLOWALERT_Pos)
-#define INA239_DIAG_APOL_Pos       12U
-#define INA239_DIAG_APOL_Msk       (1U << INA239_DIAG_APOL_Pos)
-#define INA239_DIAG_MATHOF_Pos     9U
-#define INA239_DIAG_MATHOF_Msk     (1U << INA239_DIAG_MATHOF_Pos)
-#define INA239_DIAG_TMPOL_Pos      7U
-#define INA239_DIAG_TMPOL_Msk      (1U << INA239_DIAG_TMPOL_Pos)
-#define INA239_DIAG_SHNTOL_Pos     6U
-#define INA239_DIAG_SHNTOL_Msk     (1U << INA239_DIAG_SHNTOL_Pos)
-#define INA239_DIAG_SHNTUL_Pos     5U
-#define INA239_DIAG_SHNTUL_Msk     (1U << INA239_DIAG_SHNTUL_Pos)
-#define INA239_DIAG_BUSOL_Pos      4U
-#define INA239_DIAG_BUSOL_Msk      (1U << INA239_DIAG_BUSOL_Pos)
-#define INA239_DIAG_BUSUL_Pos      3U
-#define INA239_DIAG_BUSUL_Msk      (1U << INA239_DIAG_BUSUL_Pos)
-#define INA239_DIAG_POL_Pos        2U
-#define INA239_DIAG_POL_Msk        (1U << INA239_DIAG_POL_Pos)
-#define INA239_DIAG_CNVRF_Pos      1U
-#define INA239_DIAG_CNVRF_Msk      (1U << INA239_DIAG_CNVRF_Pos)
-#define INA239_DIAG_MEMSTAT_Pos    0U
-#define INA239_DIAG_MEMSTAT_Msk    (1U << INA239_DIAG_MEMSTAT_Pos)
+#define INA239_DIAG_ALATCH_Pos     15U  /**< Позиция поля ALATCH в регистре DIAG_ALRT */
+#define INA239_DIAG_ALATCH_Msk     (1U << INA239_DIAG_ALATCH_Pos)  /**< Маска поля ALATCH в регистре DIAG_ALRT */
+#define INA239_DIAG_CNVR_Pos       14U  /**< Позиция поля CNVR в регистре DIAG_ALRT */
+#define INA239_DIAG_CNVR_Msk       (1U << INA239_DIAG_CNVR_Pos)  /**< Маска поля CNVR в регистре DIAG_ALRT */
+#define INA239_DIAG_SLOWALERT_Pos  13U  /**< Позиция поля SLOWALERT в регистре DIAG_ALRT */
+#define INA239_DIAG_SLOWALERT_Msk  (1U << INA239_DIAG_SLOWALERT_Pos)  /**< Маска поля SLOWALERT в регистре DIAG_ALRT */
+#define INA239_DIAG_APOL_Pos       12U  /**< Позиция поля APOL в регистре DIAG_ALRT */
+#define INA239_DIAG_APOL_Msk       (1U << INA239_DIAG_APOL_Pos)  /**< Маска поля APOL в регистре DIAG_ALRT */
+#define INA239_DIAG_MATHOF_Pos     9U  /**< Позиция поля MATHOF в регистре DIAG_ALRT */
+#define INA239_DIAG_MATHOF_Msk     (1U << INA239_DIAG_MATHOF_Pos)  /**< Маска поля MATHOF в регистре DIAG_ALRT */
+#define INA239_DIAG_TMPOL_Pos      7U  /**< Позиция поля TMPOL в регистре DIAG_ALRT */
+#define INA239_DIAG_TMPOL_Msk      (1U << INA239_DIAG_TMPOL_Pos)  /**< Маска поля TMPOL в регистре DIAG_ALRT */
+#define INA239_DIAG_SHNTOL_Pos     6U  /**< Позиция поля SHNTOL в регистре DIAG_ALRT */
+#define INA239_DIAG_SHNTOL_Msk     (1U << INA239_DIAG_SHNTOL_Pos)  /**< Маска поля SHNTOL в регистре DIAG_ALRT */
+#define INA239_DIAG_SHNTUL_Pos     5U  /**< Позиция поля SHNTUL в регистре DIAG_ALRT */
+#define INA239_DIAG_SHNTUL_Msk     (1U << INA239_DIAG_SHNTUL_Pos)  /**< Маска поля SHNTUL в регистре DIAG_ALRT */
+#define INA239_DIAG_BUSOL_Pos      4U  /**< Позиция поля BUSOL в регистре DIAG_ALRT */
+#define INA239_DIAG_BUSOL_Msk      (1U << INA239_DIAG_BUSOL_Pos)  /**< Маска поля BUSOL в регистре DIAG_ALRT */
+#define INA239_DIAG_BUSUL_Pos      3U  /**< Позиция поля BUSUL в регистре DIAG_ALRT */
+#define INA239_DIAG_BUSUL_Msk      (1U << INA239_DIAG_BUSUL_Pos)  /**< Маска поля BUSUL в регистре DIAG_ALRT */
+#define INA239_DIAG_POL_Pos        2U  /**< Позиция поля POL в регистре DIAG_ALRT */
+#define INA239_DIAG_POL_Msk        (1U << INA239_DIAG_POL_Pos)  /**< Маска поля POL в регистре DIAG_ALRT */
+#define INA239_DIAG_CNVRF_Pos      1U  /**< Позиция поля CNVRF в регистре DIAG_ALRT */
+#define INA239_DIAG_CNVRF_Msk      (1U << INA239_DIAG_CNVRF_Pos)  /**< Маска поля CNVRF в регистре DIAG_ALRT */
+#define INA239_DIAG_MEMSTAT_Pos    0U  /**< Позиция поля MEMSTAT в регистре DIAG_ALRT */
+#define INA239_DIAG_MEMSTAT_Msk    (1U << INA239_DIAG_MEMSTAT_Pos)  /**< Маска поля MEMSTAT в регистре DIAG_ALRT */
 
 /* =========================================================================
  *  Коды результата операций драйвера
  * ========================================================================= */
+/** @brief Код результата операции драйвера. */
 typedef enum {
     INA239_OK                = 0,
     INA239_ERROR_SPI         = 1, /* ошибка транзакции SPI (HAL_ERROR/HAL_TIMEOUT) */
@@ -200,11 +205,12 @@ typedef enum {
 /* =========================================================================
  *  Хэндл устройства
  * ========================================================================= */
+/** @brief Хэндл устройства INA239: шина, линия CS и таймаут. */
 typedef struct {
-    SPI_TypeDef        *hspi;      /* указатель на SPI-интерфейс HAL              */
-    GPIO_TypeDef       *cs_port;  /* порт GPIO для линии CS (программный CS)     */
-    uint32_t           cs_pin;   /* пин GPIO для линии CS                       */
-    uint32_t           timeout; /* таймаут SPI-транзакций, мс (например, 100)  */
+    SPI_TypeDef        *hspi;      /**< указатель на SPI-интерфейс HAL */
+    GPIO_TypeDef       *cs_port;  /**< порт GPIO для линии CS (программный CS) */
+    uint32_t           cs_pin;   /**< пин GPIO для линии CS */
+    uint32_t           timeout; /**< таймаут SPI-транзакций, мс (например, 100) */
 } INA239_Handle_t;
 
 /* =========================================================================
@@ -247,6 +253,7 @@ INA239_Status_t INA239_Reset(INA239_Handle_t *hdev);
 
 /**
  * @brief  Чтение 16-битного регистра.
+ * @param  hdev     хэндл устройства
  * @param  reg_addr  адрес регистра (6 бит, INA239_REG_*)
  * @param  value     указатель, куда будет записано прочитанное значение
  */
@@ -254,6 +261,7 @@ INA239_Status_t INA239_ReadRegister16(INA239_Handle_t *hdev, uint8_t reg_addr, u
 
 /**
  * @brief  Запись 16-битного регистра.
+ * @param  hdev     хэндл устройства
  * @param  reg_addr  адрес регистра (6 бит, INA239_REG_*)
  * @param  value     значение для записи
  */
@@ -261,6 +269,8 @@ INA239_Status_t INA239_WriteRegister16(INA239_Handle_t *hdev, uint8_t reg_addr, 
 
 /**
  * @brief  Чтение 24-битного регистра (используется только для POWER, 0x08).
+ * @param  hdev     хэндл устройства
+ * @param  reg_addr адрес регистра
  * @param  value  указатель на 32-битную переменную; итоговое значение занимает
  *                младшие 24 бита (старшие 8 бит равны 0).
  */
@@ -331,6 +341,7 @@ INA239_Status_t INA239_ReadPowerRaw(INA239_Handle_t *hdev, uint32_t *raw);
 
 /** @brief Чтение/запись SHUNT_CAL (0x02) в сыром виде (без вычисления по Rshunt/Imax). */
 INA239_Status_t INA239_ReadShuntCal(INA239_Handle_t *hdev, uint16_t *shunt_cal);
+/** @brief Записать SHUNT_CAL (0x02). Бит 15 зарезервирован и маскируется. */
 INA239_Status_t INA239_WriteShuntCal(INA239_Handle_t *hdev, uint16_t shunt_cal);
 
 /** @brief Чтение регистра диагностики/алертов DIAG_ALRT (0x0B). Чтение сбрасывает защёлкнутые флаги (если ALATCH=1). */
@@ -340,10 +351,15 @@ INA239_Status_t INA239_WriteDiagAlert(INA239_Handle_t *hdev, uint16_t diag_alrt)
 
 /** @brief Пороговые регистры — прямой read/write "сырых" кодов (datasheet 7.6.1.10-7.6.1.15). */
 INA239_Status_t INA239_WriteShuntOvervoltageLimit(INA239_Handle_t *hdev, int16_t sovl_raw);
+/** @brief Записать порог SUVL (нижний порог напряжения на шунте), сырой код. */
 INA239_Status_t INA239_WriteShuntUndervoltageLimit(INA239_Handle_t *hdev, int16_t suvl_raw);
+/** @brief Записать порог BOVL (верхний порог напряжения шины), сырой код. */
 INA239_Status_t INA239_WriteBusOvervoltageLimit(INA239_Handle_t *hdev, uint16_t bovl_raw);
+/** @brief Записать порог BUVL (нижний порог напряжения шины), сырой код. */
 INA239_Status_t INA239_WriteBusUndervoltageLimit(INA239_Handle_t *hdev, uint16_t buvl_raw);
+/** @brief Записать порог температуры; код сдвигается на 4 бита влево (биты 15-4). */
 INA239_Status_t INA239_WriteTempLimit(INA239_Handle_t *hdev, int16_t temp_limit_raw);
+/** @brief Записать порог мощности, сырой код. */
 INA239_Status_t INA239_WritePowerLimit(INA239_Handle_t *hdev, uint16_t pwr_limit_raw);
 
 /** @brief Чтение MANUFACTURER_ID (0x3E) — ожидается 0x5449 ("TI"). */

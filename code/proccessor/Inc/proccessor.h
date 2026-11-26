@@ -68,22 +68,28 @@ typedef enum {
     TypeFail_Count = 7
 } TypeFail;
 
+/** @brief Обработчики одного состояния автомата. */
 typedef struct {
-    void (*on_enter) (void);
-    void (*on_exit) (void);
-    void (*proccess) (void);
-    State (*handle_event) (Event);
+    void (*on_enter) (void);  /**< Вызывается при входе в состояние */
+    void (*on_exit) (void);  /**< Вызывается при выходе из состояния */
+    void (*proccess) (void);  /**< Вызывается на каждом проходе главного цикла */
+    State (*handle_event) (Event);  /**< Разбирает событие, возвращает следующее состояние */
 } FiniteStateMachine;
 
+/** @brief Таблица состояний автомата, индекс - ::State. */
 extern FiniteStateMachine proccessor[State_Count];
+/** @brief Событие, ожидающее разбора; ::Event_Count - события нет. */
 extern volatile Event current_event;
 extern volatile TypeFail typefail;
 // extern uint8_t generation_step;
 
 
 
+/** @brief Сбросить сторону вычислений и перевести автомат в Idle_Setting. */
 void proccessor_init_state (void);
+/** @brief Текущее состояние автомата. */
 State proccessor_get_state (void);
+/** @brief Записать новое состояние (on_exit/on_enter вызывает main). */
 void proccessor_change_state (State);
 Commutator_ActiveLine proccessor_line_from_pin (uint8_t pin);
 bool proccessor_more_tests_left (void);
@@ -91,6 +97,7 @@ bool proccessor_setup_lines (void);
 // bool proccessor_apply_setpoint (void);
 void proccessor_raise_after_result (void);
 void proccessor_shutdown_generation (void);
+/** @brief Остановить ШИМ и обнулить скважность без ожидания разряда (для аварийного пути). */
 void proccessor_force_shutdown_generation (void);
 void proccessor_wait_cap_discharge (void);
 

@@ -1,0 +1,138 @@
+/**
+@mainpage Тестер УЗИП
+
+@section intro Назначение
+
+Прошивка настольного тестера устройств защиты от импульсных перенапряжений
+(УЗИП) на **STM32F103C8T6** (Cortex-M3, 60 МГц). Тестер подаёт на прибор
+регулируемое высокое напряжение (до 550 В), измеряет напряжение и ток
+монитором **INA239** и выносит вердикт «исправно / неисправно» по каждой
+проверке. Результаты выводятся на дисплей **MT-12864B** (контроллер NT75451).
+
+| Компонент        | Тип в коде                  | Что проверяется                              |
+|------------------|-----------------------------|----------------------------------------------|
+| Диод (TVS)       | ::TransientVoltageSupressor | напряжение пробоя и ток 0.9...2 мА           |
+| Варистор         | ::Varistor                  | то же, с другими порогами напряжения         |
+| Газовый разрядник| ::GasDischargeTube          | напряжение зажигания (среднее по 3 пускам)   |
+
+@section arch Архитектура
+
+Операционной системы нет: главный цикл (main.c) плюс прерывания.
+
+@code{.c}
+while (true) {
+    Event event = proccessor_take_event();
+    if (event != Event_Count) { ...handle_event(), on_exit(), on_enter()... }
+    proccessor[state].proccess();
+    buzzer_routine();
+    display_routine();
+}
+@endcode
+
+| Прерывание           | Приоритет | Роль                                                  |
+|----------------------|:---------:|-------------------------------------------------------|
+| `TIM1_BRK`           | 0         | аппаратная авария по ALERT INA239: гасит ШИМ и реле   |
+| `DMA1_Channel4/5`    | 1         | завершение обмена SPI2                                |
+| `TIM3`               | 2         | периодический запрос измерений у INA239               |
+| `TIM4`               | 15        | опрос клавиатуры каждые 10 мс                         |
+
+@section fsm Автомат проверки
+
+Автомат описан в proccessor.c: таблица ::proccessor (::FiniteStateMachine) хранит
+для каждого ::State четыре обработчика - `on_enter`, `on_exit`, `proccess`,
+`handle_event`. События (::Event) поднимаются через proccessor_raise_event();
+аварийное AlertActive поднимается через proccessor_force_raise_event() и
+вытесняет любое другое. Обработчики состояний Generation и HardwareFail
+подменяются в resolver.c в зависимости от типа компонента (::ResolveType).
+
+@dot
+digraph fsm {
+    rankdir=LR; node [shape=box, fontsize=10]; edge [fontsize=9];
+    Idle      [label="Idle_Setting"];
+    Comm      [label="Commutation"];
+    WaitAlert [label="MultiPoleWaitAlert\n(только щупы)"];
+    Count     [label="MultiPoleCountdown\n(только щупы)"];
+    Gen       [label="Generation"];
+    Pass      [label="TestPassed"];
+    Fail      [label="TestFailed"];
+    Done      [label="TestSequenceComplete"];
+    HW        [label="HardwareFail", style=filled, fillcolor="#ffd0d0"];
+
+    Idle -> Comm       [label="TestConfirmedByUser"];
+    Comm -> Gen        [label="CommutationComplete"];
+    Comm -> WaitAlert  [label="Probe"];
+    WaitAlert -> Count [label="AlertActive"];
+    Count -> Gen       [label="CountdownComplete"];
+    Gen -> Pass;
+    Gen -> Fail;
+    Pass -> Comm       [label="TestResultRecorded"];
+    Fail -> Comm       [label="TestResultRecorded"];
+    Pass -> Done       [label="TestSequenceFinished"];
+    Fail -> Done       [label="TestSequenceFinished"];
+    Done -> Idle       [label="ReturnToIdle"];
+    HW -> Idle         [label="EnterAccepted"];
+}
+@enddot
+
+Из любого состояния по AlertActive автомат уходит в HardwareFail.
+
+@section algo Алгоритм одной проверки
+
+-# **Коммутация.** proccessor_setup_lines() проверяет диапазон напряжений и
+   линии; при ошибке проверка засчитывается проваленной, напряжение не подаётся.
+-# **Генерация.** Уставка стартует с `min_voltage` и растёт шагами по 1/::GENERATION_MAX_STEPS
+   диапазона после выхода в допуск ::CALC_TARGET_TOLERANCE_PERCENT. На каждом шаге
+   работает сторожевой таймер (::CALC_SWEEP_TIMEOUT_MS).
+-# **Режим стабилизации тока.** При токе ::CALC_CC_ENTER_nA регулятор переходит
+   к стабилизации тока около ::CALC_CURRENT_NOMINAL_nA.
+-# **Вердикт** выносит calc_control() по событиям Device*; для разрядника
+   результат - среднее по ::MAX_TESTS_FOR_ONE_GDT пускам.
+-# **Остановка.** proccessor_shutdown_generation(): ШИМ, обнуление скважности,
+   ожидание разряда конденсатора, затем размыкание коммутации.
+
+@section bus Шина SPI2
+
+INA239 (обмен из прерывания TIM3 по DMA) и дисплей (из главного цикла) делят
+SPI2. Доступ только через ::spi2ctrl: `capture()` атомарен и не отбирает шину
+у владельца, `release()` отдаёт её. Подробные правила - в spi.h.
+
+@section safety Безопасность
+
+Установка высоковольтная, порядок действий важен:
+- скважность обнуляется **до** включения выходов TIM1, выходы гасятся **до** размыкания реле;
+- вход BKIN TIM1 подключён к ALERT INA239 - ШИМ отключается аппаратно;
+- TIM1_BRK_IRQHandler() вызывает commutator_forcedeny_commutation() без задержек;
+- проверка не начинается, пока коммутатор не подтвердил обе линии
+  (commutator_get_active_line());
+- ни один цикл ожидания не бесконечен.
+
+@section config Конфигурация приборов
+
+Каталог приборов (`config/new_config.json`) не разбирается в рантайме:
+`tools/minify_json.py` генерирует C-файл с `const`-структурами (::Params_TypeDef
+::params), которые линкуются в секцию `.config` (регион CONFIG, 8 КБ Flash).
+Структуры описаны в params.h; корректность блока проверяет configurator_read_config().
+
+@section strings Кириллица на дисплее
+
+Кириллические глифы лежат в ASCII-кодах, поэтому строки в strings_def.h
+выглядят «нечитаемо» (`"Reqr"` = «Тест»). Эти определения менять нельзя;
+соответствие кодов буквам - `docs/markdown/character_table.md`.
+
+@section build Сборка
+
+@code{.sh}
+cmake --preset debug      # или release
+cmake --build build
+@endcode
+
+Макросы: `TESTER_MODES` (вольтметр, омметр, генератор). Компилятор - ARM GNU
+Toolchain (`arm-none-eabi-gcc`), библиотека STM32CubeF1, Python 3 для генерации
+конфигурации.
+
+@section docs Документация
+
+Сборка этой документации: `doxygen Doxyfile` из корня репозитория, результат -
+`docs/doxygen/html/index.html`. Для графов нужен Graphviz; список недокументированных
+сущностей - `docs/doxygen/warnings.log`.
+*/

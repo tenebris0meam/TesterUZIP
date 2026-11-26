@@ -62,6 +62,7 @@ _Static_assert((HV_FEEDBACK_MAX_TEST_V * 1000000UL) / HV_FEEDBACK_DIVIDER
 
 /** @brief Проводимость шунта в микросименсах */
 #define HV_SHUNT_CONDUCTANCE_uS 45455UL
+/** @brief Сопротивление шунта, Ом. */
 #define HV_SHUNT_RESISTANCE_Ohm 22L
 
 /** @brief Максимальный ожидаемый ток DUT */

@@ -32,11 +32,12 @@ typedef enum {
     CURRENT
 } RawValType;
 
+/** @brief Состояние интегратора регулятора напряжения. */
 typedef struct {
-    uint32_t target_voltage_uV;
-    uint32_t ramp_voltage_uV;
-    uint32_t start_time_integral;
-    int32_t integral;
+    uint32_t target_voltage_uV;  /**< Уставка после делителя, мкВ */
+    uint32_t ramp_voltage_uV;  /**< Текущее значение рампы уставки, мкВ */
+    uint32_t start_time_integral;  /**< CYCCNT предыдущего шага интегратора */
+    int32_t integral; /**< Накопленное значение; скважность в миллионных долях (ppm) */
 } IntegratorTypeDef;
 
 volatile bool have_new_data = false;

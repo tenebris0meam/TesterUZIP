@@ -14,9 +14,10 @@
 extern volatile bool have_new_data;
 
 
+/** @brief Последнее измерение INA239. */
 typedef struct {
-    int32_t voltage_uV;
-    int32_t current_nA;
+    int32_t voltage_uV;  /**< Напряжение на входе INA239 (после делителя) за вычетом падения на шунте, мкВ */
+    int32_t current_nA;  /**< Ток через шунт, нА */
 } CalcMetrics_TypeDef;
 
 typedef enum {

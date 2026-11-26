@@ -10,12 +10,13 @@
 #define KEYBOARD_COOLDOWN_MS (50)
 #define STABLE_SAMPLES (KEYBOARD_DEBOUNCE_MS / POLL_PERIOD_MS)
 
+/** @brief Состояние одной кнопки при антидребезге. */
 typedef struct {
-    const Pin_TypeDef *button;
-    Keyboard_ButtonNames name;
-    uint8_t cnt;
-    bool is_pressed;
-    bool is_active;
+    const Pin_TypeDef *button;  /**< Пин кнопки */
+    Keyboard_ButtonNames name;  /**< Логическое имя кнопки */
+    uint8_t cnt;  /**< Счётчик подряд идущих отсчётов нового состояния */
+    bool is_pressed;  /**< Подтверждённое состояние: нажата */
+    bool is_active;  /**< Событие по этому нажатию уже выдано */
 } button_t;
 
 static button_t buttons[Button_Count] = {

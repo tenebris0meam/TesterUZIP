@@ -6,3 +6,6 @@ docs/pdf/*
 *.drd
 *.code-workspace
 compile_commands.json
+
+*.log
+docs/doxygen/html

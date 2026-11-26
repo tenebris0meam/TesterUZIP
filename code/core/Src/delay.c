@@ -3,10 +3,11 @@
 
 #define DELAY_MAX_TASKS (32)
 
+/** @brief Задача отсчёта времени по счётчику тактов DWT->CYCCNT. */
 typedef struct {
-    uint32_t register_time;
-    uint32_t requested_delay;
-    bool is_expired;
+    uint32_t register_time;  /**< Значение CYCCNT в момент регистрации */
+    uint32_t requested_delay;  /**< Задержка, тактов ядра */
+    bool is_expired;  /**< Задача свободна или время вышло */
 } DelayTask;
 
 static volatile DelayTask tasks[DELAY_MAX_TASKS] = { 0 };

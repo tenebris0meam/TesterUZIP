@@ -30,8 +30,10 @@
  *             от устройства, см. SPI2_Release_Policy.
  */
 
+/** @brief Размер буфера обмена, байт */
 #define SPI_MAX_BUF_SIZE (256)
 
+/** @brief Режим SPI: SPIxy, x - CPOL, y - CPHA. */
 typedef enum {
     SPI00,
     SPI01,
@@ -39,12 +41,14 @@ typedef enum {
     SPI11
 } SPI_Modes;
 
+/** @brief Направление обмена. */
 typedef enum {
     SPI_FullDuplex,
     SPI_HalfDuplex_RX,
     SPI_HalfDuplex_TX
 } SPI_TransferDirection;
 
+/** @brief Результат обращения к контроллеру шины. */
 typedef enum {
     SPICtrlStatus_Allow,
     SPICtrlStatus_Deny,
@@ -52,6 +56,7 @@ typedef enum {
     SPICtrlStatus_Count
 } SPIController_Status;
 
+/** @brief Устройства на шине SPI2. */
 typedef enum {
     INA239,
     LCD, 
@@ -80,6 +85,7 @@ typedef enum {
     SPI2_ReleaseByOwner
 } SPI2_Release_Policy;
 
+/** @brief Интерфейс контроллера шины SPI2: таблица функций. */
 typedef struct {
     /**
      * @brief Взять шину. Атомарно, без отъёма у текущего владельца.
@@ -129,6 +135,7 @@ typedef struct {
     SPIController_Status (*wait_done) (uint32_t timeout_ms);
 } SPIController_TypeDef;
 
+/** @brief Единственная точка доступа к шине SPI2. */
 extern const SPIController_TypeDef spi2ctrl;
 
 bool SPI2_Init (void);

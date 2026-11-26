@@ -6,17 +6,18 @@
 
 /** @brief Прямоугольник одного пункта списка на экране. */
 typedef struct {
-    uint8_t x;
-    uint8_t y;
-    uint8_t w;
-    uint8_t h;
+    uint8_t x;  /**< Левый край, пикселей */
+    uint8_t y;  /**< Верхний край, пикселей */
+    uint8_t w;  /**< Ширина, пикселей */
+    uint8_t h;  /**< Высота, пикселей */
 } OptionRect_TypeDef;
 
+/** @brief Состояние курсора в списке. */
 typedef struct {
-    const OptionRect_TypeDef *options;
-    uint8_t count;
-    uint8_t selected_index;
-    uint8_t window_first;
+    const OptionRect_TypeDef *options;  /**< Прямоугольники пунктов списка */
+    uint8_t count;  /**< Число пунктов */
+    uint8_t selected_index;  /**< Индекс выбранного пункта */
+    uint8_t window_first;  /**< Индекс первого видимого пункта (прокрутка) */
 } Cursor_TypeDef;
 
 void cursor_init (const OptionRect_TypeDef *options, 

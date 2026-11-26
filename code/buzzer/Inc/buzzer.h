@@ -3,9 +3,10 @@
 
 #include "gpio.h"
 
+/** @brief Описание зуммера. */
 typedef struct {
-    const Pin_TypeDef *const pin;
-    const uint32_t beep_time_ms;
+    const Pin_TypeDef *const pin;  /**< Пин зуммера (открытый сток, звук при низком уровне) */
+    const uint32_t beep_time_ms;  /**< Длительность одного сигнала, мс */
 } Buzzer_TypeDef;
 
 void buzzer_turn_on (void);
